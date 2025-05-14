@@ -8,16 +8,14 @@ import {
   StatusBar,
   Linking,
   ScrollView,
-  Image,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import ProfileHeader from '../components/ProfileHeader';
 
-// Import icons or use local images
-const FACEBOOK_ICON = require('../assets/icons/facebook.png'); // Replace with your actual icon path
-const TWITTER_ICON = require('../assets/icons/twitter.png'); // Replace with your actual icon path
-const WHATSAPP_ICON = require('../assets/icons/whatsapp.png'); // Replace with your actual icon path
-const INSTAGRAM_ICON = require('../assets/icons/instagram.png'); // Replace with your actual icon path
+const FACEBOOK_ICON = require('../assets/icons/facebook.png');
+const TWITTER_ICON = require('../assets/icons/twitter.png');
+const WHATSAPP_ICON = require('../assets/icons/whatsapp.png');
+const INSTAGRAM_ICON = require('../assets/icons/instagram.png');
 
 const Support = () => {
   const socialLinks = [
@@ -206,7 +204,7 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: 'bold',
   },
-  // Placeholder styles for when you don't have the actual icons
+  // Placeholder styles
   iconPlaceholder: {
     width: 40,
     height: 40,
