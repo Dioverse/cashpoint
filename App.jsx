@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import "./global.css"
 
 // Import Heroicons
 import {
@@ -50,7 +51,7 @@ function TransactionScreen() {
 
 function ProfileScreen() {
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }} className=''>
       <Text>Profile Screen</Text>
     </View>
   );
