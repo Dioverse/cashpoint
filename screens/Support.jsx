@@ -1,5 +1,4 @@
 // screens/Support.js
-import React from 'react';
 import {
   View,
   Text,
@@ -12,10 +11,10 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import ProfileHeader from '../components/ProfileHeader';
 
-const FACEBOOK_ICON = require('../assets/icons/facebook.png');
-const TWITTER_ICON = require('../assets/icons/twitter.png');
-const WHATSAPP_ICON = require('../assets/icons/whatsapp.png');
-const INSTAGRAM_ICON = require('../assets/icons/instagram.png');
+const FACEBOOK_ICON = require('../assets/facebook.png');
+const TWITTER_ICON = require('../assets/twitter.png');
+const WHATSAPP_ICON = require('../assets/whatsapp.png');
+const INSTAGRAM_ICON = require('../assets/instagram.png');
 
 const Support = () => {
   const socialLinks = [
