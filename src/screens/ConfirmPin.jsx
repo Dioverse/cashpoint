@@ -53,7 +53,7 @@ const ConfirmPin = () => {
       // await api.changePin(pin);
 
       Alert.alert('Success', 'Your PIN has been changed successfully', [
-        {text: 'OK', onPress: () => navigation.navigate('Home')},
+        {text: 'OK', onPress: () => navigation.navigate('Dashboard')},
       ]);
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to change PIN');
