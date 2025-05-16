@@ -29,7 +29,7 @@ import SignupScreen from './src/screens/SignupScreen';
 import VerifyScreen from './src/screens/VerifyScreen';
 
 
-import ProfileScreen from './src/screens/ProfileScreen';
+// import ProfileScreen from './src/screens/ProfileScreen';
 import ChangePassword from './src/screens/ChangePassword';
 import ChangePin from './src/screens/ChangePin';
 import ConfirmPin from './src/screens/ConfirmPin';
@@ -149,16 +149,18 @@ export default function App() {
           <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="Verify" component={VerifyScreen} />
 
-          <Stack.Screen name="ProfileMain" component={ProfileScreen} />
+          <Stack.Screen name="Dashboard" component={MyTabs} />
+
+
+          {/* <Stack.Screen name="ProfileMain" component={ProfileScreen} /> */}
           <Stack.Screen name="ChangePassword" component={ChangePassword} />
           <Stack.Screen name="ChangePin" component={ChangePin} />
           <Stack.Screen name="ConfirmPin" component={ConfirmPin} />
           <Stack.Screen name="Terms" component={Terms} />
           <Stack.Screen name="AboutUs" component={AboutUs} />
-          <Stack.Screen name="Support" component={Support} />
+          {/* <Stack.Screen name="Support" component={Support} /> */}
 
 
-          <Stack.Screen name="Dashboard" component={MyTabs} />
         </Stack.Navigator>
       </NavigationContainer>
     </>

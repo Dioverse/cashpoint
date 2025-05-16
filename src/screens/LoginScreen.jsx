@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
   View,
   Text,
@@ -108,14 +109,24 @@ const LoginScreen = () => {
             </View>
 
             {/* Remember Me + Forgot Password */}
-            <View className="flex-row justify-between items-center mt-2">
-              <View className="flex-row items-center">
-                <Switch
-                  value={rememberMe}
-                  onValueChange={(value) => setRememberMe(value)}
-                />
-                <Text className="ml-2 text-sm text-gray-700">Remember me</Text>
-              </View>
+            <View className="flex-row justify-between items-center mt-2 px-2">
+              <TouchableOpacity
+                onPress={() => setRememberMe(!rememberMe)}
+                className="flex-row items-center"
+              >
+                <View
+                  className={`w-5 h-5 rounded border mr-2 ${
+                    rememberMe ? 'border-gray-400' : 'border-gray-400'
+                  } justify-center items-center`}
+                >
+                  {rememberMe && (
+                    // <Text style={{ color: 'white', fontWeight: 'bold' }}>✓</Text>
+                    <Icon name="check-box" size={15} color="black" />
+                  )}
+                </View>
+                <Text className="text-sm text-gray-700">Remember me</Text>
+              </TouchableOpacity>
+
               <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
                 <Text className="text-sm text-blue-500 font-medium">
                   Forget password?
