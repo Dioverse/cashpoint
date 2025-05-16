@@ -45,7 +45,14 @@ import './global.css';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+const OtherStackWithTab = createNativeStackNavigator();
 
+const OtherStackWithTabScreen = () => (
+  <OtherStackWithTab.Navigator screenOptions={{ headerShown: false }}>
+    <OtherStackWithTab.Screen name="Profile" component={ProfileScreen} />
+    <OtherStackWithTab.Screen name="ChangePassword" component={ChangePassword} />
+  </OtherStackWithTab.Navigator>
+);
 // 🧭 Bottom Tab Navigator (Dashboard)
 const MyTabs = () => (
   <Tab.Navigator
@@ -91,7 +98,31 @@ const MyTabs = () => (
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Fund" component={FundScreen} />
     <Tab.Screen name="Transaction" component={TransactionScreen} />
-    <Tab.Screen name="Profile" component={ProfileScreen} />
+    {/* <Tab.Screen name="Profile" component={ProfileScreen} /> */}
+    <Tab.Screen
+      name="Profile"
+      component={OtherStackWithTabScreen}
+      listeners={({ navigation, route }) => ({
+        tabPress: e => {
+          const state = navigation.getState();
+
+          // Find the currently focused tab
+          const isFocused = state.index === state.routes.findIndex(r => r.key === route.key);
+
+          if (isFocused) {
+            // Prevent default behavior
+            e.preventDefault();
+
+            // Reset the stack to ProfileMain
+            navigation.navigate('Profile', {
+              screen: 'Profile',
+            });
+          }
+        },
+      })}
+    />
+
+
   </Tab.Navigator>
 );
 
@@ -131,7 +162,7 @@ export default function App() {
   const initialRoute = isFirstLaunch
     ? 'Onboarding'
     : isAuthenticated
-    ? 'Dashboard'
+    ? 'ChangePassword'
     : 'Login';
     // ? 'Login'
     // : 'Dashboard';
@@ -152,8 +183,7 @@ export default function App() {
           <Stack.Screen name="Dashboard" component={MyTabs} />
 
 
-          {/* <Stack.Screen name="ProfileMain" component={ProfileScreen} /> */}
-          <Stack.Screen name="ChangePassword" component={ChangePassword} />
+          {/* <Stack.Screen name="ChangePassword" component={ChangePassword} /> */}
           <Stack.Screen name="ChangePin" component={ChangePin} />
           <Stack.Screen name="ConfirmPin" component={ConfirmPin} />
           <Stack.Screen name="Terms" component={Terms} />
@@ -206,7 +236,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#D9D9D9',
   },
 });
-// App.js
+
 
 
 
