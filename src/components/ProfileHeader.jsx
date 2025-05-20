@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   profileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 40,
   },
   profileImage: {
     width: 40,

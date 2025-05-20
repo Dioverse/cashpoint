@@ -6,6 +6,7 @@ import {
   StyleSheet,
   StatusBar,
   Platform,
+  ImageBackground,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
@@ -33,14 +34,17 @@ import VerifyScreen from './src/screens/VerifyScreen';
 import ChangePassword from './src/screens/ChangePassword';
 import ChangePin from './src/screens/ChangePin';
 import ConfirmPin from './src/screens/ConfirmPin';
+import SellGiftCard from './src/screens/SellGiftCard';
 import Terms from './src/screens/Terms';
 import AboutUs from './src/screens/AboutUs';
 import Support from './src/screens/Support';
+import ProfileUpdateScreen from './src/screens/ProfileUpdateScreen';
 
 
 
 // Splash logo
 import logo from './src/assets/images/1.png';
+import bgImage from './src/assets/images/3.png';
 import './global.css';
 
 const Stack = createNativeStackNavigator();
@@ -48,9 +52,13 @@ const Tab = createBottomTabNavigator();
 const OtherStackWithTab = createNativeStackNavigator();
 
 const OtherStackWithTabScreen = () => (
-  <OtherStackWithTab.Navigator screenOptions={{ headerShown: false }}>
+  <OtherStackWithTab.Navigator initialRouteName="Profile" screenOptions={{ headerShown: false }}>
     <OtherStackWithTab.Screen name="Profile" component={ProfileScreen} />
     <OtherStackWithTab.Screen name="ChangePassword" component={ChangePassword} />
+    <OtherStackWithTab.Screen name="ProfileUpdateScreen" component={ProfileUpdateScreen} />
+    <OtherStackWithTab.Screen name="Terms" component={Terms} />
+    <OtherStackWithTab.Screen name="AboutUs" component={AboutUs} />
+    <OtherStackWithTab.Screen name="Support" component={Support} />
   </OtherStackWithTab.Navigator>
 );
 // 🧭 Bottom Tab Navigator (Dashboard)
@@ -60,7 +68,7 @@ const MyTabs = () => (
       headerShown: false,
       tabBarIcon: ({ focused, color }) => {
         let Icon;
-        const iconProps = { color: focused ? '#000' : color, size: 30 };
+        const iconProps = { color: focused ? '#000' : color, size: 24 };
 
         switch (route.name) {
           case 'Home':
@@ -152,17 +160,19 @@ export default function App() {
 
   if (isLoading || isFirstLaunch === null) {
     return (
-      <View style={styles.splashContainer}>
+      <ImageBackground source={bgImage} style={styles.backgroundImage}>
+      <View style={styles.overlay}>
         <Image source={logo} style={styles.logo} />
         <Text style={styles.splashText}>Cashpoint</Text>
       </View>
+    </ImageBackground>
     );
   }
 
   const initialRoute = isFirstLaunch
     ? 'Onboarding'
     : isAuthenticated
-    ? 'ChangePassword'
+    ? 'Dashboard'
     : 'Login';
     // ? 'Login'
     // : 'Dashboard';
@@ -186,9 +196,9 @@ export default function App() {
           {/* <Stack.Screen name="ChangePassword" component={ChangePassword} /> */}
           <Stack.Screen name="ChangePin" component={ChangePin} />
           <Stack.Screen name="ConfirmPin" component={ConfirmPin} />
-          <Stack.Screen name="Terms" component={Terms} />
-          <Stack.Screen name="AboutUs" component={AboutUs} />
-          {/* <Stack.Screen name="Support" component={Support} /> */}
+          <Stack.Screen name="SellGiftCard" component={SellGiftCard} />
+          
+          
 
 
         </Stack.Navigator>
@@ -199,11 +209,18 @@ export default function App() {
 
 // 🎨 Styles
 const styles = StyleSheet.create({
-  splashContainer: {
+  backgroundImage: {
     flex: 1,
+    resizeMode: 'cover',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#3C3ADD',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(60, 58, 221, 0.93)', // semi-transparent blue
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
   },
   logo: {
     width: 120,
@@ -211,10 +228,10 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   splashText: {
-    // marginTop: 5,
     fontSize: 25,
     fontWeight: 'bold',
     color: '#fff',
+    marginTop: 10,
   },
   tabBar: {
     backgroundColor: '#ffffff',
@@ -236,21 +253,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#D9D9D9',
   },
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
