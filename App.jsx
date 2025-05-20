@@ -44,6 +44,12 @@ import ConfirmAirtime from './src/screens/ConfirmAirtime';
 import Pin from './src/screens/Pin';
 import Receipt from './src/screens/Receipt';
 import LockFunds from './src/screens/LockFunds';
+import Notifications from './src/screens/Notifications';
+import Referral from './src/screens/Referral';
+import FundWallet from './src/screens/FundWallet';
+import Transfer from './src/screens/Transfer';
+import WalletReferral from './src/screens/WalletReferral';
+import Leaderboard from './src/screens/Leaderboard';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -189,6 +195,12 @@ export default function App() {
           <ServicesStack.Screen name="Pin" component={Pin} />
           <ServicesStack.Screen name="Receipt" component={Receipt} />
           <Stack.Screen name="LockFunds" component={LockFunds} />
+          <Stack.Screen name="Notifications" component={Notifications} />
+          <Stack.Screen name="Referral" component={Referral} />
+          <Stack.Screen name="FundWallet" component={FundWallet} />
+          <Stack.Screen name="Transfer" component={Transfer} />
+          <Stack.Screen name="WalletReferral" component={WalletReferral} />
+          <Stack.Screen name="Leaderboard" component={Leaderboard} />
         </Stack.Navigator>
       </NavigationContainer>
     </>
