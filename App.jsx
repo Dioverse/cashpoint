@@ -1,3 +1,4 @@
+// App.js
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -28,9 +29,6 @@ import OnboardingScreen from './src/screens/OnboardingScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import VerifyScreen from './src/screens/VerifyScreen';
-
-
-// import ProfileScreen from './src/screens/ProfileScreen';
 import ChangePassword from './src/screens/ChangePassword';
 import ChangePin from './src/screens/ChangePin';
 import ConfirmPin from './src/screens/ConfirmPin';
@@ -40,28 +38,60 @@ import AboutUs from './src/screens/AboutUs';
 import Support from './src/screens/Support';
 import ProfileUpdateScreen from './src/screens/ProfileUpdateScreen';
 
+// Service Screens
+import MoreServices from './src/screens/MoreServices';
+import Airtime from './src/screens/Airtime';
+import Data from './src/screens/Data';
+import Electricity from './src/screens/Electricity';
+import Cable from './src/screens/Cable';
+import Swap from './src/screens/Swap';
+import SaveEarn from './src/screens/SaveEarn';
+import Education from './src/screens/Education';
+import ConfirmAirtime from './src/screens/ConfirmAirtime';
+import Pin from './src/screens/Pin';
+import Receipt from './src/screens/Receipt';
+import LockFunds from './src/screens/LockFunds';
 
-
-// Splash logo
+// Assets
 import logo from './src/assets/images/1.png';
 import bgImage from './src/assets/images/3.png';
 import './global.css';
 
+// Navigators
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
-const OtherStackWithTab = createNativeStackNavigator();
+const ServicesStack = createNativeStackNavigator();
+const ProfileStack = createNativeStackNavigator();
 
-const OtherStackWithTabScreen = () => (
-  <OtherStackWithTab.Navigator initialRouteName="Profile" screenOptions={{ headerShown: false }}>
-    <OtherStackWithTab.Screen name="Profile" component={ProfileScreen} />
-    <OtherStackWithTab.Screen name="ChangePassword" component={ChangePassword} />
-    <OtherStackWithTab.Screen name="ProfileUpdateScreen" component={ProfileUpdateScreen} />
-    <OtherStackWithTab.Screen name="Terms" component={Terms} />
-    <OtherStackWithTab.Screen name="AboutUs" component={AboutUs} />
-    <OtherStackWithTab.Screen name="Support" component={Support} />
-  </OtherStackWithTab.Navigator>
+function ServicesNav() {
+  return (
+    <ServicesStack.Navigator screenOptions={{ headerShown: false }}>
+      <ServicesStack.Screen name="MoreServicesMain" component={MoreServices} />
+      <ServicesStack.Screen name="BuyAirtime" component={Airtime} />
+      <ServicesStack.Screen name="ConfirmAirtime" component={ConfirmAirtime} />
+      <ServicesStack.Screen name="BuyData" component={Data} />
+      <ServicesStack.Screen name="ElectricityBill" component={Electricity} />
+      <ServicesStack.Screen name="CableTV" component={Cable} />
+      <ServicesStack.Screen name="EducationPIN" component={Education} />
+      <ServicesStack.Screen name="AirtimeSwap" component={Swap} />
+      <ServicesStack.Screen name="SaveAndEarn" component={SaveEarn} />
+    </ServicesStack.Navigator>
+  );
+}
+
+const ProfileStackScreen = () => (
+  <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
+    <ProfileStack.Screen name="Profile" component={ProfileScreen} />
+    <ProfileStack.Screen name="ChangePassword" component={ChangePassword} />
+    <ProfileStack.Screen name="ProfileUpdateScreen" component={ProfileUpdateScreen} />
+    <ProfileStack.Screen name="Terms" component={Terms} />
+    <ProfileStack.Screen name="AboutUs" component={AboutUs} />
+    <ProfileStack.Screen name="Support" component={Support} />
+    <ProfileStack.Screen name="MoreServices" component={ServicesNav} />
+  </ProfileStack.Navigator>
 );
-// 🧭 Bottom Tab Navigator (Dashboard)
+
+// Tab Navigation
 const MyTabs = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
@@ -69,7 +99,6 @@ const MyTabs = () => (
       tabBarIcon: ({ focused, color }) => {
         let Icon;
         const iconProps = { color: focused ? '#000' : color, size: 24 };
-
         switch (route.name) {
           case 'Home':
             Icon = HomeIcon;
@@ -84,7 +113,6 @@ const MyTabs = () => (
             Icon = UsersIcon;
             break;
         }
-
         return (
           <View style={[styles.iconWrapper, focused ? styles.focusedIcon : null]}>
             <Icon {...iconProps} />
@@ -93,9 +121,7 @@ const MyTabs = () => (
       },
       tabBarActiveTintColor: 'black',
       tabBarInactiveTintColor: 'black',
-      tabBarLabelStyle: {
-        fontWeight: 'bold',
-      },
+      tabBarLabelStyle: { fontWeight: 'bold' },
       tabBarStyle: [
         styles.tabBar,
         Platform.OS === 'android' && { height: 65 },
@@ -106,35 +132,24 @@ const MyTabs = () => (
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Fund" component={FundScreen} />
     <Tab.Screen name="Transaction" component={TransactionScreen} />
-    {/* <Tab.Screen name="Profile" component={ProfileScreen} /> */}
     <Tab.Screen
       name="Profile"
-      component={OtherStackWithTabScreen}
+      component={ProfileStackScreen}
       listeners={({ navigation, route }) => ({
         tabPress: e => {
           const state = navigation.getState();
-
-          // Find the currently focused tab
           const isFocused = state.index === state.routes.findIndex(r => r.key === route.key);
-
           if (isFocused) {
-            // Prevent default behavior
             e.preventDefault();
-
-            // Reset the stack to ProfileMain
-            navigation.navigate('Profile', {
-              screen: 'Profile',
-            });
+            navigation.navigate('Profile', { screen: 'Profile' });
           }
         },
       })}
     />
-
-
   </Tab.Navigator>
 );
 
-// 🧠 App Root
+// App Root
 export default function App() {
   const [isFirstLaunch, setIsFirstLaunch] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -145,27 +160,25 @@ export default function App() {
       try {
         const hasLaunched = await AsyncStorage.getItem('hasLaunched');
         const userToken = await AsyncStorage.getItem('userToken');
-
         setIsFirstLaunch(hasLaunched === null);
         setIsAuthenticated(!!userToken);
       } catch (error) {
         console.error('App init error:', error);
       } finally {
-        setTimeout(() => setIsLoading(false), 2000); // Splash delay
+        setTimeout(() => setIsLoading(false), 2000);
       }
     };
-
     initializeApp();
   }, []);
 
   if (isLoading || isFirstLaunch === null) {
     return (
       <ImageBackground source={bgImage} style={styles.backgroundImage}>
-      <View style={styles.overlay}>
-        <Image source={logo} style={styles.logo} />
-        <Text style={styles.splashText}>Cashpoint</Text>
-      </View>
-    </ImageBackground>
+        <View style={styles.overlay}>
+          <Image source={logo} style={styles.logo} />
+          <Text style={styles.splashText}>Cashpoint</Text>
+        </View>
+      </ImageBackground>
     );
   }
 
@@ -174,40 +187,31 @@ export default function App() {
     : isAuthenticated
     ? 'Dashboard'
     : 'Login';
-    // ? 'Login'
-    // : 'Dashboard';
 
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{ headerShown: false }}
-          initialRouteName={initialRoute}
-        >
+        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute}>
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="Verify" component={VerifyScreen} />
-
           <Stack.Screen name="Dashboard" component={MyTabs} />
-
-
-          {/* <Stack.Screen name="ChangePassword" component={ChangePassword} /> */}
           <Stack.Screen name="ChangePin" component={ChangePin} />
           <Stack.Screen name="ConfirmPin" component={ConfirmPin} />
           <Stack.Screen name="SellGiftCard" component={SellGiftCard} />
-          
-          
-
-
+          <Stack.Screen name="MoreServices" component={ServicesNav} />
+          <Stack.Screen name="Pin" component={Pin} />
+          <Stack.Screen name="Receipt" component={Receipt} />
+          <Stack.Screen name="LockFunds" component={LockFunds} />
         </Stack.Navigator>
       </NavigationContainer>
     </>
   );
 }
 
-// 🎨 Styles
+// Styles
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
@@ -217,7 +221,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(60, 58, 221, 0.93)', // semi-transparent blue
+    backgroundColor: 'rgba(60, 58, 221, 0.93)',
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',

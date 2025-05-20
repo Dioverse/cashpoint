@@ -54,7 +54,9 @@ export default function HomeScreen({ navigation }) {
           title="More Services"
           description="Buy data, purchase airtime and utilities..."
           icon={<FontAwesome5 name="plus-square" size={20} color="#fff" />}
-          onPress={() => navigation.navigate('Dashboard')}
+          // onPress={() => navigation.navigate('Dashboard')}
+          onPress={() => navigation.navigate('MoreServices')}
+
         />
       </View>
 
