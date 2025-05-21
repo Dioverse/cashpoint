@@ -1,5 +1,5 @@
 // App.js
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Image,
@@ -10,9 +10,9 @@ import {
   ImageBackground,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {
   HomeIcon,
   PlusIcon,
@@ -67,11 +67,10 @@ import './global.css';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const ServicesStack = createNativeStackNavigator();
-const ProfileStack = createNativeStackNavigator();
 
 function ServicesNav() {
   return (
-    <ServicesStack.Navigator screenOptions={{ headerShown: false }}>
+    <ServicesStack.Navigator screenOptions={{headerShown: false}}>
       <ServicesStack.Screen name="MoreServicesMain" component={MoreServices} />
       <ServicesStack.Screen name="BuyAirtime" component={Airtime} />
       <ServicesStack.Screen name="ConfirmAirtime" component={ConfirmAirtime} />
@@ -86,25 +85,25 @@ function ServicesNav() {
 }
 
 const ProfileStackScreen = () => (
-  <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
-    <ProfileStack.Screen name="Profile" component={ProfileScreen} />
-    <ProfileStack.Screen name="ChangePassword" component={ChangePassword} />
-    <ProfileStack.Screen name="ProfileUpdateScreen" component={ProfileUpdateScreen} />
-    <ProfileStack.Screen name="Terms" component={Terms} />
-    <ProfileStack.Screen name="AboutUs" component={AboutUs} />
-    <ProfileStack.Screen name="Support" component={Support} />
-    <ProfileStack.Screen name="MoreServices" component={ServicesNav} />
-  </ProfileStack.Navigator>
+  <Stack.Navigator screenOptions={{headerShown: false}}>
+    <Stack.Screen name="Profile" component={ProfileScreen} />
+    <Stack.Screen name="ChangePassword" component={ChangePassword} />
+    <Stack.Screen name="ProfileUpdateScreen" component={ProfileUpdateScreen} />
+    <Stack.Screen name="Terms" component={Terms} />
+    <Stack.Screen name="AboutUs" component={AboutUs} />
+    <Stack.Screen name="Support" component={Support} />
+    <Stack.Screen name="MoreServices" component={ServicesNav} />
+  </Stack.Navigator>
 );
 
 // Tab Navigation
 const MyTabs = () => (
   <Tab.Navigator
-    screenOptions={({ route }) => ({
+    screenOptions={({route}) => ({
       headerShown: false,
-      tabBarIcon: ({ focused, color }) => {
+      tabBarIcon: ({focused, color}) => {
         let Icon;
-        const iconProps = { color: focused ? '#000' : color, size: 24 };
+        const iconProps = {color: focused ? '#000' : color, size: 24};
         switch (route.name) {
           case 'Home':
             Icon = HomeIcon;
@@ -120,34 +119,35 @@ const MyTabs = () => (
             break;
         }
         return (
-          <View style={[styles.iconWrapper, focused ? styles.focusedIcon : null]}>
+          <View
+            style={[styles.iconWrapper, focused ? styles.focusedIcon : null]}>
             <Icon {...iconProps} />
           </View>
         );
       },
       tabBarActiveTintColor: 'black',
       tabBarInactiveTintColor: 'black',
-      tabBarLabelStyle: { fontWeight: 'bold' },
+      tabBarLabelStyle: {fontWeight: 'bold'},
       tabBarStyle: [
         styles.tabBar,
-        Platform.OS === 'android' && { height: 65 },
-        Platform.OS === 'ios' && { height: 70 },
+        Platform.OS === 'android' && {height: 65},
+        Platform.OS === 'ios' && {height: 70},
       ],
-    })}
-  >
+    })}>
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Fund" component={FundScreen} />
     <Tab.Screen name="Transaction" component={TransactionScreen} />
     <Tab.Screen
       name="Profile"
       component={ProfileStackScreen}
-      listeners={({ navigation, route }) => ({
+      listeners={({navigation, route}) => ({
         tabPress: e => {
           const state = navigation.getState();
-          const isFocused = state.index === state.routes.findIndex(r => r.key === route.key);
+          const isFocused =
+            state.index === state.routes.findIndex(r => r.key === route.key);
           if (isFocused) {
             e.preventDefault();
-            navigation.navigate('Profile', { screen: 'Profile' });
+            navigation.navigate('Profile', {screen: 'Profile'});
           }
         },
       })}
@@ -198,7 +198,9 @@ export default function App() {
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute}>
+        <Stack.Navigator
+          screenOptions={{headerShown: false}}
+          initialRouteName={initialRoute}>
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
@@ -255,7 +257,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     elevation: 0,
     shadowColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
+    shadowOffset: {width: 0, height: 0},
     shadowOpacity: 0,
     shadowRadius: 0,
     paddingBottom: Platform.OS === 'ios' ? 10 : 0,
