@@ -1,9 +1,18 @@
-import {useEffect, useState} from 'react';
-import {View, Image, Text, StyleSheet, StatusBar, Platform} from 'react-native';
+// App.js
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Image,
+  Text,
+  StyleSheet,
+  StatusBar,
+  Platform,
+  ImageBackground,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import {
   HomeIcon,
   PlusIcon,
@@ -20,18 +29,16 @@ import OnboardingScreen from './src/screens/OnboardingScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import VerifyScreen from './src/screens/VerifyScreen';
-
-// import ProfileScreen from './src/screens/ProfileScreen';
 import ChangePassword from './src/screens/ChangePassword';
 import ChangePin from './src/screens/ChangePin';
 import ConfirmPin from './src/screens/ConfirmPin';
+import SellGiftCard from './src/screens/SellGiftCard';
 import Terms from './src/screens/Terms';
 import AboutUs from './src/screens/AboutUs';
 import Support from './src/screens/Support';
+import ProfileUpdateScreen from './src/screens/ProfileUpdateScreen';
 
-// Splash logo
-import logo from './src/assets/images/1.png';
-import './global.css';
+// Service Screens
 import MoreServices from './src/screens/MoreServices';
 import Airtime from './src/screens/Airtime';
 import Data from './src/screens/Data';
@@ -51,13 +58,20 @@ import Transfer from './src/screens/Transfer';
 import WalletReferral from './src/screens/WalletReferral';
 import Leaderboard from './src/screens/Leaderboard';
 
+// Assets
+import logo from './src/assets/images/1.png';
+import bgImage from './src/assets/images/3.png';
+import './global.css';
+
+// Navigators
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const ServicesStack = createNativeStackNavigator();
+const ProfileStack = createNativeStackNavigator();
 
 function ServicesNav() {
   return (
-    <ServicesStack.Navigator screenOptions={{headerShown: false}}>
+    <ServicesStack.Navigator screenOptions={{ headerShown: false }}>
       <ServicesStack.Screen name="MoreServicesMain" component={MoreServices} />
       <ServicesStack.Screen name="BuyAirtime" component={Airtime} />
       <ServicesStack.Screen name="ConfirmAirtime" component={ConfirmAirtime} />
@@ -71,29 +85,26 @@ function ServicesNav() {
   );
 }
 
-function ProfileStack() {
-  return (
-    <Stack.Navigator screenOptions={{headerShown: false}}>
-      <Stack.Screen name="ProfileMain" component={ProfileScreen} />
-      <Stack.Screen name="ChangePassword" component={ChangePassword} />
-      <Stack.Screen name="ChangePin" component={ChangePin} />
-      <Stack.Screen name="ConfirmPin" component={ConfirmPin} />
-      <Stack.Screen name="Terms" component={Terms} />
-      <Stack.Screen name="AboutUs" component={AboutUs} />
-      <Stack.Screen name="Support" component={Support} />
-      <Stack.Screen name="MoreServices" component={ServicesNav} />
-    </Stack.Navigator>
-  );
-}
-// 🧭 Bottom Tab Navigator (Dashboard)
+const ProfileStackScreen = () => (
+  <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
+    <ProfileStack.Screen name="Profile" component={ProfileScreen} />
+    <ProfileStack.Screen name="ChangePassword" component={ChangePassword} />
+    <ProfileStack.Screen name="ProfileUpdateScreen" component={ProfileUpdateScreen} />
+    <ProfileStack.Screen name="Terms" component={Terms} />
+    <ProfileStack.Screen name="AboutUs" component={AboutUs} />
+    <ProfileStack.Screen name="Support" component={Support} />
+    <ProfileStack.Screen name="MoreServices" component={ServicesNav} />
+  </ProfileStack.Navigator>
+);
+
+// Tab Navigation
 const MyTabs = () => (
   <Tab.Navigator
-    screenOptions={({route}) => ({
+    screenOptions={({ route }) => ({
       headerShown: false,
-      tabBarIcon: ({focused, color}) => {
+      tabBarIcon: ({ focused, color }) => {
         let Icon;
-        const iconProps = {color: focused ? '#000' : color, size: 30};
-
+        const iconProps = { color: focused ? '#000' : color, size: 24 };
         switch (route.name) {
           case 'Home':
             Icon = HomeIcon;
@@ -108,33 +119,43 @@ const MyTabs = () => (
             Icon = UsersIcon;
             break;
         }
-
         return (
-          <View
-            style={[styles.iconWrapper, focused ? styles.focusedIcon : null]}>
+          <View style={[styles.iconWrapper, focused ? styles.focusedIcon : null]}>
             <Icon {...iconProps} />
           </View>
         );
       },
       tabBarActiveTintColor: 'black',
       tabBarInactiveTintColor: 'black',
-      tabBarLabelStyle: {
-        fontWeight: 'bold',
-      },
+      tabBarLabelStyle: { fontWeight: 'bold' },
       tabBarStyle: [
         styles.tabBar,
-        Platform.OS === 'android' && {height: 65},
-        Platform.OS === 'ios' && {height: 70},
+        Platform.OS === 'android' && { height: 65 },
+        Platform.OS === 'ios' && { height: 70 },
       ],
-    })}>
+    })}
+  >
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Fund" component={FundScreen} />
     <Tab.Screen name="Transaction" component={TransactionScreen} />
-    <Tab.Screen name="Profile" component={ProfileStack} />
+    <Tab.Screen
+      name="Profile"
+      component={ProfileStackScreen}
+      listeners={({ navigation, route }) => ({
+        tabPress: e => {
+          const state = navigation.getState();
+          const isFocused = state.index === state.routes.findIndex(r => r.key === route.key);
+          if (isFocused) {
+            e.preventDefault();
+            navigation.navigate('Profile', { screen: 'Profile' });
+          }
+        },
+      })}
+    />
   </Tab.Navigator>
 );
 
-// 🧠 App Root
+// App Root
 export default function App() {
   const [isFirstLaunch, setIsFirstLaunch] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -145,43 +166,39 @@ export default function App() {
       try {
         const hasLaunched = await AsyncStorage.getItem('hasLaunched');
         const userToken = await AsyncStorage.getItem('userToken');
-
         setIsFirstLaunch(hasLaunched === null);
         setIsAuthenticated(!!userToken);
       } catch (error) {
         console.error('App init error:', error);
       } finally {
-        setTimeout(() => setIsLoading(false), 2000); // Splash delay
+        setTimeout(() => setIsLoading(false), 2000);
       }
     };
-
     initializeApp();
   }, []);
 
   if (isLoading || isFirstLaunch === null) {
     return (
-      <View style={styles.splashContainer}>
-        <Image source={logo} style={styles.logo} />
-        <Text style={styles.splashText}>Cashpoint</Text>
-      </View>
+      <ImageBackground source={bgImage} style={styles.backgroundImage}>
+        <View style={styles.overlay}>
+          <Image source={logo} style={styles.logo} />
+          <Text style={styles.splashText}>Cashpoint</Text>
+        </View>
+      </ImageBackground>
     );
   }
 
   const initialRoute = isFirstLaunch
     ? 'Onboarding'
     : isAuthenticated
-    ? 'ChangePassword'
+    ? 'Dashboard'
     : 'Login';
-  // ? 'Login'
-  // : 'Dashboard';
 
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{headerShown: false}}
-          initialRouteName={initialRoute}>
+        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute}>
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
@@ -189,11 +206,10 @@ export default function App() {
           <Stack.Screen name="Dashboard" component={MyTabs} />
           <Stack.Screen name="ChangePin" component={ChangePin} />
           <Stack.Screen name="ConfirmPin" component={ConfirmPin} />
-          <Stack.Screen name="Terms" component={Terms} />
-          <Stack.Screen name="AboutUs" component={AboutUs} />
+          <Stack.Screen name="SellGiftCard" component={SellGiftCard} />
           <Stack.Screen name="MoreServices" component={ServicesNav} />
-          <ServicesStack.Screen name="Pin" component={Pin} />
-          <ServicesStack.Screen name="Receipt" component={Receipt} />
+          <Stack.Screen name="Pin" component={Pin} />
+          <Stack.Screen name="Receipt" component={Receipt} />
           <Stack.Screen name="LockFunds" component={LockFunds} />
           <Stack.Screen name="Notifications" component={Notifications} />
           <Stack.Screen name="Referral" component={Referral} />
@@ -207,13 +223,20 @@ export default function App() {
   );
 }
 
-// 🎨 Styles
+// Styles
 const styles = StyleSheet.create({
-  splashContainer: {
+  backgroundImage: {
     flex: 1,
+    resizeMode: 'cover',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#3C3ADD',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(60, 58, 221, 0.93)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
   },
   logo: {
     width: 120,
@@ -221,10 +244,10 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   splashText: {
-    // marginTop: 5,
     fontSize: 25,
     fontWeight: 'bold',
     color: '#fff',
+    marginTop: 10,
   },
   tabBar: {
     backgroundColor: '#ffffff',
@@ -232,7 +255,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     elevation: 0,
     shadowColor: 'transparent',
-    shadowOffset: {width: 0, height: 0},
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
     shadowRadius: 0,
     paddingBottom: Platform.OS === 'ios' ? 10 : 0,

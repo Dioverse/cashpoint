@@ -1,5 +1,5 @@
 // screens/Support.js
-
+import React from 'react';
 import {
   View,
   Text,
@@ -8,37 +8,32 @@ import {
   StatusBar,
   Linking,
   ScrollView,
-  Image,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import ProfileHeader from '../components/ProfileHeader';
-
-const FACEBOOK_ICON = require('../assets/images/facebook.png');
-const TWITTER_ICON = require('../assets/images/twitter.png');
-const WHATSAPP_ICON = require('../assets/images/whatsapp.png');
-const INSTAGRAM_ICON = require('../assets/images/instagram.png');
 
 const Support = () => {
   const socialLinks = [
     {
       name: 'Facebook (Cashpoint)',
       url: 'https://facebook.com/Cashpoint',
-      icon: FACEBOOK_ICON,
+      icon: 'facebook',
     },
     {
       name: 'Twitter',
       url: 'https://x.com/Cashpoint_official',
-      icon: TWITTER_ICON,
+      icon: 'twitter',
     },
     {
       name: 'WhatsApp',
       url: 'https://wa.me/+2349000000000',
-      icon: WHATSAPP_ICON,
+      icon: 'whatsapp',
     },
     {
       name: 'Instagram',
       url: 'https://instagram.com/cashpoint_support',
-      icon: INSTAGRAM_ICON,
+      icon: 'instagram',
     },
   ];
 
@@ -51,8 +46,6 @@ const Support = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#4B39EF" barStyle="light-content" />
-
-      {/* Reusable Profile Header */}
       <ProfileHeader />
 
       <ScrollView style={styles.contentContainer}>
@@ -65,7 +58,13 @@ const Support = () => {
               style={styles.socialLinkItem}
               onPress={() => handleOpenLink(link.url)}>
               <View style={styles.socialLinkContent}>
-                <Image source={link.icon} style={styles.socialIcon} />
+                <View style={styles.iconPlaceholder}>
+                  <Icon
+                    name={link.icon}
+                    size={20}
+                    color="#000"
+                  />
+                </View>
                 <View style={styles.socialTextContainer}>
                   <Text style={styles.socialTitle}>{link.name}</Text>
                   <Text style={styles.socialUrl}>{link.url}</Text>
@@ -114,7 +113,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
@@ -124,9 +123,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  socialIcon: {
-    width: 30,
-    height: 30,
+  iconPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 99,
+    backgroundColor: '#4B72FF1A', 
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 15,
   },
   socialTextContainer: {
@@ -156,32 +159,7 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: 'bold',
   },
-  // Placeholder styles
-  iconPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  iconPlaceholderText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  facebookColor: {
-    backgroundColor: '#3b5998',
-  },
-  twitterColor: {
-    backgroundColor: '#1DA1F2',
-  },
-  whatsappColor: {
-    backgroundColor: '#25D366',
-  },
-  instagramColor: {
-    backgroundColor: '#C13584',
-  },
 });
 
 export default Support;
+

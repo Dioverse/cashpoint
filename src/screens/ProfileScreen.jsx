@@ -63,7 +63,7 @@ function ProfileScreen() {
             title="Personal Information"
             description="See your account information and login details"
             isPersonIcon={true}
-            onPress={() => navigation.navigate('PersonalInformation')}
+            onPress={() => navigation.navigate('ProfileUpdateScreen')}
           />
           <View style={styles.divider} />
           <ProfileItem

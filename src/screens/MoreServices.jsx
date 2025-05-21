@@ -29,7 +29,7 @@ const MoreServices = () => {
   // Service button component
   const ServiceButton = ({title, icon, onPress}) => (
     <TouchableOpacity
-      className="flex-1 border border-[#3C3ADD] rounded-lg p-4 m-1 min-w-[45%] justify-center items-center flex-row"
+      className="flex-1 border border-[#3C3ADD] rounded-lg p-5 m-1 min-w-[45%] justify-center items-center flex-row"
       onPress={onPress}>
       <Text className="text-gray-800 font-medium mr-2">{title}</Text>
       {icon}
@@ -46,7 +46,7 @@ const MoreServices = () => {
     {
       title: 'Sell Giftcard',
       icon: <GiftIcon size={20} color="black" />,
-      onPress: () => navigation.navigate('SellGiftcard'),
+      onPress: () => navigation.navigate('SellGiftCard'),
     },
     {
       title: 'Rate Calculator',
@@ -108,7 +108,7 @@ const MoreServices = () => {
   return (
     <SafeAreaView className="flex-1 bg-[#4B39EF]">
       {/* Header */}
-      <View className="flex-row items-center justify-center px-4 py-4 relative">
+      <View className="flex-row items-center justify-center px-4 py-16 relative">
         <TouchableOpacity
           className="absolute left-4"
           onPress={() => navigation.goBack()}>
