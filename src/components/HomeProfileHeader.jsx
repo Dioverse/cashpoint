@@ -1,12 +1,14 @@
 import React from 'react';
-import {View, Text, Image, StyleSheet} from 'react-native';
+import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 
-const HomeProfileHeader = ({imageUrl, badgeCount = 0}) => {
+const HomeProfileHeader = ({imageUrl, badgeCount = 0,navigation}) => {
   return (
     <View style={styles.headerContainer} className='mb-2'>
-      <View style={styles.profileContainer}>
+      
+      <TouchableOpacity style={styles.profileContainer}  
+      onPress={() => navigation.navigate('Profile')}>
         <Image
           source={{uri: imageUrl}}
           style={styles.profileImage}
@@ -14,17 +16,19 @@ const HomeProfileHeader = ({imageUrl, badgeCount = 0}) => {
         <Text style={styles.welcomeText}>
           Welcome, <Text style={styles.userName}>Alex!</Text>
         </Text>
-      </View>
+      </TouchableOpacity>
 
       {/* Notification Icon with Badge */}
-      <View style={styles.notificationContainer}>
+      <TouchableOpacity style={styles.notificationContainer}
+      onPress={() => navigation.navigate('Notification')}
+      >
         <Feather name="bell" size={35} color="#000" />
         {badgeCount > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{badgeCount}</Text>
           </View>
         )}
-      </View>
+      </TouchableOpacity>
     </View>
   );
 };

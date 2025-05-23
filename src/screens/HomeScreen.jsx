@@ -13,21 +13,24 @@ export default function HomeScreen({ navigation }) {
     <ScrollView className="flex-1 bg-white px-4">
       {/* Header */}
       <HomeProfileHeader
+      navigation={navigation}
         imageUrl="https://randomuser.me/api/portraits/women/44.jpg"
         badgeCount={5}
       />
 
       {/* Balance Card */}
-      <BalanceCard balance={7250050.08} />
+      <BalanceCard balance={7250050.08} navigation={navigation} />
 
       {/* Action Cards - Two per row */}
       <View className="flex-row flex flex-wrap justify-between gap-4 mt-6">
         {/* Card 1: Trade Giftcard */}
         <ActionCard
+
           title="Trade Giftcard"
           description="Enjoy sweet rates with swift payment"
           icon={<AntDesign name="gift" size={20} color="#fff" />}
-          onPress={() => navigation.navigate('SellGiftCard')}
+          onPress={() => navigation.navigate('MoreServices',{screen:'SellGiftCard'})}
+          // onPress={() => navigation.navigate('MoreServices', { screen: 'SaveAndEarn' })}
         />
 
         {/* Card 2: Buy Airtime */}
@@ -35,7 +38,7 @@ export default function HomeScreen({ navigation }) {
           title="Trade Crypto"
           description="Trade BTC, ETH, BNB & More for instant cash"
           icon={<FontAwesome name="btc" size={20} color="#fff" />}
-          onPress={() => navigation.navigate('Dashboard')}
+          onPress={() => navigation.navigate('MoreServices',{screen:'TradeCrypto'})}
         />
       </View>
       
@@ -46,7 +49,7 @@ export default function HomeScreen({ navigation }) {
           title="Use Rate Calculator"
           description="Use rate calculator to preview currency rate"
           icon={<FontAwesome5 name="calculator" size={20} color="#fff" />}
-          onPress={() => navigation.navigate('Dashboard')}
+          onPress={() => navigation.navigate('MoreServices',{screen:'RateCalculator'})}
         />
 
         {/* Card 4: Fund Wallet */}

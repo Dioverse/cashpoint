@@ -33,9 +33,18 @@ import ChangePassword from './src/screens/ChangePassword';
 import ChangePin from './src/screens/ChangePin';
 import ConfirmPin from './src/screens/ConfirmPin';
 import SellGiftCard from './src/screens/SellGiftCard';
+import BuyGiftCard from './src/screens/BuyGiftCardScreen';
+import SellCrypto from './src/screens/SellCrypto';
+import RateCalculator from './src/screens/RateCalculator';
+import TradeCrypto from './src/screens/TradeCrypto';
+import FundWalletCrypto from './src/screens/FundWalletCrypto';
+import UpgradeToTierTwoScreen from './src/screens/UpgradeToTierTwoScreen';
+import UpgradeToTierThreeScreen from './src/screens/UpgradeToTierThreeScreen';
+import KycStatus from './src/screens/KycStatus';
 import Terms from './src/screens/Terms';
 import AboutUs from './src/screens/AboutUs';
 import Support from './src/screens/Support';
+import Notification from './src/screens/NotificationScreen';
 import ProfileUpdateScreen from './src/screens/ProfileUpdateScreen';
 
 // Service Screens
@@ -43,6 +52,8 @@ import MoreServices from './src/screens/MoreServices';
 import Airtime from './src/screens/Airtime';
 import Data from './src/screens/Data';
 import Electricity from './src/screens/Electricity';
+import BettingPurchase from './src/screens/BettingPurchase';
+import GiftUser from './src/screens/GiftUser';
 import Cable from './src/screens/Cable';
 import Swap from './src/screens/Swap';
 import SaveEarn from './src/screens/SaveEarn';
@@ -75,6 +86,13 @@ function ServicesNav() {
       <ServicesStack.Screen name="EducationPIN" component={Education} />
       <ServicesStack.Screen name="AirtimeSwap" component={Swap} />
       <ServicesStack.Screen name="SaveAndEarn" component={SaveEarn} />
+      <ServicesStack.Screen name="SellGiftCard" component={SellGiftCard} />
+      <ServicesStack.Screen name="SellCrypto" component={SellCrypto} />
+      <ServicesStack.Screen name="TradeCrypto" component={TradeCrypto} />
+      <ServicesStack.Screen name="BettingPurchase" component={BettingPurchase} />
+      <ServicesStack.Screen name="GiftUser" component={GiftUser} />
+      <ServicesStack.Screen name="BuyGiftCard" component={BuyGiftCard} />
+      <ServicesStack.Screen name="RateCalculator" component={RateCalculator} />
     </ServicesStack.Navigator>
   );
 }
@@ -200,11 +218,16 @@ export default function App() {
           <Stack.Screen name="Dashboard" component={MyTabs} />
           <Stack.Screen name="ChangePin" component={ChangePin} />
           <Stack.Screen name="ConfirmPin" component={ConfirmPin} />
-          <Stack.Screen name="SellGiftCard" component={SellGiftCard} />
+          
           <Stack.Screen name="MoreServices" component={ServicesNav} />
           <Stack.Screen name="Pin" component={Pin} />
           <Stack.Screen name="Receipt" component={Receipt} />
           <Stack.Screen name="LockFunds" component={LockFunds} />
+          <Stack.Screen name="Notification" component={Notification} />
+          <Stack.Screen name="FundWalletCrypto" component={FundWalletCrypto} />
+          <Stack.Screen name="KycStatus" component={KycStatus} />
+          <Stack.Screen name="UpgradeToTierTwo" component={UpgradeToTierTwoScreen} />
+          <Stack.Screen name="UpgradeToTierThree" component={UpgradeToTierThreeScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </>

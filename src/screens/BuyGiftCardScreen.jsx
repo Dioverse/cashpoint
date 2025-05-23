@@ -10,14 +10,10 @@ import {
   StatusBar,
   StyleSheet,
   Pressable,
-  FlatList,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { launchImageLibrary } from 'react-native-image-picker';
-import { CameraIcon } from 'react-native-heroicons/outline';
 
 const CustomSelect = ({ options, onValueChange, selectedValue, placeholder }) => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -70,23 +66,34 @@ const CustomSelect = ({ options, onValueChange, selectedValue, placeholder }) =>
   );
 };
 
-const SellGiftCardScreen = () => {
+const BuyGiftCardScreen = () => {
   const navigation = useNavigation();
 
+  const [country, setCountry] = useState('');
   const [giftCard, setGiftCard] = useState('');
-  const [category, setCategory] = useState('');
-  const [amount, setAmount] = useState('');
-  const [images, setImages] = useState([]);
+  const [creditUnit, setCreditUnit] = useState('');
+  const [quantity, setQuantity] = useState('');
   const [errors, setErrors] = useState({});
 
-  const giftCardOptions = ['Amazon', 'iTunes', 'Google Play', 'Steam', 'eBay'];
-  const categoryOptions = ['E-code', 'Physical Card'];
+  const countryOptions = ['USA', 'UK', 'Canada', 'Germany', 'Australia'];
+  const giftCardOptions = ['Amazon', 'iTunes', 'Steam', 'PlayStation', 'Netflix'];
+  const creditUnitOptions = ['$5', '$10', '$25', '$50', '$100'];
+
+  const calculateAmount = () => {
+    const unitValue = Number(creditUnit.replace(/\$/g, ''));
+    const qty = Number(quantity);
+    if (!isNaN(unitValue) && !isNaN(qty)) {
+      return (unitValue * qty).toFixed(2);
+    }
+    return '0.00';
+  };
 
   const validateForm = () => {
     const newErrors = {};
+    if (!country) newErrors.country = 'Select country';
     if (!giftCard) newErrors.giftCard = 'Select gift card';
-    if (!category) newErrors.category = 'Select category';
-    if (!amount) newErrors.amount = 'Enter amount';
+    if (!creditUnit) newErrors.creditUnit = 'Select credit unit';
+    if (!quantity || isNaN(quantity)) newErrors.quantity = 'Enter valid quantity';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -94,16 +101,17 @@ const SellGiftCardScreen = () => {
   const handleSubmit = () => {
     if (!validateForm()) return;
 
-    console.log({ giftCard, category, amount, images });
-    alert('Gift Card submitted!');
-  };
+    const amount = calculateAmount();
 
-  const handleImageUpload = () => {
-    launchImageLibrary({ mediaType: 'photo', selectionLimit: 0 }, (response) => {
-      if (response.assets) {
-        setImages(response.assets);
-      }
+    console.log({
+      country,
+      giftCard,
+      creditUnit,
+      quantity,
+      amount,
     });
+
+    alert('Gift Card purchase submitted!');
   };
 
   return (
@@ -118,98 +126,85 @@ const SellGiftCardScreen = () => {
             <Icon name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text style={styles.headerText}>Sell Gift Card</Text>
+            <Text style={styles.headerText}>Buy Gift Card</Text>
           </View>
         </View>
-        <View style={styles.formSectionWrapper}>
 
-        </View>
-        <View style={styles.formSection}>
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 100 }}>
-            {/* Gift Card */}
-            <View style={{ marginBottom: 25, zIndex: 3 }}>
-              <Text style={styles.label}>Gift Card</Text>
-              <CustomSelect
-                options={giftCardOptions}
-                selectedValue={giftCard}
-                onValueChange={setGiftCard}
-                placeholder="Select gift card"
-              />
-              {errors.giftCard && <Text style={styles.errorText}>{errors.giftCard}</Text>}
-            </View>
-
-            {/* Category */}
-            <View style={{ marginBottom: 25, zIndex: 2 }}>
-              <Text style={styles.label}>Category</Text>
-              <CustomSelect
-                options={categoryOptions}
-                selectedValue={category}
-                onValueChange={setCategory}
-                placeholder="Select category"
-              />
-              {errors.category && <Text style={styles.errorText}>{errors.category}</Text>}
-            </View>
-
-            {/* Amount */}
-            <View style={{ marginBottom: 25, zIndex: 1 }}>
-              <Text style={styles.label}>Amount</Text>
-              <TextInput
-                style={[styles.input, errors.amount && { borderColor: 'red' }]}
-                placeholder="Enter amount"
-                placeholderTextColor="#9CA3AF"
-                keyboardType="numeric"
-                value={amount}
-                onChangeText={(text) => {
-                  setAmount(text);
-                  if (errors.amount) setErrors({ ...errors, amount: null });
-                }}
-              />
-              {errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
-            </View>
-
-            {/* You’re Getting */}
-            <View style={{ backgroundColor: '#3432a830', padding: 12, borderRadius: 8,marginBottom: 25 }}>
-              <Text style={styles.label}>You’re Getting</Text>
-              <View style={styles.input}>
-                <Text style={styles.valueText}>
-                  ${amount ? (Number(amount) * 0.8).toFixed(2) : '0.00'}
-                </Text>
-              </View>
-            </View>
-
-            {/* Upload Gift Card Image(s) */}
-            <View style={{ marginBottom: 25 }}>
-              <Text style={styles.label}>Upload Gift Card Image(s)</Text>
-              <TouchableOpacity
-              className='flex-row justify-between'
-                onPress={handleImageUpload}
-                style={[styles.input, { justifyContent: 'space-between', alignItems: 'center',backgroundColor: '#3432a830' }]}
-              >
-                <Text style={{ color: '#6B7280' }}>Click here to upload image(s)</Text>
-                <CameraIcon size={20}/>
-              </TouchableOpacity>
-
-              <ScrollView horizontal style={{ marginTop: 10 }}>
-                {images.map((img, idx) => (
-                  <Image
-                    key={idx}
-                    source={{ uri: img.uri }}
-                    style={{ width: 100, height: 100, marginRight: 10, borderRadius: 8 }}
-                  />
-                ))}
-              </ScrollView>
-            </View>
-
-            
-
-            {/* Submit */}
-            <TouchableOpacity
-              onPress={handleSubmit}
-              style={styles.submitButton}
+        <View style={styles.formWrapper}>
+          <View style={styles.formSection}>
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingBottom: 100 }}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
             >
-              <Text style={styles.submitButtonText}>Submit</Text>
-            </TouchableOpacity>
-          </ScrollView>
+              {/* Country */}
+              <View style={{ marginBottom: 25, zIndex: 5 }}>
+                <Text style={styles.label}>Country</Text>
+                <CustomSelect
+                  options={countryOptions}
+                  selectedValue={country}
+                  onValueChange={setCountry}
+                  placeholder="Select country"
+                />
+                {errors.country && <Text style={styles.errorText}>{errors.country}</Text>}
+              </View>
+
+              {/* Gift Card */}
+              <View style={{ marginBottom: 25, zIndex: 4 }}>
+                <Text style={styles.label}>Gift Card</Text>
+                <CustomSelect
+                  options={giftCardOptions}
+                  selectedValue={giftCard}
+                  onValueChange={setGiftCard}
+                  placeholder="Select gift card"
+                />
+                {errors.giftCard && <Text style={styles.errorText}>{errors.giftCard}</Text>}
+              </View>
+
+              {/* Credit Unit */}
+              <View style={{ marginBottom: 25, zIndex: 3 }}>
+                <Text style={styles.label}>Credit Unit</Text>
+                <CustomSelect
+                  options={creditUnitOptions}
+                  selectedValue={creditUnit}
+                  onValueChange={setCreditUnit}
+                  placeholder="Select credit unit"
+                />
+                {errors.creditUnit && <Text style={styles.errorText}>{errors.creditUnit}</Text>}
+              </View>
+
+              {/* Quantity */}
+              <View style={{ marginBottom: 25, zIndex: 2 }}>
+                <Text style={styles.label}>Quantity</Text>
+                <TextInput
+                  style={[styles.inputGray, errors.quantity && { borderColor: 'red' }]}
+                  placeholder="Enter gift quantity"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="numeric"
+                  value={quantity}
+                  onChangeText={(text) => {
+                    setQuantity(text);
+                    if (errors.quantity) setErrors({ ...errors, quantity: null });
+                  }}
+                />
+                {errors.quantity && <Text style={styles.errorText}>{errors.quantity}</Text>}
+              </View>
+
+              {/* Amount */}
+              <View style={{ marginBottom: 30 }}>
+                <Text style={styles.label}>Amount</Text>
+                <View style={styles.input}>
+                  <Text style={styles.valueText}>${calculateAmount()}</Text>
+                </View>
+              </View>
+
+              {/* Submit */}
+              <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
+                <Text style={styles.submitButtonText}>Submit</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -229,6 +224,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  formWrapper: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
   formSection: {
     flex: 1,
     paddingHorizontal: 24,
@@ -236,7 +235,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    marginTop: -20,
+    marginTop: -30,
+    overflow: 'visible',
   },
   label: {
     fontSize: 16,
@@ -253,17 +253,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     justifyContent: 'center',
   },
+  inputGray: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    marginTop: 10,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+  },
   valueText: {
     fontSize: 16,
     color: '#4A4A4A',
   },
   submitButton: {
-    marginTop: 40,
     backgroundColor: '#000',
     height: 50,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 20,
     marginBottom: 40,
   },
   submitButtonText: {
@@ -283,7 +293,7 @@ const dropdownStyles = StyleSheet.create({
     width: '100%',
     marginTop: 10,
     position: 'relative',
-    zIndex: 99,
+    zIndex: 999,
   },
   selectButton: {
     padding: 12,
@@ -330,8 +340,6 @@ const dropdownStyles = StyleSheet.create({
   optionTextHovered: {
     color: '#1e90ff',
   },
-
-  
 });
 
-export default SellGiftCardScreen;
+export default BuyGiftCardScreen;

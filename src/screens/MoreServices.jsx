@@ -56,12 +56,12 @@ const MoreServices = () => {
     {
       title: 'Buy Giftcard',
       icon: <GiftIcon size={20} color="black" />,
-      onPress: () => navigation.navigate('BuyGiftcard'),
+      onPress: () => navigation.navigate('BuyGiftCard'),
     },
     {
       title: 'Betting',
       icon: <TrophyIcon size={20} color="black" />,
-      onPress: () => navigation.navigate('Betting'),
+      onPress: () => navigation.navigate('BettingPurchase'),
     },
     {
       title: 'Gift User',

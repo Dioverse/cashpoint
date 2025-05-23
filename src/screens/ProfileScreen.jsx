@@ -91,7 +91,7 @@ function ProfileScreen() {
             title="KYC"
             description="Please verify your identity to have access to more features"
             isPersonIcon={false}
-            onPress={() => navigation.navigate('KYC')}
+            onPress={() => navigation.navigate('KycStatus', { currentTier: 2 })}
           />
           <View style={styles.divider} />
           <ProfileItem
