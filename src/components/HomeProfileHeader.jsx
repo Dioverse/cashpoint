@@ -20,7 +20,7 @@ const HomeProfileHeader = ({imageUrl, badgeCount = 0,navigation}) => {
 
       {/* Notification Icon with Badge */}
       <TouchableOpacity style={styles.notificationContainer}
-      onPress={() => navigation.navigate('Notification')}
+      onPress={() => navigation.navigate('Notifications')}
       >
         <Feather name="bell" size={35} color="#000" />
         {badgeCount > 0 && (

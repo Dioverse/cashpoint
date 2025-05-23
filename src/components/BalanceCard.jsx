@@ -64,7 +64,7 @@ const BalanceCard = ({balance= 0,navigation }) => {
       {/* Second Row */}
       <View className="flex-row items-center justify-between">
         <View className=" py-1 flex-row items-center justify-between">
-            <Text className="text-white text-lg font-lighter mr-5">View Bonus</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Referral')}><Text  className="text-white text-lg font-lighter mr-5"> View Bonus</Text></TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('MoreServices', { screen: 'SaveAndEarn' })} className="text-[#fff] bg-[#9db0f585] rounded-lg px-3 py-1 flex-row items-center ">
                 <Icon
                     name={'lock-closed'}
@@ -75,7 +75,7 @@ const BalanceCard = ({balance= 0,navigation }) => {
                 <Text className='text-[#fff]'>Save and Earn</Text>
             </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('FundWalletCrypto')} className='bg-[#9db0f585] rounded-full p-2'>
+        <TouchableOpacity onPress={() => navigation.navigate('Fund')} className='bg-[#9db0f585] rounded-full p-2'>
             <Icon name="wallet" size={24} color="white" />
         </TouchableOpacity>
       </View>
