@@ -20,9 +20,32 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'uuid',
-        'name',
+        'firstName',
+        'lastName',
+        'middleName',
+        'username',
         'email',
+        'phone',
+        'wallet_address',
+        'wallet_naira',
+        'wallet_usd',
+        'country_code',
+        'state_code',
+        'city',
+        'address',
+        'zip',
+        'dob',
+        'kyc_tier',
+        'kyc_status',
+        'kyc_rejection_reason',
+        'idmean',
+        'idtype',
+        'prove_of_address',
+        'prove_of_fund',
         'password',
+        'pin',
+        'role',
+        'passport',
     ];
 
     /**

@@ -1,0 +1,47 @@
+:: Tier-limit .........................
+tiers -> tier-1
+limit -> 50,000
+status -> active
+
+
+:: Functions ..........................
+- Any Admin should be act as user
+- User cannot access Admin
+
+
+:: Wallet Naira/USD Encryption .........
+
+
+:: PIN Encryption ......................
+
+:: Tables ..............................
+currency_rates
+- id
+- base_currency
+- target_currency
+- rate
+- updated_at
+
+
+:: Balances are usually protected through:
+    Proper access control
+    Audit logging
+    Secure transactions
+    Encrypted transport (HTTPS)
+    Database encryption at rest
+
+
+:: Use Case: Encrypt fields like: ..........
+    Bank account numbers
+    KYC documents
+    Wallet PINs
+    Transaction descriptions
+
+
+:: use Illuminate\Support\Facades\Crypt; .......
+    // Encrypt
+    $encrypted = Crypt::encryptString('5000');
+
+    // Decrypt
+    $decrypted = Crypt::decryptString($encrypted);
+
