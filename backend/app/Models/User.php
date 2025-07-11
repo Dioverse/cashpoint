@@ -29,6 +29,7 @@ class User extends Authenticatable
         'wallet_address',
         'wallet_naira',
         'wallet_usd',
+        'virtual_accounts',
         'country_code',
         'state_code',
         'city',

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\VirtualAccountController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,16 +20,18 @@ Route::controller(AuthController::class)->group(function () {
         Route::post('/verify', 'verify')->name('api.auth.verify');
         Route::post('/resend', 'resend')->name('api.auth.resend');
     });
+
     Route::get('/user', 'user')->middleware('auth:sanctum');
     Route::post('/logout', 'logout')->middleware('auth:sanctum');
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', [AuthController::class, 'user']);
-    Route::post('/logout', [AuthController::class, 'logout']);
+    // Route::get('/user', [AuthController::class, 'user']);
+    // Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Virtual Accounts routes can be added here
+    Route::post('/accounts/create', [VirtualAccountController::class, 'create'])->name('api.wallet.index');
 });
-Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 
 

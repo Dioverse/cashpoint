@@ -22,14 +22,25 @@ class AuthServices
     {
         $user = User::create([
             'uuid'      => Str::uuid(),
-            'name'      => $request->name,
+            'firstName' => $request->first_name,
+            'lastName'  => $request->last_name,
+            'middleName'=> $request->middle_name,
+            'username'  => $request->username,
             'email'     => $request->email,
+            'phone'     => $request->phone,
             'password'  => bcrypt($request->password),
         ]);
 
         // Send verification email
         $this->otp($user);
 
+        return $user;
+    }
+
+    public function update($data): User
+    {
+        $user = auth()->user();
+        $user->update($data);
         return $user;
     }
 

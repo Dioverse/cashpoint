@@ -80,9 +80,13 @@ class AuthController extends Controller
     {
         // Handle registration logic
         $request->validate([
-            'name'      => 'required|string|max:255',
-            'email'     => 'required|string|email|max:255|unique:users,email',
-            'password'  => 'required|string|min:6|max:255',
+            'first_name'    => 'required|string|max:255',
+            'last_name'     => 'required|string|max:255',
+            'middle_name'   => 'nullable|string|max:255',
+            'username'      => 'required|string|max:255',
+            'email'         => 'required|string|email|max:255|unique:users,email',
+            'phone'         => 'numeric|string|unique:users,phone',
+            'password'      => 'required|string|min:6|max:255',
         ]);
 
         $user = $this->authService->register($request);
