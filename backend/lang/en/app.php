@@ -30,4 +30,10 @@ return [
     'virtual_account_created'       => 'Virtual account created successfully.',
     'virtual_account_error'         => 'An error occurred while creating the virtual account. Please try again later.',
 
+
+    // Settings ...................................................................................................
+    'setting_created'               => 'Setting created successfully.',
+    'setting_updated'               => 'Setting updated successfully.',
+    'setting_deleted'               => 'Setting deleted successfully.',
+    'setting_not_found'             => 'Setting not found.',
 ];

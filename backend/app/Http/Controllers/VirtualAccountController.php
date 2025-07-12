@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 
 use App\Http\Resources\UserResource;
+use Illuminate\Support\Facades\Log;
 use App\Services\VAccountsService;
 use App\Services\AuthServices;
 use Illuminate\Http\Response;
@@ -35,10 +36,47 @@ class VirtualAccountController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function store()
+    public function store(Request $request)
     {
-        //
-        
+        $secret     = config('services.paystack.secret_key');
+        $payload    = $request->getContent();
+        $signature  = $request->header('x-paystack-signature');
+
+        // Verify webhook signature
+        if (hash_hmac('sha512', $payload, $secret) !== $signature) {
+            Log::warning('Paystack Webhook: Invalid Signature');
+            return response('Invalid signature', 401);
+        }
+
+        $event = $request->input('event');
+
+        if ($event === 'charge.success') {
+            $data = $request->input('data');
+
+            // Only handle virtual account bank deposits
+            if ($data['channel'] === 'bank' && isset($data['customer']['email'])) {
+                $email      = $data['customer']['email'];
+                $amount     = $data['amount'] / 100;
+                $reference  = $data['reference'];
+                $bank       = $data['authorization']['bank'] ?? 'Unknown Bank';
+
+                // Find user by email
+                $user = $this->userService->getUserByEmail($email);
+
+                if ($user) {
+                    // Update the user details ........................
+                    $user->update([
+                        'virtual_accounts' => $bank,
+                    ]);
+
+                    Log::info("Wallet funded: {$user->email} - ₦{$amount}");
+                } else {
+                    Log::warning("Webhook received for unknown user: {$email}");
+                }
+            }
+        }
+
+        return response('Webhook received', 200);
     }
 
     /**
@@ -62,10 +100,7 @@ class VirtualAccountController extends Controller
                 $user->phone
             );
 
-            // Update the user details ........................
-            $User->update([
-                'virtual_accounts' => $virtualAccount->json(),
-            ]);
+
 
             return response([
                 'message'   => __('app.virtual_account_created'),
@@ -97,7 +132,7 @@ class VirtualAccountController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function withdrawToUSD(Request $request)
     {
         //
     }
@@ -105,7 +140,7 @@ class VirtualAccountController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function withdrawToNGN(Request $request)
     {
         //
     }
@@ -117,4 +152,6 @@ class VirtualAccountController extends Controller
     {
         //
     }
+
+
 }

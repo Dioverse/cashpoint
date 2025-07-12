@@ -71,4 +71,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function walletTransactions()
+    {
+        return $this->hasMany(WalletTransaction::class);
+    }
 }

@@ -37,6 +37,26 @@ class AuthServices
         return $user;
     }
 
+    public function addAdmin(object $request): User
+    {
+        $tempPassword = random_int(100000, 999999);
+        $user = User::create([
+            'uuid'      => Str::uuid(),
+            'firstName' => $request->first_name,
+            'lastName'  => $request->last_name,
+            'middleName'=> $request->middle_name,
+            'username'  => $request->username,
+            'email'     => $request->email,
+            'phone'     => $request->phone,
+            'password'  => bcrypt($tempPassword),
+        ]);
+
+        // Send verification email
+        $this->sendPassword($user);
+
+        return $user;
+    }
+
     public function update($data): User
     {
         $user = auth()->user();
@@ -53,6 +73,17 @@ class AuthServices
 
         }
 
+        return null;
+    }
+
+    public function adminLogin(object $request): ?User
+    {
+
+        $user = User::where('email', $request->email)->first();
+        if ($user && (in_array($user->role, ['admin', 'super-admin']) && Hash::check($request->password, $user->password))) {
+            // return response()->json(['message' => 'Invalid credentials.'], 401);
+            return $user;
+        }
         return null;
     }
 
@@ -86,6 +117,20 @@ class AuthServices
         Mail::to($user->email)->send(new OtpMail($user, $otp));
 
         return $otp;
+    }
+
+    public function sendPassword(User $user, string $type='password-reset'): Otp
+    {
+        // Check if user already has an active OTP
+        $tries = 3;
+        $time = Carbon::now()->subMinutes(30);
+
+        // Generate Temporary Password
+        $password = random_int(100000, 999999);
+        // Send OTP to user
+        Mail::to($user->email)->send(new OtpMail($user, $password));
+
+        return $password;
     }
 
     public function verify(User $user, object $request): User
