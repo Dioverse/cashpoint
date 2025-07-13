@@ -18,6 +18,11 @@ class AuthServices
         return User::where('email', $email)->first();
     }
 
+    public function findByUuid(string $uuid): ?User
+    {
+        return User::where('uuid', $uuid)->first();
+    }
+
     public function register(object $request): User
     {
         $user = User::create([
@@ -189,6 +194,39 @@ class AuthServices
         $user->update();
 
         // Return user
+        return $user;
+    }
+
+    public function resetPin(User $user, Object $request): User
+    {
+        // Validate otp
+        $otp = Otp::where([
+            'user_id'   => $user->id,
+            'code'      => $request->otp,
+            'active'    => 1,
+            'type'      => 'pin-reset',
+        ])->first();
+
+        // Check if otp is valid
+        if (!$otp) {
+            abort(422, __('app.invalid_otp'));
+        }
+
+        // Update user
+        $user->pin = $request->pin;
+        $user->updated_at = Carbon::now();
+        $user->update();
+
+        // Return user
+        return $user;
+    }
+
+
+    public function toggleAdminStatus(User $user): User
+    {
+        $user->status = $user->status === 'active' ? 'inactive' : 'active';
+        $user->updated_at = Carbon::now();
+        $user->update();
         return $user;
     }
 

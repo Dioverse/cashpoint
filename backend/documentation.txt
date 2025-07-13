@@ -3,14 +3,16 @@ tiers -> tier-1
 limit -> 50,000
 status -> active
 
+For every transactions, check pin, check kyc status, check amount and avoid any unauthorized purchased
+
 
 :: Functions ..........................
-- Any Admin should be act as user
-- User cannot access Admin
+- No Admin should be act as user - DONE
+- User cannot access Admin - DONE
 
 
 :: Wallet Naira/USD Encryption .........
-
+SORTED
 
 :: PIN Encryption ......................
 

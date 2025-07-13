@@ -36,4 +36,10 @@ return [
     'setting_updated'               => 'Setting updated successfully.',
     'setting_deleted'               => 'Setting deleted successfully.',
     'setting_not_found'             => 'Setting not found.',
+
+    // Withdrawal ...............................................................................................
+    'withdrawal_success'            => 'Withdrawal successful.',
+    'withdrawal_failed'             => 'Withdrawal failed. Please try again later.',
+    'insufficient_balance'          => 'Insufficient balance.',
+    'invalid_amount'                => 'Invalid amount. Amount must not be less than 1 USD.',
 ];

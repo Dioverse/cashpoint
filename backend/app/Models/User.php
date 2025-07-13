@@ -26,6 +26,7 @@ class User extends Authenticatable
         'username',
         'email',
         'phone',
+        'status',
         'wallet_address',
         'wallet_naira',
         'wallet_usd',

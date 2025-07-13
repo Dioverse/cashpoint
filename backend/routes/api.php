@@ -21,16 +21,18 @@ Route::controller(AuthController::class)->group(function () {
         Route::post('/otp', 'otp')->name('api.auth.otp');
         Route::post('/verify', 'verify')->name('api.auth.verify');
         Route::post('/resend', 'resend')->name('api.auth.resend');
+        Route::post('/create-pin', 'createPin')->name('api.auth.create.pin');
+        Route::post('/reset-pin', 'resetPin')->name('api.auth.reset.pin');
+        Route::get('/user', 'user')->middleware('auth:sanctum');
+        Route::post('/logout', 'logout')->middleware('auth:sanctum');
     });
-
-    Route::get('/user', 'user')->middleware('auth:sanctum');
-    Route::post('/logout', 'logout')->middleware('auth:sanctum');
 });
 
-Route::middleware('auth:sanctum')->group(function () {
 
+Route::middleware('auth:sanctum')->group(function () {
     // Virtual Accounts routes can be added here
     Route::post('/accounts/create', [VirtualAccountController::class, 'create'])->name('api.wallet.index');
+    Route::post('/accounts/withdrawal', [VirtualAccountController::class, 'withdraw'])->name('api.wallet.withdraw');
 });
 
 

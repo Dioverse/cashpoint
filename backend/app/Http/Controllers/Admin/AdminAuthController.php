@@ -70,6 +70,26 @@ class AdminAuthController extends Controller
 
     }
 
+    public function toggleAdminStatus(Request $request)
+    : Response
+    {
+        $request->validate([
+            'uuid' => 'required|exists:users,uuid',
+        ]);
+        $user = $this->authService->findByUuid($request->uuid);
+        $user = $this->authService->toggleAdminStatus($user);
+
+        return response([
+            'message'   => __('app.registration_success_verify'),
+            'status'    => true,
+            'results'   => [
+                'user'  => new UserResource($user),
+            ],
+        ], 201);
+
+
+    }
+
     public function me()
     {
         return response()->json(auth()->user());

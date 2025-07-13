@@ -229,6 +229,67 @@ class AuthController extends Controller
             'status'    => true,
         ]);
     }
+
+    /**
+     * Reset pin for user
+     *
+     * @param Request $request
+     * @return Response
+     */
+    public function createPin(Request $request)
+    : Response
+    {
+       $request->validate([
+            'email'             => 'required|string|email|max:255|exists:users,email',
+            'otp'               => 'required|numeric|digits:6',
+            'pin'               => 'required|numeric|digits:4|confirmed',
+            'pin_confirmation'  => 'required|numeric|digits:4',
+        ]);
+
+        $user = $this->authService->getUserByEmail($request->email);
+        $ousertp = $this->authService->resetPassword($user, $request);
+
+        // return message
+        return response([
+            'message'   => __('auth.pin_created'),
+            'status'    => true,
+        ]);
+    }
+
+    /**
+     * Create pin for user
+     *
+     * @param Request $request
+     * @return Response
+     */
+    public function resetPin(Request $request)
+    : Response
+    {
+        // Validate the request
+        $request->validate([
+            'pin' => 'required|numeric|digits:4',
+        ]);
+
+        // Get the authenticated user
+        $user = auth()->user();
+
+        // Generate a new PIN
+        $pin = $request->pin;
+
+        // Save the PIN to the user's record
+        $user->pin = $pin;
+        $user->save();
+
+        return response([
+            'message'   => __('auth.pin_created'),
+            'status'    => true,
+            'results'   => [
+                'user'  => new UserResource($user),
+            ],
+        ]);
+    }
+
+
     /**
      * Get authenticated user
      *
