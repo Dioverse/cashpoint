@@ -45,6 +45,20 @@ class AuthServices
         return null;
     }
 
+    public function adminLogin(object $request): ?User
+    {
+        $admin = User::where('email', $request->email)
+            ->where('role', 'admin')
+            ->whereNotNull('email_verified_at')
+            ->first();
+
+        if ($admin && Hash::check($request->password, $admin->password)) {
+            return $admin;
+        }
+
+        return null;
+    }
+
     public function otp(User $user, string $type='verification'): Otp
     {
         // Check if user already has an active OTP
@@ -141,6 +155,11 @@ class AuthServices
     {
         auth()->user()->tokens()->delete();
     }
+
+
+
+    
+
 }
 
 

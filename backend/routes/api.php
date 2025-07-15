@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::controller(AuthController::class)->group(function () {
     Route::post('/login', 'login')->name('api.auth.login');
+    Route::post('/adminLogin', 'adminLogin')->name('api.auth.adminLogin');
     Route::post('/register', 'register')->name('api.auth.register');
     Route::post('/reset/otp', 'resetOtp')->name('api.auth.reset.otp');
     Route::post('/reset/password', 'resetPassword')->name('api.auth.reset.password');

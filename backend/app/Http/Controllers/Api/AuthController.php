@@ -238,4 +238,36 @@ class AuthController extends Controller
         // Return authenticated user
         return response()->json($request->user());
     }
+
+
+
+    public function adminLogin(Request $request)
+{
+    $request->validate([
+        'email'     => 'required|email|max:255',
+        'password'  => 'required|string|min:6|max:255',
+    ]);
+
+    $admin = $this->authService->adminLogin($request);
+
+    if (!$admin) {
+        return response([
+            'message'   => __('auth.failed'),
+            'status'    => false,
+        ], 401);
+    }
+
+    // Create a token for the admin
+    $token = $admin->createToken('auth_token')->plainTextToken;
+
+    return response([
+        'message'   => __('app.login_success'),
+        'status'    => true,
+        'results'   => [
+            'admin' => new UserResource($admin),
+            'token' => $token,
+        ],
+    ]);
+}
+
 }
