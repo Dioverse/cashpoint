@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('phone');
             $table->enum('status', ['active', 'inactive', 'banned'])->default('active');
             $table->string('wallet_address')->nullable();
+            $table->enum('wallet_type', ['BTC', 'ETH', 'USDT'])->default('BTC');
             $table->string('wallet_naira')->default(0.00);
             $table->string('wallet_usd')->default(0.00);
             $table->string('virtual_accounts')->nullable();

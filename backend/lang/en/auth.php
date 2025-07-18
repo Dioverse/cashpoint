@@ -20,5 +20,6 @@ return [
     'password'              => 'The provided password is incorrect.',
     'throttle'              => 'Too many login attempts. Please try again in :seconds seconds.',
     'pin_created'           => 'PIN created successfully.',
+    'wallet_address_generated' => 'Wallet address generated successfully.',
 
 ];

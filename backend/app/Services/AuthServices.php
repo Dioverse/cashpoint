@@ -236,8 +236,3 @@ class AuthServices
         auth()->user()->tokens()->delete();
     }
 }
-
-
-// Compare this snippet from app/Http/Controllers/Api/AuthController.php:
-// <?php
-//
