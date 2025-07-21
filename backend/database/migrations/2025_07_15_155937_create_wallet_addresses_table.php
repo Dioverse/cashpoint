@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('wallet_addresses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id');
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('coin');
             $table->string('address');
             $table->timestamp('expires_at')->nullable();

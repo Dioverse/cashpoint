@@ -3,34 +3,50 @@
 namespace App\Http\Controllers\Purchase;
 
 use App\Http\Controllers\Controller;
+use App\Services\CryptoService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CryptoController extends Controller
 {
     //
     protected $cryptoService;
 
-    public function __construct(CryptoService $cryptoService)
+    public function __construct()
     {
-        $this->cryptoService = $cryptoService;
+        $this->cryptoService = new CryptoService;
     }
 
     public function sell(Request $request)
     {
         $validated = $request->validate([
-            'coin' => 'required|string|in:USDT,BTC,BNB,PI',
-            'amount' => 'required|numeric|min:1',
+            'crypto_id'     => 'required|exists:cryptos,id',
+            'amount_crypto' => 'required|numeric|min:0.001',
         ]);
 
-        $user = $request->user();
+        $user = Auth::user();
         return $this->cryptoService->processSell($user, $validated);
+
+    }
+
+    public function buy(Request $request)
+    {
+        $validated = $request->validate([
+            'crypto_id'     => 'required|exists:cryptos,id',
+            'amount_usd'    => 'required|numeric|min:10',
+            'wallet_address'=> 'required|string',
+        ]);
+
+        $user = Auth::user();
+        return $this->cryptoService->processBuy($user, $validated);
+
     }
 
     public function generateWalletAddress(Request $request)
     {
         $validated = $request->validate([
-            'coin' => 'required|string|in:USDT,BTC,BNB',
-            'amount_ngn' => 'required|numeric|min:1',
+            'coin'      => 'required|string|in:USDT,BTC,BNB',
+            'amount_ngn'=> 'required|numeric|min:1',
         ]);
 
         $user = $request->user();
@@ -40,8 +56,8 @@ class CryptoController extends Controller
     public function confirmPayment(Request $request)
     {
         $validated = $request->validate([
-            'wallet_address' => 'required|string',
-            'tx_hash' => 'required|string',
+            'wallet_address'=> 'required|string',
+            'tx_hash'       => 'required|string',
         ]);
 
         return $this->cryptoService->confirmCryptoPayment($validated);
@@ -49,6 +65,15 @@ class CryptoController extends Controller
 
     public function getRates()
     {
-        return $this->cryptoService->getCryptoRates();
+        return response([
+            'message'   => __('app.crypto_rates_retreived'),
+            'status'    => true,
+            'results'   => [
+                'data'  => getCryptoRates()
+            ]
+        ]);
     }
+
+
+
 }

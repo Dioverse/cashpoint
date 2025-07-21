@@ -13,6 +13,7 @@ return [
     |
     */
 
+    'unauthorized'          => 'You are not authorized to perform this action.',
     'failed'                => 'These credentials do not match our records.',
     'logout'                => 'You have been logged out successfully.',
     'admin_login_failed'    => 'Invalid credentials. Please ensure you are an admin or super-admin and that your password is correct.',

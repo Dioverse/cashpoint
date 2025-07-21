@@ -2,22 +2,34 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CryptoHistory extends Model
 {
     //
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
-        'coin', // e.g., USDT, BTC
-        'amount', // Amount in USD or original currency
+        'crypto_id',
+        'type',
+        'amount',
+        'amount_crypto',
         'naira_equivalent',
-        'status', // pending, approved, rejected
-        'tx_hash' // Transaction hash for tracking
+        'wallet_address',
+        'transaction_hash',
+        'status'
     ];
+
+    public function crypto()
+    {
+        return $this->belongsTo(Crypto::class);
+    }
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+
 }

@@ -44,6 +44,7 @@ return new class extends Migration
             $table->string('pin')->nullable();
             $table->enum('role', ['user', 'admin', 'super-admin'])->default('user');
             $table->text('passport')->nullable();
+            $table->string('device_token')->nullable();
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

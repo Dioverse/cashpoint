@@ -49,6 +49,7 @@ class User extends Authenticatable
         'pin',
         'role',
         'passport',
+        'device_token'
     ];
 
     /**
@@ -84,6 +85,11 @@ class User extends Authenticatable
         $this->wallet_type = $type;
         $this->wallet_address = strtoupper($type) . '-' . strtoupper(uniqid());
         $this->save();
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
     }
 
 

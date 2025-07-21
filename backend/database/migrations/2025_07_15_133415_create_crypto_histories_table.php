@@ -14,11 +14,14 @@ return new class extends Migration
         Schema::create('crypto_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('coin'); // e.g., USDT, BTC
-            $table->decimal('amount', 10, 2); //amount in USD or original currency
-            $table->decimal('naira_equivalent', 10, 2);
+            $table->foreignId('crypto_id')->constrained('cryptos');
+            $table->enum('type', ['buy', 'sell']);
+            $table->decimal('amount', 15, 2); // Amount in USD or original currency
+            $table->decimal('amount_crypto', 20, 8); // Amount in crypto (e.g., BTC, ETH)
+            $table->decimal('naira_equivalent', 15, 2)->nullable();
+            $table->string('wallet_address')->nullable(); // optional if selling
+            $table->string('transaction_hash')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->string('tx_hash')->nullable();
             $table->timestamps();
         });
     }

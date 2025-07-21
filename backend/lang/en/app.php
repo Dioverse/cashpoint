@@ -42,4 +42,21 @@ return [
     'withdrawal_failed'             => 'Withdrawal failed. Please try again later.',
     'insufficient_balance'          => 'Insufficient balance.',
     'invalid_amount'                => 'Invalid amount. Amount must not be less than 1 USD.',
+
+    // Giftcard ...................................................................................................
+    'giftcard_retrieved'            => 'Giftcard types retrieved successfully.',
+    'giftcard_rates_retrieved'      => 'Giftcard rates retrieved successfully.',
+    'giftcard_sell_success'         => 'Giftcard sell request submitted successfully.',
+    'giftcard_buy_success'          => 'Giftcard buy request submitted successfully.',
+    'giftcard_history_retrieved'    => 'Giftcard history retrieved successfully.',
+    'giftcard_not_found'            => 'Giftcard not found.',
+    'giftcard_detail_retrieved'     => 'Giftcard detail retrieved successfully.',
+    'giftcard_process_failed'       => 'Giftcard processing failed, try again.',
+
+    'crypto_trade_submitted'        => 'Trade submitted, pending approval',
+    'crypto_sent'                   => 'Crypto sent to wallet.',
+    'crypto_rates_retreived'        => 'Crypto rate retrieved',
+    'wallet_address_created'        => 'Wallet address created.',
+    'invalid_wallet_address'        => 'Invalid wallet address',
+    'transaction_confirmed'         => 'Transaction confirmed.',
 ];

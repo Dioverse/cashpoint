@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\VirtualAccountController;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Purchase\CryptoController;
 use App\Http\Controllers\Purchase\GiftcardController;
 use Illuminate\Http\Request;
@@ -33,24 +34,33 @@ Route::controller(AuthController::class)->group(function () {
 
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::prefix('admin')->group(function () {
         // Gift Card
-        Route::post('/giftcard/sell', [GiftcardController::class, 'sell']);
-        Route::post('/giftcard/buy', [GiftcardController::class, 'buy']);
-        Route::get('/giftcard/types', [GiftcardController::class, 'getTypes']);
-        Route::get('/giftcard/rates', [GiftcardController::class, 'getRates']);
+    Route::post('/giftcard/sell', [GiftcardController::class, 'sell']);
+    Route::post('/giftcard/buy', [GiftcardController::class, 'buy']);
+    Route::get('/giftcard/types', [GiftcardController::class, 'getTypes']);
+    Route::get('/giftcard/rates', [GiftcardController::class, 'getRates']);
+    Route::get('/giftcard/history', [GiftcardController::class, 'getMyGiftcardHistories']);
+    Route::get('/giftcard/history/{id}', [GiftcardController::class, 'giftcardDetails']);
 
-        // Crypto
-        Route::post('/crypto/sell', [CryptoController::class, 'sell']);
-        Route::post('/crypto/generate-address', [CryptoController::class, 'generateWalletAddress']);
-        Route::post('/crypto/confirm-payment', [CryptoController::class, 'confirmPayment']);
-        Route::get('/crypto/rates', [CryptoController::class, 'getRates']);
+    // Crypto
+    Route::post('/crypto/sell', [CryptoController::class, 'sell']);
+    Route::post('/crypto/buy', [CryptoController::class, 'buy']);
+    Route::post('/crypto/generate-address', [CryptoController::class, 'generateWalletAddress']);
+    Route::post('/crypto/confirm-payment', [CryptoController::class, 'confirmPayment']);
+    Route::get('/crypto/rates', [CryptoController::class, 'getRates']);
+
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::post('/{id}/mark-read', [NotificationController::class, 'markAsRead']);
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+        Route::get('/test', [NotificationController::class, 'testNotify']); // optional
+    });
+
 
         // Wallet
         // Route::get('/wallet/balance', [WalletController::class, 'getBalance']);
         // Route::post('/wallet/fund', [WalletController::class, 'fund']);
         // Route::post('/wallet/withdraw', [WalletController::class, 'withdraw']);
-    });
 
     // Virtual Accounts routes can be added here
     Route::post('/accounts/create', [VirtualAccountController::class, 'create'])->name('api.wallet.index');

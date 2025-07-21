@@ -9,8 +9,10 @@ class GiftcardHistory extends Model
     //
     protected $fillable = [
         'user_id',
+        'type', // buy or sell
         'card_type',
         'category',
+        'quantity',
         'amount',
         'naira_equivalent',
         'images',
@@ -32,5 +34,10 @@ class GiftcardHistory extends Model
     public function admin()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function giftcard()
+    {
+        return $this->belongsTo(Giftcard::class);
     }
 }

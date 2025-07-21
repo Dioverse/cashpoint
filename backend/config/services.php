@@ -41,4 +41,14 @@ return [
         'public_key'    => env('PAYSTACK_PUBLIC_KEY'),
     ],
 
+    'nownode' => [
+        'api_key' => env('NOWNODE_API_KEY'),
+        'base_url' => env('NOWNODE_BASE_URL'),
+    ],
+
+    'firebase' => [
+        'api_key' => env('FIREBASE_SERVER_KEY'),
+    ],
+
+
 ];
