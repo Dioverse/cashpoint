@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Purchase\CryptoController;
 use App\Http\Controllers\Purchase\GiftcardController;
+use App\Http\Controllers\VTUController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -48,12 +49,41 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/crypto/generate-address', [CryptoController::class, 'generateWalletAddress']);
     Route::post('/crypto/confirm-payment', [CryptoController::class, 'confirmPayment']);
     Route::get('/crypto/rates', [CryptoController::class, 'getRates']);
+    Route::get('/crypto/history', [CryptoController::class, 'getMyCryptoHistories']);
+    Route::get('/crypto/history/{id}', [CryptoController::class, 'cryptoDetails']);
 
     Route::prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
         Route::post('/{id}/mark-read', [NotificationController::class, 'markAsRead']);
         Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);
         Route::get('/test', [NotificationController::class, 'testNotify']); // optional
+    });
+
+    Route::prefix('vtu')->controller(VTUController::class)->group(function () {
+        Route::post('/airtime', 'buyAirtime')->name('api.vtu.airtime');
+        Route::post('/bill', 'buyBill')->name('api.vtu.bill');
+        Route::post('/cable', 'buyCable')->name('api.vtu.cable');
+        Route::post('/data', 'buyData')->name('api.vtu.data');
+        Route::post('/verify', 'verifyBillNo')->name('api.vtu.verify');
+
+
+        Route::get('/bills', 'bills');
+        Route::get('/cables', 'cables');
+        Route::get('/data/plans', 'getDataPlans');
+        Route::get('/data/plans/{id}', 'dataByNetwork');
+        Route::get('/cable/plans', 'getCablePlans');
+        Route::get('/cable/plan/{id}', 'cablePlan');
+        Route::get('/airtime/perc/{id}', 'getAirtimePercentage');
+        Route::get('/airtime/percentages', 'getAirtimePercentages');
+
+        Route::get('/data/history', 'getMyDataHistories');
+        Route::get('/data/history/{id}', 'dataDetails');
+        Route::get('/airtime/history', 'getMyAirtimeHistories');
+        Route::get('/airtime/history/{id}', 'airtimeDetails');
+        Route::get('/cable/history', 'getMyCableHistories');
+        Route::get('/cable/history/{id}', 'cableDetails');
+        Route::get('/bill/history', 'getMyBillHistories');
+        Route::get('/bill/history/{id}', 'billDetails');
     });
 
 

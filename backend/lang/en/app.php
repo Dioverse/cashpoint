@@ -12,6 +12,9 @@ return [
     | these language lines according to your application's requirements.
     |
     */
+    // Errrorrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrssssssssssssssssssssssssssssssssssss
+    'internal_server'               => 'Internal server error, contact support.',
+    'error_404'                     => 'Page not found.',
 
     'registration_success'          => 'Registration Successful',
     'registration_success_verify'   => 'Registration Successful. Please verify your account.',
@@ -49,7 +52,9 @@ return [
     'giftcard_sell_success'         => 'Giftcard sell request submitted successfully.',
     'giftcard_buy_success'          => 'Giftcard buy request submitted successfully.',
     'giftcard_history_retrieved'    => 'Giftcard history retrieved successfully.',
+    'crypto_history_retrieved'      => 'Crypto history retrieved successfully.',
     'giftcard_not_found'            => 'Giftcard not found.',
+    'crpto_not_found'               => 'Crypto not found.',
     'giftcard_detail_retrieved'     => 'Giftcard detail retrieved successfully.',
     'giftcard_process_failed'       => 'Giftcard processing failed, try again.',
 
@@ -59,4 +64,13 @@ return [
     'wallet_address_created'        => 'Wallet address created.',
     'invalid_wallet_address'        => 'Invalid wallet address',
     'transaction_confirmed'         => 'Transaction confirmed.',
+    'unable_to_verify_transaction'  => 'Unable to verify transaction.',
+
+    'data_retrieved_successfully'   => 'Data retrieved successfully.',
+    'data_retrieved_failed'         => 'Data couldn\'t be retreived.',
+
+    'data_verified_successfully'    => 'Data verified successfully.',
+    'data_verification_failed'      => 'Informartion couldn\'t be verified',
+    'operation_failed'              => 'Operation failed, please try again.',
+    'insufficient_funds'            => 'Insufficient balance.',
 ];

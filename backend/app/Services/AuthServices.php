@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Mail\OtpMail;
+
 use App\Models\Otp;
 use App\Models\User;
-use Carbon\Carbon;
+use App\Mail\OtpMail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;

@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('airtime_histories', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('network_id')->constrained()->onDelete('cascade');
+            $table->string('phone');
+            $table->decimal('amount', 10, 2);
+            $table->decimal('commission', 10, 2)->default(0);
+            $table->string('status')->default('pending');
+            $table->string('reference')->unique();
             $table->timestamps();
         });
     }
