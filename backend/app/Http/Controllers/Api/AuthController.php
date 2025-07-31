@@ -257,6 +257,35 @@ class AuthController extends Controller
     }
 
     /**
+     * Reset pin for user
+     *
+     * @param Request $request
+     * @return Response
+     */
+    public function generateWallet(Request $request)
+    : Response
+    {
+       $request->validate([
+            'type'  => 'required|in:BTC,ETH,USDT'
+        ]);
+
+        $user = auth()->user();
+        $user->generateWallet($request->type);
+
+        // return message
+        return response([
+            'message'   => __('auth.wallet_address_generated'),
+            'status'    => true,
+            'results'   => [
+                'address'  => $user->wallet_address,
+                'type'     => $user->wallet_type,
+            ],
+        ]);
+    }
+
+
+
+    /**
      * Create pin for user
      *
      * @param Request $request

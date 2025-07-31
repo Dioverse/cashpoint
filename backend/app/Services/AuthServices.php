@@ -230,8 +230,3 @@ class AuthServices
     
 
 }
-
-
-// Compare this snippet from app/Http/Controllers/Api/AuthController.php:
-// <?php
-//

@@ -28,6 +28,7 @@ class User extends Authenticatable
         'phone',
         'status',
         'wallet_address',
+        'wallet_type',
         'wallet_naira',
         'wallet_usd',
         'virtual_accounts',
@@ -48,6 +49,7 @@ class User extends Authenticatable
         'pin',
         'role',
         'passport',
+        'device_token'
     ];
 
     /**
@@ -77,4 +79,18 @@ class User extends Authenticatable
     {
         return $this->hasMany(WalletTransaction::class);
     }
+
+    public function generateWallet($type = 'USDT')
+    {
+        $this->wallet_type = $type;
+        $this->wallet_address = strtoupper($type) . '-' . strtoupper(uniqid());
+        $this->save();
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+
 }

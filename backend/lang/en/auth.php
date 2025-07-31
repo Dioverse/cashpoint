@@ -13,6 +13,7 @@ return [
     |
     */
 
+    'unauthorized'          => 'You are not authorized to perform this action.',
     'failed'                => 'These credentials do not match our records.',
     'logout'                => 'You have been logged out successfully.',
     'admin_login_failed'    => 'Invalid credentials. Please ensure you are an admin or super-admin and that your password is correct.',
@@ -20,5 +21,6 @@ return [
     'password'              => 'The provided password is incorrect.',
     'throttle'              => 'Too many login attempts. Please try again in :seconds seconds.',
     'pin_created'           => 'PIN created successfully.',
+    'wallet_address_generated' => 'Wallet address generated successfully.',
 
 ];

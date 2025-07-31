@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('phone');
             $table->enum('status', ['active', 'inactive', 'banned'])->default('active');
             $table->string('wallet_address')->nullable();
+            $table->enum('wallet_type', ['BTC', 'ETH', 'USDT'])->default('BTC');
             $table->string('wallet_naira')->default(0.00);
             $table->string('wallet_usd')->default(0.00);
             $table->string('virtual_accounts')->nullable();
@@ -43,6 +44,7 @@ return new class extends Migration
             $table->string('pin')->nullable();
             $table->enum('role', ['user', 'admin', 'super-admin'])->default('user');
             $table->text('passport')->nullable();
+            $table->string('device_token')->nullable();
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
