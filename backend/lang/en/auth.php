@@ -13,8 +13,12 @@ return [
     |
     */
 
-    'failed' => 'These credentials do not match our records.',
-    'password' => 'The provided password is incorrect.',
-    'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
+    'failed'                => 'These credentials do not match our records.',
+    'logout'                => 'You have been logged out successfully.',
+    'admin_login_failed'    => 'Invalid credentials. Please ensure you are an admin or super-admin and that your password is correct.',
+    'admin_login_success'   => 'Login successful',
+    'password'              => 'The provided password is incorrect.',
+    'throttle'              => 'Too many login attempts. Please try again in :seconds seconds.',
+    'pin_created'           => 'PIN created successfully.',
 
 ];

@@ -26,9 +26,11 @@ class User extends Authenticatable
         'username',
         'email',
         'phone',
+        'status',
         'wallet_address',
         'wallet_naira',
         'wallet_usd',
+        'virtual_accounts',
         'country_code',
         'state_code',
         'city',
@@ -69,5 +71,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function walletTransactions()
+    {
+        return $this->hasMany(WalletTransaction::class);
     }
 }

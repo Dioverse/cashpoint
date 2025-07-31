@@ -18,18 +18,54 @@ class AuthServices
         return User::where('email', $email)->first();
     }
 
+    public function findByUuid(string $uuid): ?User
+    {
+        return User::where('uuid', $uuid)->first();
+    }
+
     public function register(object $request): User
     {
         $user = User::create([
             'uuid'      => Str::uuid(),
-            'name'      => $request->name,
+            'firstName' => $request->first_name,
+            'lastName'  => $request->last_name,
+            'middleName'=> $request->middle_name,
+            'username'  => $request->username,
             'email'     => $request->email,
+            'phone'     => $request->phone,
             'password'  => bcrypt($request->password),
         ]);
 
         // Send verification email
         $this->otp($user);
 
+        return $user;
+    }
+
+    public function addAdmin(object $request): User
+    {
+        $tempPassword = random_int(100000, 999999);
+        $user = User::create([
+            'uuid'      => Str::uuid(),
+            'firstName' => $request->first_name,
+            'lastName'  => $request->last_name,
+            'middleName'=> $request->middle_name,
+            'username'  => $request->username,
+            'email'     => $request->email,
+            'phone'     => $request->phone,
+            'password'  => bcrypt($tempPassword),
+        ]);
+
+        // Send verification email
+        $this->sendPassword($user);
+
+        return $user;
+    }
+
+    public function update($data): User
+    {
+        $user = auth()->user();
+        $user->update($data);
         return $user;
     }
 
@@ -40,20 +76,6 @@ class AuthServices
 
             return $user;
 
-        }
-
-        return null;
-    }
-
-    public function adminLogin(object $request): ?User
-    {
-        $admin = User::where('email', $request->email)
-            ->where('role', 'admin')
-            ->whereNotNull('email_verified_at')
-            ->first();
-
-        if ($admin && Hash::check($request->password, $admin->password)) {
-            return $admin;
         }
 
         return null;
@@ -89,6 +111,20 @@ class AuthServices
         Mail::to($user->email)->send(new OtpMail($user, $otp));
 
         return $otp;
+    }
+
+    public function sendPassword(User $user, string $type='password-reset'): Otp
+    {
+        // Check if user already has an active OTP
+        $tries = 3;
+        $time = Carbon::now()->subMinutes(30);
+
+        // Generate Temporary Password
+        $password = random_int(100000, 999999);
+        // Send OTP to user
+        Mail::to($user->email)->send(new OtpMail($user, $password));
+
+        return $password;
     }
 
     public function verify(User $user, object $request): User
@@ -147,6 +183,39 @@ class AuthServices
         $user->update();
 
         // Return user
+        return $user;
+    }
+
+    public function resetPin(User $user, Object $request): User
+    {
+        // Validate otp
+        $otp = Otp::where([
+            'user_id'   => $user->id,
+            'code'      => $request->otp,
+            'active'    => 1,
+            'type'      => 'pin-reset',
+        ])->first();
+
+        // Check if otp is valid
+        if (!$otp) {
+            abort(422, __('app.invalid_otp'));
+        }
+
+        // Update user
+        $user->pin = $request->pin;
+        $user->updated_at = Carbon::now();
+        $user->update();
+
+        // Return user
+        return $user;
+    }
+
+
+    public function toggleAdminStatus(User $user): User
+    {
+        $user->status = $user->status === 'active' ? 'inactive' : 'active';
+        $user->updated_at = Carbon::now();
+        $user->update();
         return $user;
     }
 
