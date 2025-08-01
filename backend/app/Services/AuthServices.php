@@ -81,6 +81,26 @@ class AuthServices
         return null;
     }
 
+    public function adminLogin(object $request): ?User
+    {
+        $admin = User::where('email', $request->email)
+            ->where('role', 'admin')
+            ->whereNotNull('email_verified_at')
+            ->first();
+
+        if ($admin && Hash::check($request->password, $admin->password)) {
+            return $admin;
+        }
+
+
+        $user = User::where('email', $request->email)->first();
+        if ($user && (in_array($user->role, ['admin', 'super-admin']) && Hash::check($request->password, $user->password))) {
+            // return response()->json(['message' => 'Invalid credentials.'], 401);
+            return $user;
+        }
+        return null;
+    }
+
     public function otp(User $user, string $type='verification'): Otp
     {
         // Check if user already has an active OTP
@@ -230,3 +250,8 @@ class AuthServices
     
 
 }
+
+
+// Compare this snippet from app/Http/Controllers/Api/AuthController.php:
+// <?php
+//
