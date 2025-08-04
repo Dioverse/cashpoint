@@ -32,6 +32,7 @@ import VerifyScreen from './src/screens/VerifyScreen';
 import ChangePassword from './src/screens/ChangePassword';
 import ChangePin from './src/screens/ChangePin';
 import ConfirmPin from './src/screens/ConfirmPin';
+import ForgotPassword from './src/screens/ForgotPassword';
 import SellGiftCard from './src/screens/SellGiftCard';
 import BuyGiftCard from './src/screens/BuyGiftCardScreen';
 import SellCrypto from './src/screens/SellCrypto';
@@ -183,7 +184,7 @@ export default function App() {
     const initializeApp = async () => {
       try {
         const hasLaunched = await AsyncStorage.getItem('hasLaunched');
-        const userToken = await AsyncStorage.getItem('userToken');
+        const userToken = await AsyncStorage.getItem('auth_token');
         setIsFirstLaunch(hasLaunched === null);
         setIsAuthenticated(!!userToken);
       } catch (error) {
@@ -226,6 +227,7 @@ export default function App() {
           <Stack.Screen name="Dashboard" component={MyTabs} />
           <Stack.Screen name="ChangePin" component={ChangePin} />
           <Stack.Screen name="ConfirmPin" component={ConfirmPin} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
           
           <Stack.Screen name="MoreServices" component={ServicesNav} />
           <Stack.Screen name="Pin" component={Pin} />

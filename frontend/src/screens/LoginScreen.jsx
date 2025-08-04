@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
   View,
@@ -7,12 +7,22 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
-  Switch,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  Image,
+  StyleSheet,
+  ActivityIndicator,
+  Animated,
+  Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { authAPI } from '../services/apiServices'; // Adjust path as needed
+
+// Import your image
+const loadingImage = require('../assets/images/1.png'); // Adjust path if necessary
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -22,10 +32,51 @@ const LoginScreen = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
+  // Animated value for the zoom effect
+  const zoomAnim = useRef(new Animated.Value(0)).current;
+
+  // Effect to start/stop the animation when isLoading changes
+  useEffect(() => {
+    if (isLoading) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(zoomAnim, {
+            toValue: 1, // Zoom in
+            duration: 1500, // Speed of zoom in (1.5 seconds)
+            easing: Easing.inOut(Easing.ease), // Smooth easing
+            useNativeDriver: true,
+          }),
+          Animated.timing(zoomAnim, {
+            toValue: 0, // Zoom out
+            duration: 1500, // Speed of zoom out (1.5 seconds)
+            easing: Easing.inOut(Easing.ease), // Smooth easing
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      zoomAnim.stopAnimation();
+      zoomAnim.setValue(0);
+    }
+  }, [isLoading, zoomAnim]);
+
   const validateForm = () => {
     const newErrors = {};
-    if (!email) newErrors.email = 'Please enter your email';
-    if (!password) newErrors.password = 'Please enter your password';
+    
+    // Email validation
+    if (!email) {
+      newErrors.email = 'Please enter your email';
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+    
+    // Password validation
+    if (!password) {
+      newErrors.password = 'Please enter your password';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -34,15 +85,90 @@ const LoginScreen = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({}); // Clear any previous errors
+
     try {
-      // await api.login(email, password);
-      navigation.navigate('Dashboard');
+      // Call your Laravel API
+      const result = await authAPI.login(email, password);
+
+      if (result.success) {
+        // CORRECTED: Access token and user from result.data.results
+        const { token, user } = result.data.results; 
+
+        // Store the token
+        await AsyncStorage.setItem('auth_token', token);
+        
+        // Store user data if needed
+        if (user) { // Check if user object exists
+          await AsyncStorage.setItem('user_data', JSON.stringify(user));
+        }
+
+        // Handle remember me
+        if (rememberMe) {
+          await AsyncStorage.setItem('remember_email', email);
+        } else {
+          await AsyncStorage.removeItem('remember_email');
+        }
+
+        // Check if user needs to verify email/phone or create PIN
+        // Assuming user object has these properties directly
+        if (user?.email_verified_at === null) {
+          const otpResult = await authAPI.sendOTP({ email: email.toLowerCase().trim() });
+          if (otpResult.success) {
+            Alert.alert('Success', otpResult.data.message || 'OTP sent successfully! Please verify your account.');
+            // Navigate to Verify screen
+            navigation.navigate('Verify', { email: email.toLowerCase().trim() });
+          } else {
+            // Handle OTP sending failure (e.g., show error but still logged in)
+            Alert.alert('OTP Error', otpResult.error || 'Failed to send OTP. Please try again later.');
+          }
+          // Navigate to email verification
+          navigation.navigate('Verify', { email: email.toLowerCase().trim() }); // Pass email to VerifyScreen
+        } 
+        // else if (!user?.pin_set) { // Assuming 'pin_set' is a boolean or similar
+        //   // Navigate to create PIN
+        //   navigation.navigate('ChangePin'); // Or 'CreatePin' if you have a dedicated screen
+        // }
+         else {
+          // Navigate to main dashboard
+          navigation.navigate('Dashboard');
+        }
+
+        // Alert.alert('Success', 'Login successful!'); // You might remove this if navigation is immediate
+      } else {
+        // Handle API errors
+        Alert.alert('Login Failed', result.error);
+      }
     } catch (error) {
-      Alert.alert('Login Failed', error.message || 'Something went wrong');
+      console.error('Login error:', error); // Log the full error for debugging
+      Alert.alert('Login Failed', 'Network error. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Load remembered email on component mount
+  React.useEffect(() => {
+    const loadRememberedEmail = async () => {
+      try {
+        const rememberedEmail = await AsyncStorage.getItem('remember_email');
+        if (rememberedEmail) {
+          setEmail(rememberedEmail);
+          setRememberMe(true);
+        }
+      } catch (error) {
+        console.error('Error loading remembered email:', error);
+      }
+    };
+
+    loadRememberedEmail();
+  }, []);
+
+  // Interpolate the animated value to a scale range
+  const scale = zoomAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.1], // Zooms from 100% to 110%
+  });
 
   return (
     <SafeAreaView className="flex-1 bg-white pt-10">
@@ -57,7 +183,7 @@ const LoginScreen = () => {
             showsVerticalScrollIndicator={false}
           >
             <Text className="text-5xl font-bold text-black mb-10">Log In</Text>
-
+            
             {/* Email Input */}
             <View className="mb-6 mt-6">
               <Text className="text-base font-medium text-gray-800 mb-4">
@@ -73,9 +199,10 @@ const LoginScreen = () => {
                 autoCapitalize="none"
                 value={email}
                 onChangeText={(text) => {
-                  setEmail(text);
+                  setEmail(text.toLowerCase().trim());
                   if (errors.email) setErrors({ ...errors, email: null });
                 }}
+                editable={!isLoading}
               />
               {errors.email && (
                 <Text className="text-red-500 mt-1 text-sm">{errors.email}</Text>
@@ -100,6 +227,7 @@ const LoginScreen = () => {
                   if (errors.password)
                     setErrors({ ...errors, password: null });
                 }}
+                editable={!isLoading}
               />
               {errors.password && (
                 <Text className="text-red-500 mt-1 text-sm">
@@ -113,6 +241,7 @@ const LoginScreen = () => {
               <TouchableOpacity
                 onPress={() => setRememberMe(!rememberMe)}
                 className="flex-row items-center"
+                disabled={isLoading}
               >
                 <View
                   className={`w-5 h-5 rounded border mr-2 ${
@@ -120,14 +249,16 @@ const LoginScreen = () => {
                   } justify-center items-center`}
                 >
                   {rememberMe && (
-                    // <Text style={{ color: 'white', fontWeight: 'bold' }}>✓</Text>
                     <Icon name="check-box" size={15} color="black" />
                   )}
                 </View>
                 <Text className="text-sm text-gray-700">Remember me</Text>
               </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+              
+              <TouchableOpacity 
+                onPress={() => navigation.navigate('ForgotPassword')}
+                disabled={isLoading}
+              >
                 <Text className="text-sm text-blue-500 font-medium">
                   Forget password?
                 </Text>
@@ -145,24 +276,62 @@ const LoginScreen = () => {
               disabled={isLoading}
             >
               <Text className="text-white font-semibold text-base">
-                {isLoading ? 'Logging in...' : 'Login'}
+                {isLoading ? 'Login' : 'Login'}
               </Text>
             </TouchableOpacity>
-
+            
             <TouchableOpacity
               className="mt-6 items-center"
               onPress={() => navigation.navigate('Signup')}
+              disabled={isLoading}
             >
               <Text className="text-sm text-gray-700">
-                Don’t have an account?{' '}
+                Don't have an account?{' '}
                 <Text className="text-blue-500 font-medium">Register Here!</Text>
               </Text>
             </TouchableOpacity>
           </View>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Loading Overlay Modal */}
+      <Modal
+        transparent={true}
+        animationType="fade"
+        visible={isLoading}
+        onRequestClose={() => {}}
+      >
+        <View style={styles.overlay}>
+          <Animated.Image
+            source={loadingImage}
+            style={[styles.loadingImage, { transform: [{ scale }] }]}
+            resizeMode="contain"
+          />
+          <ActivityIndicator size="large" color="#FFFFFF" style={{ marginTop: 20 }} />
+          <Text style={styles.loadingText}>Logging in...</Text>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingImage: {
+    width: 150,
+    height: 150,
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    marginTop: 10,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+});
 
 export default LoginScreen;

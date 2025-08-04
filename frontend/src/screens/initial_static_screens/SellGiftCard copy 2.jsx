@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,12 +10,8 @@ import {
   StatusBar,
   StyleSheet,
   Pressable,
+  FlatList,
   Image,
-  Modal,
-  ActivityIndicator,
-  Animated,
-  Easing,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -23,11 +19,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { CameraIcon } from 'react-native-heroicons/outline';
 
-import { giftcardAPI } from '../services/apiServices'; // Import your giftcard API service
-
-const loadingImage = require('../assets/images/1.png'); // Adjust path if necessary
-
-const CustomSelect = ({ options, onValueChange, selectedValue, placeholder, disabled }) => {
+const CustomSelect = ({ options, onValueChange, selectedValue, placeholder }) => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
@@ -39,16 +31,16 @@ const CustomSelect = ({ options, onValueChange, selectedValue, placeholder, disa
   return (
     <View style={dropdownStyles.wrapper}>
       <TouchableOpacity
-        style={[dropdownStyles.selectButton, disabled && { backgroundColor: '#f0f0f0' }]}
+        style={dropdownStyles.selectButton}
         onPress={() => setDropdownVisible((prev) => !prev)}
         activeOpacity={0.8}
-        disabled={disabled}
       >
-        <Text style={[dropdownStyles.selectText, !selectedValue && { color: '#9CA3AF' }]}>
+        <Text style={dropdownStyles.selectText}>
           {selectedValue || placeholder || 'Select'}
         </Text>
         <Icon name="caret-down" size={20} color="#6B7280" style={dropdownStyles.icon} />
       </TouchableOpacity>
+
       {dropdownVisible && (
         <View style={dropdownStyles.dropdown}>
           {options.map((item, index) => (
@@ -80,172 +72,39 @@ const CustomSelect = ({ options, onValueChange, selectedValue, placeholder, disa
 
 const SellGiftCardScreen = () => {
   const navigation = useNavigation();
-  const [giftCard, setGiftCard] = useState(''); // Stores the selected gift card NAME (e.g., "Amazon")
+
+  const [giftCard, setGiftCard] = useState('');
   const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
   const [images, setImages] = useState([]);
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFetchingTypes, setIsFetchingTypes] = useState(true);
-  const [fetchedGiftCardTypes, setFetchedGiftCardTypes] = useState([]); // Stores names for CustomSelect
-  const [giftCardRatesMap, setGiftCardRatesMap] = useState({}); // Stores name -> rate mapping
 
-  const zoomAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (isLoading) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(zoomAnim, {
-            toValue: 1,
-            duration: 1500,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(zoomAnim, {
-            toValue: 0,
-            duration: 1500,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    } else {
-      zoomAnim.stopAnimation();
-      zoomAnim.setValue(0);
-    }
-  }, [isLoading, zoomAnim]);
-
-  useEffect(() => {
-    const fetchTypes = async () => {
-      setIsFetchingTypes(true);
-      try {
-        const result = await giftcardAPI.getTypes();
-        if (result.success && result.data && result.data.results && result.data.results.data) {
-          const types = result.data.results.data.map(item => item.name);
-          setFetchedGiftCardTypes(types);
-
-          const newRatesMap = {};
-          result.data.results.data.forEach(item => {
-            newRatesMap[item.name] = item.rate;
-          });
-          setGiftCardRatesMap(newRatesMap);
-
-        } else {
-          Alert.alert('Error', result.error || 'Failed to fetch gift card types.');
-        }
-      } catch (error) {
-        console.error('Error fetching gift card types:', error);
-        Alert.alert('Error', 'Network error while fetching gift card types.');
-      } finally {
-        setIsFetchingTypes(false);
-      }
-    };
-    fetchTypes();
-  }, []);
-
+  const giftCardOptions = ['Amazon', 'iTunes', 'Google Play', 'Steam', 'eBay'];
   const categoryOptions = ['E-code', 'Physical Card'];
-
-  const calculateYouAreGetting = () => {
-    const selectedRate = giftCardRatesMap[giftCard];
-    const inputAmount = Number(amount);
-
-    if (selectedRate && !isNaN(inputAmount) && inputAmount > 0) {
-      return (inputAmount * Number(selectedRate) * 0.8).toFixed(2);
-    }
-    return '0.00';
-  };
 
   const validateForm = () => {
     const newErrors = {};
-    if (!giftCard) newErrors.giftCard = 'Please select a gift card type.';
-    if (!category) newErrors.category = 'Please select a category.';
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      newErrors.amount = 'Please enter a valid amount (must be a number greater than 0).';
-    }
-    if (images.length === 0) newErrors.images = 'Please upload at least one image.';
+    if (!giftCard) newErrors.giftCard = 'Select gift card';
+    if (!category) newErrors.category = 'Select category';
+    if (!amount) newErrors.amount = 'Enter amount';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) {
-      console.log('Frontend validation failed. Errors:', errors);
-      return;
-    }
+  const handleSubmit = () => {
+    if (!validateForm()) return;
 
-    setIsLoading(true);
-    setErrors({});
-
-    try {
-      const formData = new FormData();
-      formData.append('card_type', giftCard);
-      formData.append('category', category);
-      formData.append('amount', amount);
-
-      images.forEach((image, index) => {
-        if (image.uri && image.type && image.fileName) {
-          formData.append('images[]', {
-            uri: image.uri,
-            type: image.type,
-            name: image.fileName,
-          });
-        } else {
-          console.warn(`Skipping invalid image asset at index ${index}:`, image);
-        }
-      });
-
-      // --- START: Debugging Logs ---
-      console.log('--- Submitting Sell Gift Card Form ---');
-      console.log('Gift Card (card_type):', giftCard);
-      console.log('Category:', category);
-      console.log('Amount:', amount);
-      console.log('Number of Images:', images.length);
-      // You can also iterate formData entries if needed for deeper inspection
-      // for (let pair of formData.entries()) {
-      //   console.log(pair[0]+ ': ' + pair[1]);
-      // }
-      console.log('--- End Debugging Logs ---');
-
-      const result = await giftcardAPI.sell(formData);
-
-      if (result.success) {
-        Alert.alert('Success', result.data.message || 'Gift Card submitted successfully!');
-        setGiftCard('');
-        setCategory('');
-        setAmount('');
-        setImages([]);
-        navigation.navigate('Transaction');
-      } else {
-        Alert.alert('Submission Failed', result.error || 'Something went wrong. Please try again.');
-      }
-    } catch (error) {
-      console.error('Sell Gift Card error:', error);
-      Alert.alert('Error', 'Network error or unexpected issue. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    console.log({ giftCard, category, amount, images });
+    alert('Gift Card submitted!');
   };
 
   const handleImageUpload = () => {
-    launchImageLibrary({ mediaType: 'photo', selectionLimit: 0, quality: 0.7 }, (response) => {
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.errorCode) {
-        console.log('ImagePicker Error: ', response.errorCode);
-        Alert.alert('Image Upload Error', 'Failed to pick images. Please try again.');
-      } else if (response.assets) {
-        const validAssets = response.assets.filter(asset => asset.uri && asset.type && asset.fileName);
-        setImages(validAssets);
-        if (errors.images) setErrors({ ...errors, images: null });
+    launchImageLibrary({ mediaType: 'photo', selectionLimit: 0 }, (response) => {
+      if (response.assets) {
+        setImages(response.assets);
       }
     });
   };
-
-  const scale = zoomAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 1.1],
-  });
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
@@ -255,7 +114,7 @@ const SellGiftCardScreen = () => {
         style={{ flex: 1 }}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} disabled={isLoading}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
             <Icon name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <View style={{ flex: 1, alignItems: 'center' }}>
@@ -263,28 +122,22 @@ const SellGiftCardScreen = () => {
           </View>
         </View>
         <View style={styles.formSectionWrapper}>
+
         </View>
         <View style={styles.formSection}>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 100 }}>
             {/* Gift Card */}
             <View style={{ marginBottom: 25, zIndex: 3 }}>
               <Text style={styles.label}>Gift Card</Text>
-              {isFetchingTypes ? (
-                <View style={[styles.input, { justifyContent: 'center', alignItems: 'center', flexDirection: 'row' }]}>
-                  <ActivityIndicator size="small" color="#4B39EF" />
-                  <Text style={{ color: '#6B7280', marginLeft: 10 }}>Loading types...</Text>
-                </View>
-              ) : (
-                <CustomSelect
-                  options={fetchedGiftCardTypes}
-                  selectedValue={giftCard}
-                  onValueChange={setGiftCard}
-                  placeholder="Select gift card"
-                  disabled={isLoading || isFetchingTypes}
-                />
-              )}
+              <CustomSelect
+                options={giftCardOptions}
+                selectedValue={giftCard}
+                onValueChange={setGiftCard}
+                placeholder="Select gift card"
+              />
               {errors.giftCard && <Text style={styles.errorText}>{errors.giftCard}</Text>}
             </View>
+
             {/* Category */}
             <View style={{ marginBottom: 25, zIndex: 2 }}>
               <Text style={styles.label}>Category</Text>
@@ -293,10 +146,10 @@ const SellGiftCardScreen = () => {
                 selectedValue={category}
                 onValueChange={setCategory}
                 placeholder="Select category"
-                disabled={isLoading}
               />
               {errors.category && <Text style={styles.errorText}>{errors.category}</Text>}
             </View>
+
             {/* Amount */}
             <View style={{ marginBottom: 25, zIndex: 1 }}>
               <Text style={styles.label}>Amount</Text>
@@ -310,31 +163,32 @@ const SellGiftCardScreen = () => {
                   setAmount(text);
                   if (errors.amount) setErrors({ ...errors, amount: null });
                 }}
-                editable={!isLoading}
               />
               {errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
             </View>
+
             {/* You’re Getting */}
             <View style={{ backgroundColor: '#3432a830', padding: 12, borderRadius: 8,marginBottom: 25 }}>
               <Text style={styles.label}>You’re Getting</Text>
               <View style={styles.input}>
                 <Text style={styles.valueText}>
-                  ${calculateYouAreGetting()}
+                  ${amount ? (Number(amount) * 0.8).toFixed(2) : '0.00'}
                 </Text>
               </View>
             </View>
+
             {/* Upload Gift Card Image(s) */}
             <View style={{ marginBottom: 25 }}>
               <Text style={styles.label}>Upload Gift Card Image(s)</Text>
               <TouchableOpacity
-                className='flex-row justify-between'
+              className='flex-row justify-between'
                 onPress={handleImageUpload}
                 style={[styles.input, { justifyContent: 'space-between', alignItems: 'center',backgroundColor: '#3432a830' }]}
-                disabled={isLoading}
               >
                 <Text style={{ color: '#6B7280' }}>Click here to upload image(s)</Text>
                 <CameraIcon size={20}/>
               </TouchableOpacity>
+
               <ScrollView horizontal style={{ marginTop: 10 }}>
                 {images.map((img, idx) => (
                   <Image
@@ -344,39 +198,20 @@ const SellGiftCardScreen = () => {
                   />
                 ))}
               </ScrollView>
-              {errors.images && <Text style={styles.errorText}>{errors.images}</Text>}
             </View>
+
+            
+
             {/* Submit */}
             <TouchableOpacity
               onPress={handleSubmit}
-              style={[styles.submitButton, isLoading && { backgroundColor: '#A0A0A0' }]}
-              disabled={isLoading || isFetchingTypes}
+              style={styles.submitButton}
             >
-              <Text style={styles.submitButtonText}>
-                {isLoading ? 'Submitting...' : 'Submit'}
-              </Text>
+              <Text style={styles.submitButtonText}>Submit</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
-
-      {/* Loading Overlay Modal */}
-      <Modal
-        transparent={true}
-        animationType="fade"
-        visible={isLoading}
-        onRequestClose={() => {}}
-      >
-        <View style={styles.overlay}>
-          <Animated.Image
-            source={loadingImage}
-            style={[styles.loadingImage, { transform: [{ scale }] }]}
-            resizeMode="contain"
-          />
-          <ActivityIndicator size="large" color="#FFFFFF" style={{ marginTop: 20 }} />
-          <Text style={styles.loadingText}>Processing Gift Card...</Text>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };
@@ -441,22 +276,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 5,
   },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingImage: {
-    width: 150,
-    height: 150,
-  },
-  loadingText: {
-    color: '#FFFFFF',
-    marginTop: 10,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
 });
 
 const dropdownStyles = StyleSheet.create({
@@ -511,6 +330,8 @@ const dropdownStyles = StyleSheet.create({
   optionTextHovered: {
     color: '#1e90ff',
   },
+
+  
 });
 
 export default SellGiftCardScreen;
