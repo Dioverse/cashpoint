@@ -133,6 +133,15 @@ class GiftcardService
         return $convertedAmount;
     }
 
+    public function allGiftcardHistory()
+    {
+        return GiftcardHistory::get();
+    }
+
+    public function findGiftcardHistory($id)
+    {
+        return GiftcardHistory::find($id);
+    }
 
     public function getUserGiftcardHistories($user)
     {
@@ -159,7 +168,7 @@ class GiftcardService
 
     public function allGiftcards()
     {
-        return Giftcard::all();
+        return Giftcard::get();
     }
 
     public function activeGiftcards()

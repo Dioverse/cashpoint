@@ -72,10 +72,10 @@ class VTUController extends Controller
             $user->save();
 
             $response   = $this->smeplug->purchaseData($dataPlan->network_id, $dataPlan->smeplug_plan_id, $request->phone, $ref);
-            return response([
-                'success' => true,
-                'data'    => $response
-            ]);
+            // return response([
+            //     'success' => true,
+            //     'data'    => $response
+            // ]);
             $status     = $response['status'] == 'success' ? 'success' : 'failed';
 
             $this->dataService->createDataHistory([
@@ -189,7 +189,6 @@ class VTUController extends Controller
      */
     //
     public function buyCable(Request $request)
-    : Response
     {
         DB::beginTransaction();
         try {
@@ -275,7 +274,6 @@ class VTUController extends Controller
      */
     //
     public function buyBill(Request $request)
-    : Response
     {
         DB::beginTransaction();
         try {

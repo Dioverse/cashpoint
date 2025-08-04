@@ -320,13 +320,40 @@ class AuthController extends Controller
 
 
     /**
-     * Get authenticated user
+     * Upload user passport
      *
      * @param Request $request
      * @return Response
      */
+    public function passport(Request $request)
+    : Response
+    {
+        $request->validate([
+            'photo'     => 'required|image|max:2048|mimetypes:image/jpeg,image/png',
+        ]);
+
+        $path           = $request->file('photo')->store('user_passport', 'public');
+        $user           = auth()->user();
+        $user->passport = $path;
+        $user->save();
+
+        return response([
+            'message'   => __('auth.passport_uploaded'),
+            'status'    => true,
+            'results'   => [
+                'user'  => new UserResource($user),
+            ],
+        ]);
+
+    }
 
 
+    /**
+     * Get authenticated user
+     *
+     * @param Request $request
+     * @return Response
+    */
     public function user(Request $request)
     {
         // Return authenticated user

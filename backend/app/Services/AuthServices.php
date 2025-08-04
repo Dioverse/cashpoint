@@ -6,12 +6,21 @@ namespace App\Services;
 use App\Models\Otp;
 use App\Models\User;
 use App\Mail\OtpMail;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use SebastianBergmann\Type\TrueType;
 
 class AuthServices
 {
+    public function allUsers()
+    {
+        return User::select('id', 'firstName', 'lastName', 'middleName', 'email', 'phone', 'status', 'created_at')
+            ->latest()
+            ->paginate(20);
+    }
+
     public function getUserByEmail(string $email): ?User
     {
         //
@@ -132,10 +141,20 @@ class AuthServices
 
         // Generate Temporary Password
         $password = random_int(100000, 999999);
-        // Send OTP to user
-        Mail::to($user->email)->send(new OtpMail($user, $password));
 
-        return $password;
+        // Store the temporary password as an OTP record for tracking
+        $otp = Otp::create([
+            'user_id'   => $user->id,
+            'type'      => $type,
+            'code'      => $password,
+            'active'    => 1,
+            'expired_at'=> now()->addMinutes(5),
+        ]);
+
+        // Send OTP to user
+        Mail::to($user->email)->send(new OtpMail($user, $otp));
+
+        return $otp;
     }
 
     public function verify(User $user, object $request): User
@@ -234,5 +253,29 @@ class AuthServices
     public function logout(): void
     {
         auth()->user()->tokens()->delete();
+    }
+
+    // Admin functionalities ........................ +++++++++++++++++++++++++++++++++++++++++++
+    public function block($id)
+    {
+        $user = User::findOrFail($id);
+        $user->status = 'banned';
+        $user->save();
+
+        return $user;
+    }
+
+    public function unblock($id)
+    {
+        $user = User::findOrFail($id);
+        $user->status = 'active';
+        $user->save();
+
+        return $user;
+    }
+
+    public function delete($id)
+    {
+        return User::findOrFail($id)->delete();
     }
 }

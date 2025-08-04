@@ -161,4 +161,64 @@ class GiftcardController extends Controller
     {
         return $this->giftcardService->deleteGiftcard($id);
     }
+
+    // Giftcard process starts here =========================================================
+
+    public function approveGiftcard($id)
+    {
+
+        $tx = $this->giftcardService->findGiftcardHistory($id);
+
+        if ($tx->status !== 'pending') {
+            return response([
+                'message' => __('app.operation_failed'),
+                'status' => false,
+            ], 422);
+        }
+
+        $tx->update([
+            'status' => 'approved',
+            'approved_by' => Auth::id(),
+            'approved_on' => now()
+        ]);
+
+        $tx->user->increment('wallet_usd', $tx->amount);
+
+        return response([
+            'success' => true,
+            'message' => __('app.operation_successful'),
+            'result' => [
+                'data' => $tx
+            ]
+        ], 201);
+    }
+
+    public function declineGiftcard(Request $request, $id)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:255',
+        ]);
+
+        // Find the giftcard transaction
+        $tx = $this->giftcardService->findGiftcardHistory($id);
+
+        if ($tx->status !== 'pending') {
+            return response(['message' => __('app.operation_failed')], 422);
+        }
+
+        $tx->update([
+            'status'            => 'rejected',
+            'approved_on'       => now(),
+            'approved_by'       => Auth::id(),
+            'rejection_reason'  => $request->reason
+        ]);
+
+        return response([
+            'success' => true,
+            'message' => __('app.operation_declined'),
+        ], 201);
+
+    }
+
+
 }

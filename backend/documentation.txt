@@ -89,3 +89,15 @@ $profit = (($userPerc - $smeplugPerc) / 100) * $amount;
 
 
 php artisan db:seed --class=CablePlanSeeder
+
+
+// WHAT REMAINS
+- User withdrawal to Bank
+  - List banks with their codes
+  - Process withdrawal
+  - Handle Transfer / withdrawal webhook
+- Admin role and permission
+  - Create role
+  - Assign role/permission
+- Admin KYC approval
+  - Approve/Decline

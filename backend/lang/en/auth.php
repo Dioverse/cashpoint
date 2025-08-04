@@ -22,5 +22,7 @@ return [
     'throttle'              => 'Too many login attempts. Please try again in :seconds seconds.',
     'pin_created'           => 'PIN created successfully.',
     'wallet_address_generated' => 'Wallet address generated successfully.',
+    'passport_uploaded'     => 'Photo submitted uploaded.',
+    'kyc_submitted'         => 'KYC submitted successfully.',
 
 ];

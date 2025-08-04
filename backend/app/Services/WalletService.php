@@ -15,6 +15,11 @@ use Carbon\Carbon;
 class WalletService
 {
 
+    public function allWalletTransactions(): \Illuminate\Database\Eloquent\Collection
+    {
+        return WalletTransaction::get();
+    }
+
     public function create(array $data): WalletTransaction
     {
         return WalletTransaction::create($data);

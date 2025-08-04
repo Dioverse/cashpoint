@@ -207,6 +207,12 @@ class CryptoService
     {
         return CryptoHistory::where('user_id', $user->id)->get();
     }
+
+    public function allCryptoHistory()
+    {
+        return CryptoHistory::get();
+    }
+
     public function getCryptoById($id)
     {
         return CryptoHistory::findOrFail($id);
@@ -235,6 +241,59 @@ class CryptoService
         'BTC' => 'btc',
         'USDT' => 'trx', // or 'eth' if using ERC20
     ];
+
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++==
+    public function cryptos()
+    {
+        return Crypto::get();
+    }
+
+    public function findCrypto($id)
+    {
+        return Crypto::findOrFail($id);
+    }
+
+    public function createCrypto($data)
+    {
+        $crypto = Crypto::create($data);
+        return $crypto;
+    }
+
+    public function updateCrypto($id, $data)
+    {
+        $crypto = Crypto::findOrFail($id);
+        $crypto->update($data);
+        return $crypto;
+    }
+
+    public function deleteCrypto($id)
+    {
+        $crypto = Crypto::findOrFail($id);
+        return $crypto->delete();
+    }
+
+    public function toggleCryptoStatus($id)
+    {
+        $crypto = Crypto::findOrFail($id);
+        $crypto->is_active = ! $crypto->is_active;
+        $crypto->save();
+        return $crypto;
+    }
+
+    public function getCryptoBySymbol($symbol)
+    {
+        return Crypto::where('symbol', strtoupper($symbol))->first();
+    }
+
+    public function getCryptoByName($name)
+    {
+        return Crypto::where('name', 'like', '%' . $name . '%')->get();
+    }
+
+    public function getCryptoByCode($code)
+    {
+        return Crypto::where('code', $code)->first();
+    }
 
 
 

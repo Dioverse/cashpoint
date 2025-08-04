@@ -106,7 +106,11 @@ class CryptoController extends Controller
                 'status'    => true,
             ], 404);
         }
-        return response(['success' => true, 'message' => __('app.crypto_history_retrieved'), 'result' => ['data' => $giftcard]]);
+        return response([
+            'success' => true,
+            'message' => __('app.crypto_history_retrieved'),
+            'result' => ['data' => $giftcard]
+        ]);
     }
 
 

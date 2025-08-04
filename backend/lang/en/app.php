@@ -73,4 +73,16 @@ return [
     'data_verification_failed'      => 'Informartion couldn\'t be verified',
     'operation_failed'              => 'Operation failed, please try again.',
     'insufficient_funds'            => 'Insufficient balance.',
+
+    'account_blocked'               => 'Account has been blocked.',
+    'account_unblocked'             => 'Account has been unblocked.',
+    'record_created'                => 'New record created successfully.',
+    'error_creating_record'         => 'Error occured while creating record.',
+    'record_updated'                => 'Record updated successfully',
+    'updated_failed'                => 'Record fail to updated, try later',
+    'record_deleted'                => 'Record deleted successfully.',
+    'delete_failed'                 => 'Record couldnt be deleted, try later',
+    'operation_successful'          => 'Operation successful.',
+    'operation_failed'              => 'Operation failed, please try again.',
+    'operation_declined'            => 'Operation declined',
 ];

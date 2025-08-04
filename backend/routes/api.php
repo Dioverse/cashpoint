@@ -3,7 +3,18 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\VirtualAccountController;
 use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AdminCryptoController;
+use App\Http\Controllers\Admin\AdminGiftcardController as AdminAdminGiftcardController;
+use App\Http\Controllers\Admin\AdminHistoryController;
+use App\Http\Controllers\Admin\AdminKycController;
+use App\Http\Controllers\Admin\AirtimePricingController;
+use App\Http\Controllers\Admin\CablePricingController;
+use App\Http\Controllers\Admin\DataPricingController;
+use App\Http\Controllers\Admin\GiftCardController as AdminGiftCardController;
+use App\Http\Controllers\Admin\PricingController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\KYCController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Purchase\CryptoController;
 use App\Http\Controllers\Purchase\GiftcardController;
@@ -27,12 +38,17 @@ Route::controller(AuthController::class)->group(function () {
         Route::post('/resend', 'resend')->name('api.auth.resend');
         Route::post('/create-pin', 'createPin')->name('api.auth.create.pin');
         Route::post('/reset-pin', 'resetPin')->name('api.auth.reset.pin');
-        Route::get('/user', 'user')->middleware('auth:sanctum');
-        Route::post('/user/generate-wallet', 'generateWallet')->middleware('auth:sanctum');
-        Route::post('/logout', 'logout')->middleware('auth:sanctum');
+        Route::get('/user', 'user')->name('api.auth.user');
+        Route::post('/user/generate-wallet', 'generateWallet')->name('api.auth.generate.wallet');
+        Route::post('/logout', 'logout')->name('api.auth.logout');
+        Route::post('/passport', 'passport')->name('api.auth.passport');
     });
 });
 
+Route::controller(KYCController::class)->middleware('auth:sanctum')->group(function () {
+    Route::post('/kyc/tier2', 'store')->name('api.kyc.tier2');
+    Route::post('/kyc/tier3', 'create')->name('api.kyc.tier3');
+});
 
 Route::middleware('auth:sanctum')->group(function () {
         // Gift Card
@@ -124,13 +140,87 @@ Route::prefix('admin')->group(function () {
         Route::post('/logout', [AdminAuthController::class, 'logout']);
         Route::post('/add-admin', [AdminAuthController::class, 'register']);
 
+        Route::get('/kycs', [AdminKycController::class, 'index'])->name('admin.kycs.index');
+        Route::get('/kycs/{kyc}', [AdminKycController::class, 'show'])->name('admin.kycs.show');
+        Route::post('/kycs/{kyc}/approve', [AdminKycController::class, 'approve'])->name('admin.kycs.approve');
+        Route::post('/kycs/{kyc}/reject', [AdminKycController::class, 'reject'])->name('admin.kycs.reject');
+
         // Settings
         Route::get('/settings', [SettingController::class, 'index']);
         Route::post('/settings', [SettingController::class, 'store']);
         Route::put('/settings/{id}', [SettingController::class, 'update']);
         Route::delete('/settings/{id}', [SettingController::class, 'destroy']);
-
         Route::get('/exchange-rate', [SettingController::class, 'getExchangeRate']);
+
+        Route::get('/users', [AdminController::class, 'index']);
+        Route::patch('/users/{id}/block', [AdminController::class, 'block']);
+        Route::patch('/users/{id}/unblock', [AdminController::class, 'unblock']);
+        Route::post('/users/create-admin', [AdminController::class, 'admin']);
+        Route::delete('/users/{id}', [AdminController::class, 'delete']);
+
+        Route::get('/histories/airtime', [AdminController::class, 'airtime']);
+        Route::get('/histories/bill', [AdminController::class, 'bill']);
+        Route::get('/histories/cable', [AdminController::class, 'cable']);
+        Route::get('/histories/data', [AdminController::class, 'data']);
+        Route::get('/histories/giftcards', [AdminController::class, 'giftcards']);
+
+        Route::get('/giftcard/{id}/approve', [GiftcardController::class, 'approveGiftcard']);
+        Route::post('/giftcard/{id}/decline', [GiftcardController::class, 'declineGiftcard']);
+
+        // ++++++++++++++++ PRICING ROUTES ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        Route::get('/pricings/airtime', [AirtimePricingController::class, 'index']);
+        Route::post('/pricings/airtime', [AirtimePricingController::class, 'store']);
+        Route::get('/pricings/airtime/{id}', [AirtimePricingController::class, 'read']);
+        Route::put('/pricings/airtime/{id}', [AirtimePricingController::class, 'update']);
+        Route::delete('/pricings/airtime/{id}', [AirtimePricingController::class, 'destroy']);
+
+        Route::get('/pricings/cable', [CablePricingController::class, 'index']);
+        Route::post('/pricings/cable', [CablePricingController::class, 'store']);
+        Route::get('/pricings/cable/{id}', [CablePricingController::class, 'read']);
+        Route::put('/pricings/cable/{id}', [CablePricingController::class, 'update']);
+        Route::delete('/pricings/cable/{id}', [CablePricingController::class, 'destroy']);
+        Route::get('/pricings/cable/status/{id}', [CablePricingController::class, 'toggleStatus']);
+
+        Route::get('/pricings/crypto', [AdminCryptoController::class, 'index']);
+        Route::post('/pricings/crypto', [AdminCryptoController::class, 'store']);
+        Route::get('/pricings/crypto/{id}', [AdminCryptoController::class, 'read']);
+        Route::post('/pricings/crypto/{id}', [AdminCryptoController::class, 'update']);
+        Route::delete('/pricings/crypto/{id}', [AdminCryptoController::class, 'destroy']);
+        Route::get('/pricings/crypto/status/{id}', [AdminCryptoController::class, 'toggleStatus']);
+
+        Route::get('/pricings/data', [DataPricingController::class, 'index']);
+        Route::post('/pricings/data', [DataPricingController::class, 'store']);
+        Route::get('/pricings/data/{id}', [DataPricingController::class, 'read']);
+        Route::put('/pricings/data/{id}', [DataPricingController::class, 'update']);
+        Route::delete('/pricings/data/{id}', [DataPricingController::class, 'destroy']);
+        Route::get('/pricings/data/status/{id}', [DataPricingController::class, 'toggleStatus']);
+
+        Route::get('/pricings/giftcard', [AdminAdminGiftcardController::class, 'index']);
+        Route::post('/pricings/giftcard', [AdminAdminGiftcardController::class, 'store']);
+        Route::get('/pricings/giftcard/{id}', [AdminAdminGiftcardController::class, 'read']);
+        Route::post('/pricings/giftcard/{id}', [AdminAdminGiftcardController::class, 'update']);
+        Route::delete('/pricings/giftcard/{id}', [AdminAdminGiftcardController::class, 'destroy']);
+        Route::get('/pricings/giftcard/status/{id}', [AdminAdminGiftcardController::class, 'toggleStatus']);
+
+
+        // ++++++++++++++++ HISTORY ROUTES ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        Route::get('/histories/airtime', [AdminHistoryController::class, 'airtimeHistory']);
+        Route::get('/histories/bill', [AdminHistoryController::class, 'billHistory']);
+        Route::get('/histories/cable', [AdminHistoryController::class, 'cableHistory']);
+        Route::get('/histories/crypto', [AdminHistoryController::class, 'cryptoHistory']);
+        Route::get('/histories/data', [AdminHistoryController::class, 'dataHistory']);
+        Route::get('/histories/giftcard', [AdminHistoryController::class, 'giftcardHistory']);
+        Route::get('/histories/payment', [AdminHistoryController::class, 'fundHistory']);
+
+
+        Route::get('/histories/airtime/{id}', [AdminHistoryController::class, 'airtimeHistoryDetail']);
+        Route::get('/histories/bill/{id}', [AdminHistoryController::class, 'billHistoryDetail']);
+        Route::get('/histories/cable/{id}', [AdminHistoryController::class, 'cableHistoryDetail']);
+        Route::get('/histories/crypto/{id}', [AdminHistoryController::class, 'cryptoHistoryDetail']);
+        Route::get('/histories/data/{id}', [AdminHistoryController::class, 'dataHistoryDetail']);
+        Route::get('/histories/giftcard/{id}', [AdminHistoryController::class, 'giftcardHistoryDetail']);
+        Route::get('/histories/payment/{id}', [AdminHistoryController::class, 'fundHistoryDetail']);
+
 
     });
 });

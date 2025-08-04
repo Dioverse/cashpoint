@@ -9,12 +9,17 @@ class DataService
     // Data Plans goes .....................................
     public function getDataPlans()
     {
-        return DataPrice::all();
+        return DataPrice::get();
     }
 
     public function getDataPlansActive()
     {
         return DataPrice::where('is_active', true)->get();
+    }
+
+    public function query()
+    {
+        return DataPrice::query();
     }
 
 
@@ -24,25 +29,25 @@ class DataService
     }
 
 
-    public function createPercentage(array $data)
+    public function createPlan(array $data)
     {
         return DataPrice::create($data);
     }
 
-    public function updatePercentage(DataPrice $percentage, array $data)
+    public function updatePlan(DataPrice $percentage, array $data)
     {
         return $percentage->update($data);
     }
 
     public function findDataPlan($planId)
     {
-        return DataPrice::find($planId);
+        return DataPrice::findOrFail($planId);
     }
 
     // Data History goes ........................................................
-    public function allDataHistory($networkId)
+    public function allDataHistory()
     {
-        return DataHistory::all();
+        return DataHistory::get();
     }
 
     public function createDataHistory(array $data)

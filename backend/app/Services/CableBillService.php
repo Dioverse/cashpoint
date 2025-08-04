@@ -33,7 +33,7 @@ class CableBillService {
     }
 
     public function cablePlans() {
-        return CablePlan::all();
+        return CablePlan::get();
     }
 
     public function cablePlansActive() {
@@ -49,8 +49,16 @@ class CableBillService {
         return CablePlan::where('code', $id)->first();
     }
 
+    public function getCablePlan($id) {
+        return CablePlan::find($id);
+    }
+
     public function plansByCable($id) {
         return CablePlan::where('cable_id', $id)->get();
+    }
+
+    public function createCablePlan($data) {
+        return CablePlan::create($data);
     }
 
 
@@ -78,6 +86,11 @@ class CableBillService {
 
     //  Utilities history ................................................................
     // Cable, create, read, and update history ++++++++++++++++++++
+    public function allCableHistory()
+    {
+        return CableHistory::get();
+    }
+
     public function createCableHistory(array $data) {
         return CableHistory::create($data);
     }
@@ -98,7 +111,13 @@ class CableBillService {
     }
 
     // Bill, create, read, and update history +++++++++++++++++++++++++++
-    public function createBillHistory(array $data) {
+    public function allBillHistory()
+    {
+        return BillHistory::get();
+    }
+
+    public function createBillHistory(array $data)
+    {
         return BillHistory::create($data);
     }
 

@@ -15,16 +15,16 @@ class CryptoResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'                => $request->id,
-            'name'              => $request->name,
-            'symbol'            => $request->symbol,
-            'usd_rate'          => $request->usd_rate,
-            'logo'              => $request->logo,
-            'chain'             => $request->chain,
-            'nownode_ticker'    => $request->nownode_ticker,
-            'is_active'         => $request->is_active,
-            'created_at'        => $this->created_at,
-            'updated_at'        => $this->updated_at,
+            'id'                => $this->id,
+            'name'              => $this->name,
+            'symbol'            => $this->symbol,
+            'usdRate'           => $this->usd_rate,
+            'logo'              => $this->logo,
+            'chain'             => $this->chain,
+            'nownodeTicker'     => $this->nownode_ticker,
+            'isActive'          => $this->is_active,
+            'createdAt'         => $this->created_at,
+            'updatedAt'         => $this->updated_at,
         ];
     }
 }
