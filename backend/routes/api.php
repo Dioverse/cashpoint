@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::controller(AuthController::class)->group(function () {
     Route::post('/login', 'login')->name('api.auth.login');
+    Route::post('/adminlogin', 'adminLogin')->name('api.auth.adminLogin');
     Route::post('/register', 'register')->name('api.auth.register');
     Route::post('/reset/otp', 'resetOtp')->name('api.auth.reset.otp');
     Route::post('/reset/password', 'resetPassword')->name('api.auth.reset.password');
@@ -114,10 +115,10 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
-// Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
-//     Route::post('/settings/exchange-rate', [SettingController::class, 'updateExchangeRate']);
-//     Route::get('/settings/exchange-rate', [SettingController::class, 'getExchangeRate']);
-// });
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::post('/settings/exchange-rate', [SettingController::class, 'updateExchangeRate']);
+    Route::get('/settings/exchange-rate', [SettingController::class, 'getExchangeRate']);
+});
 
 
 

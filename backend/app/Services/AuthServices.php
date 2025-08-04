@@ -92,6 +92,15 @@ class AuthServices
 
     public function adminLogin(object $request): ?User
     {
+        $admin = User::where('email', $request->email)
+            ->where('role', 'admin')
+            ->whereNotNull('email_verified_at')
+            ->first();
+
+        if ($admin && Hash::check($request->password, $admin->password)) {
+            return $admin;
+        }
+
 
         $user = User::where('email', $request->email)->first();
         if ($user && (in_array($user->role, ['admin', 'super-admin']) && Hash::check($request->password, $user->password))) {
@@ -255,6 +264,7 @@ class AuthServices
         auth()->user()->tokens()->delete();
     }
 
+<<<<<<< HEAD
     // Admin functionalities ........................ +++++++++++++++++++++++++++++++++++++++++++
     public function block($id)
     {
@@ -278,4 +288,15 @@ class AuthServices
     {
         return User::findOrFail($id)->delete();
     }
+=======
+
+
+    
+
+>>>>>>> 2c91fc5e0a1a922f6cf416f85356df53c96443ec
 }
+
+
+// Compare this snippet from app/Http/Controllers/Api/AuthController.php:
+// <?php
+//
