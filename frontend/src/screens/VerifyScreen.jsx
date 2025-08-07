@@ -114,11 +114,11 @@ const VerifyScreen = () => {
         
         const currentUserData = result.data.results?.user || JSON.parse(await AsyncStorage.getItem('user_data'));
         
-        if (!currentUserData?.pin_set) {
-          navigation.navigate('ChangePin');
-        } else {
+        // if (!currentUserData?.pin_set) {
+        //   navigation.navigate('ChangePin');
+        // } else {
           navigation.navigate('Dashboard');
-        }
+        // }
 
       } else {
         Alert.alert('Verification Failed', result.error || 'The OTP entered is incorrect or expired.');

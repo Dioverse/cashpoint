@@ -2105,3 +2105,7 @@
 #54 C:\\Users\\LENOVO\\Desktop\\cashpoint\\backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\LENOVO...')
 #55 {main}
 "} 
+[2025-08-05 15:21:34] local.ERROR: Maximum execution time of 60 seconds exceeded {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 60 seconds exceeded at C:\\Users\\LENOVO\\Desktop\\cashpoint\\backend\\storage\\framework\\views\\5dde7ae29c28d2ae0e96d4e65deb1911.php:1)
+[stacktrace]
+#0 {main}
+"} 

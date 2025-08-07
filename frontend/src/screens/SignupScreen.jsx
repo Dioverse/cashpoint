@@ -134,6 +134,7 @@ const SignupScreen = () => {
       } else {
         // Handle Register API errors
         Alert.alert('Registration Failed', registerResult.error || 'Something went wrong during registration.');
+        console.log(registerResult)
       }
     } catch (error) {
       console.error('Registration process error:', error);

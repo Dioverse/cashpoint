@@ -138,6 +138,7 @@ const LoginScreen = () => {
       } else {
         // Handle API errors
         Alert.alert('Login Failed', result.error);
+        console.log(result)
       }
     } catch (error) {
       console.error('Login error:', error); // Log the full error for debugging
