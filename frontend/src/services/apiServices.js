@@ -30,14 +30,17 @@ export const authAPI = {
   },
 
 
-  resendOTP: async () => { // The /resend endpoint typically doesn't need a payload if user is authenticated
-    try {
-      const response = await api.post('/resend');
-      return { success: true, data: response.data };
-    } catch (error) {
-      return { success: false, error: error.response?.data?.message || 'Failed to resend OTP' };
-    }
-  },
+  // Update your resendOTP function to ensure the payload format is correct
+resendOTP: async (email) => {
+  try {
+    // Send the email inside the payload
+    const response = await api.post('/resend', { email });
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { success: false, error: error.response?.data?.message || 'Failed to resend OTP' };
+  }
+},
+
 
   verifyOTP: async (otp) => {
     try {
@@ -48,12 +51,17 @@ export const authAPI = {
     }
   },
 
-  createPin: async (pin) => {
+  createPin: async (pin, confirmPin) => {
     try {
-      const response = await api.post('/create-pin', { pin });
-      return { success: true, data: response.data };
+      // Send the POST request with pin and pin_confirmation in the body
+      const response = await api.post('/create-pin', {
+        pin,
+        pin_confirmation: confirmPin,
+      });
+      return response.data;  // Return the response data from the backend
     } catch (error) {
-      return { success: false, error: error.response?.data?.message };
+      console.error('Error creating PIN:', error);
+      throw error;  // Propagate the error to be handled elsewhere
     }
   },
 

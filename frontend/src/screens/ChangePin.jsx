@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Alert,
   Modal,
-  Image,
   ActivityIndicator,
   Animated,
   Easing,
@@ -15,9 +14,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { authAPI } from '../services/apiServices'; // Adjust path as needed
-
-const loadingImage = require('../assets/images/1.png'); // Adjust path if necessary
+import { authAPI } from '../services/apiServices'; // Make sure this path is correct
+const loadingImage = require('../assets/images/1.png'); // Path to your loading image
 
 const ChangePin = () => {
   const navigation = useNavigation();
@@ -25,12 +23,11 @@ const ChangePin = () => {
   const [timer, setTimer] = useState(180);
   const [canResend, setCanResend] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [userEmail, setUserEmail] = useState(''); // State to store the authenticated user's email
-
+  const [userEmail, setUserEmail] = useState('');
   const inputRefs = useRef([]);
   const zoomAnim = useRef(new Animated.Value(0)).current;
 
-  // Initialize refs array
+  // Initialize refs array for OTP inputs
   useEffect(() => {
     inputRefs.current = Array(6)
       .fill()
@@ -75,9 +72,9 @@ const ChangePin = () => {
     return () => clearInterval(interval);
   }, [timer]);
 
-  // Fetch user email and send initial OTP on component mount
+  // Fetch user email and send OTP when the component mounts
   useEffect(() => {
-    const fetchUserEmailAndResendOtp = async () => { // Renamed function for clarity
+    const fetchUserEmailAndResendOtp = async () => {
       setIsLoading(true);
       try {
         const userDataString = await AsyncStorage.getItem('user_data');
@@ -86,35 +83,38 @@ const ChangePin = () => {
           const email = userData.email;
           setUserEmail(email);
 
-          // NEW: Call resendOTP instead of sendOTP
-          const otpResult = await authAPI.resendOTP();
+          // Resend OTP logic
+          const otpResult = await authAPI.resendOTP(email);
           if (otpResult.success) {
-            Alert.alert('Success', otpResult.data.message || 'OTP resent successfully to your email!');
+            Alert.alert('Success', otpResult.data.message || 'OTP resent successfully!');
           } else {
+            console.log(otpResult)
             Alert.alert('OTP Error', otpResult.error || 'Failed to resend OTP. Please try again.');
           }
         } else {
           Alert.alert('Error', 'User email not found. Please log in again.');
-          navigation.navigate('Login'); // Redirect to login if user data is missing
+          navigation.navigate('Login');
         }
       } catch (error) {
         console.error('Error fetching user email or resending OTP:', error);
         Alert.alert('Error', 'Failed to initialize OTP process. Network error or invalid user data.');
-        navigation.navigate('Login'); // Consider redirecting on critical error
+        navigation.navigate('Login');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserEmailAndResendOtp();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
+  // Format the timer
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  // Handle OTP input changes
   const handleOtpChange = (text, index) => {
     if (text.length > 1) {
       text = text[text.length - 1];
@@ -122,31 +122,33 @@ const ChangePin = () => {
     const newOtp = [...otp];
     newOtp[index] = text;
     setOtp(newOtp);
-    // Auto focus to next input
+
+    // Auto-focus to next input field if text is entered
     if (text !== '' && index < 5) {
       inputRefs.current[index + 1].focus();
     }
   };
 
+  // Handle backspace in OTP fields
   const handleKeyPress = (e, index) => {
-    // Handle backspace
     if (e.nativeEvent.key === 'Backspace' && index > 0 && otp[index] === '') {
       inputRefs.current[index - 1].focus();
     }
   };
 
+  // Resend OTP if allowed
   const handleResendOtp = async () => {
     if (!canResend) return;
 
     setIsLoading(true);
     try {
-      // Reset the OTP fields and timer
+      // Reset OTP fields and timer
       setOtp(['', '', '', '', '', '']);
       inputRefs.current[0].focus();
       setTimer(180);
       setCanResend(false);
 
-      const result = await authAPI.resendOTP(); // This is the same call as initial load now
+      const result = await authAPI.resendOTP(userEmail); // Pass email to the API
       if (result.success) {
         Alert.alert('Success', result.data.message || 'OTP resent successfully!');
       } else {
@@ -160,6 +162,7 @@ const ChangePin = () => {
     }
   };
 
+  // Continue button press to verify OTP
   const handleContinue = async () => {
     const otpValue = otp.join('');
     if (otpValue.length !== 6) {
@@ -172,8 +175,9 @@ const ChangePin = () => {
       const result = await authAPI.verifyOTP(otpValue);
       if (result.success) {
         Alert.alert('Success', result.data.message || 'OTP verified successfully!');
-        navigation.navigate('ConfirmPin'); // Navigate to ConfirmPin as per your request
+        navigation.navigate('ConfirmPin'); // Navigate to ConfirmPin
       } else {
+        console.log(result)
         Alert.alert('Verification Failed', result.error || 'Invalid OTP. Please try again.');
       }
     } catch (error) {

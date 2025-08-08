@@ -1,5 +1,4 @@
-// HomeScreen.js
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, TouchableOpacity, View, Text, Image, StyleSheet } from 'react-native';
 import HomeProfileHeader from '../components/HomeProfileHeader';
 import BalanceCard from '../components/BalanceCard';
@@ -7,15 +6,58 @@ import ActionCard from '../components/ActionCard'; // Import ActionCard
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function HomeScreen({ navigation }) {
+  const [user, setUser] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      const loadUser = async () => {
+        try {
+          const raw = await AsyncStorage.getItem('user_data');
+          if (!isActive) return;
+          if (raw) setUser(JSON.parse(raw));
+        } catch (e) {
+          // noop
+        }
+      };
+      loadUser();
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
+
+  const firstName = (() => {
+    const n =
+      user?.first_name ||
+      user?.firstname ||
+      (user?.name ? String(user.name).split(' ')[0] : null) ||
+      (user?.full_name ? String(user.full_name).split(' ')[0] : null) ||
+      user?.username ||
+      '';
+    if (!n) return '';
+    return n.charAt(0).toUpperCase() + n.slice(1);
+  })();
+
+  const avatarUrl =
+    user?.avatar ||
+    user?.avatar_url ||
+    user?.photo ||
+    user?.profile_image ||
+    'https://randomuser.me/api/portraits/women/44.jpg';
+
   return (
     <ScrollView className="flex-1 bg-white px-4">
       {/* Header */}
       <HomeProfileHeader
-      navigation={navigation}
-        imageUrl="https://randomuser.me/api/portraits/women/44.jpg"
+        navigation={navigation}
+        imageUrl={avatarUrl}
         badgeCount={5}
+        firstName={firstName}
       />
 
       {/* Balance Card */}
@@ -25,23 +67,20 @@ export default function HomeScreen({ navigation }) {
       <View className="flex-row flex flex-wrap justify-between gap-4 mt-6">
         {/* Card 1: Trade Giftcard */}
         <ActionCard
-
           title="Trade Giftcard"
           description="Enjoy sweet rates with swift payment"
           icon={<AntDesign name="gift" size={20} color="#fff" />}
-          onPress={() => navigation.navigate('MoreServices',{screen:'SellGiftCard'})}
-          // onPress={() => navigation.navigate('MoreServices', { screen: 'SaveAndEarn' })}
+          onPress={() => navigation.navigate('MoreServices', { screen: 'SellGiftCard' })}
         />
-
         {/* Card 2: Buy Airtime */}
         <ActionCard
           title="Trade Crypto"
           description="Trade BTC, ETH, BNB & More for instant cash"
           icon={<FontAwesome name="btc" size={20} color="#fff" />}
-          onPress={() => navigation.navigate('MoreServices',{screen:'TradeCrypto'})}
+          onPress={() => navigation.navigate('MoreServices', { screen: 'TradeCrypto' })}
         />
       </View>
-      
+
       {/* 2nd row */}
       <View className="flex-row flex flex-wrap justify-between gap-4 mt-">
         {/* Card 3: Pay Bills */}
@@ -49,17 +88,14 @@ export default function HomeScreen({ navigation }) {
           title="Use Rate Calculator"
           description="Use rate calculator to preview currency rate"
           icon={<FontAwesome5 name="calculator" size={20} color="#fff" />}
-          onPress={() => navigation.navigate('MoreServices',{screen:'RateCalculator'})}
+          onPress={() => navigation.navigate('MoreServices', { screen: 'RateCalculator' })}
         />
-
         {/* Card 4: Fund Wallet */}
         <ActionCard
           title="More Services"
           description="Buy data, purchase airtime and utilities..."
           icon={<FontAwesome5 name="plus-square" size={20} color="#fff" />}
-          // onPress={() => navigation.navigate('Dashboard')}
           onPress={() => navigation.navigate('MoreServices')}
-
         />
       </View>
 
@@ -73,10 +109,9 @@ export default function HomeScreen({ navigation }) {
           <View style={{ flex: 1 }}>
             <Text style={styles.cardTitle}>Cable Purchase Easier</Text>
             <Text style={styles.cardDescription}>
-            GOTv, DSTV, and Startime integration with us made more easier
+              GOTv, DSTV, and Startime integration with us made more easier
             </Text>
           </View>
-
           {/* Right side (Image) */}
           <Image
             source={require('../assets/images/4.png')} // Replace with your image path

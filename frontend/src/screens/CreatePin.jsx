@@ -10,11 +10,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { authAPI } from '../services/api'; // Update the path based on your project structure
+import { authAPI } from '../services/api';  // Ensure this import matches your project structure
 
-const ConfirmPin = () => {
+const CreatePinScreen = () => {
   const navigation = useNavigation();
   const [pin, setPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,31 +35,41 @@ const ConfirmPin = () => {
     };
   }, []);
 
-  const handlePinChange = text => {
+  const handlePinChange = (text) => {
     const newPin = text.replace(/[^0-9]/g, '').slice(0, 4);
     setPin(newPin);
   };
 
-  const handleChangePin = async () => {
-    if (pin.length !== 4) {
-      Alert.alert('Error', 'Please enter a 4-digit PIN');
+  const handleConfirmPinChange = (text) => {
+    const newConfirmPin = text.replace(/[^0-9]/g, '').slice(0, 4);
+    setConfirmPin(newConfirmPin);
+  };
+
+  const handleCreatePin = async () => {
+    if (pin.length !== 4 || confirmPin.length !== 4) {
+      Alert.alert('Error', 'Please enter a 4-digit PIN in both fields');
+      return;
+    }
+
+    if (pin !== confirmPin) {
+      Alert.alert('Error', 'The PINs do not match');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const response = await authAPI.resetPin({ pin });
+      const response = await authAPI.createPin(pin, confirmPin); // Call the createPin function from authAPI
 
-      if (response.success) {
-        Alert.alert('Success', 'Your PIN has been changed successfully', [
+      if (response.status) {
+        Alert.alert('Success', 'Your PIN has been created successfully', [
           { text: 'OK', onPress: () => navigation.navigate('Dashboard') },
         ]);
       } else {
-        Alert.alert('Error', response.error || 'Failed to change PIN');
+        Alert.alert('Error', response.error || 'Failed to create PIN');
       }
     } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to change PIN');
+      Alert.alert('Error', error.message || 'Failed to create PIN');
     } finally {
       setIsLoading(false);
     }
@@ -67,13 +78,13 @@ const ConfirmPin = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.contentContainer}>
-        <Text style={styles.headerText}>Enter New PIN</Text>
+        <Text style={styles.headerText}>Create New PIN</Text>
 
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>Enter PIN</Text>
           <TextInput
             style={styles.textInput}
-            placeholder="Enter your 4 digit transaction PIN"
+            placeholder="Enter your 4 digit PIN"
             placeholderTextColor="#9CA3AF"
             keyboardType="number-pad"
             secureTextEntry
@@ -81,6 +92,20 @@ const ConfirmPin = () => {
             value={pin}
             onChangeText={handlePinChange}
             autoFocus
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Confirm PIN</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Confirm your 4 digit PIN"
+            placeholderTextColor="#9CA3AF"
+            keyboardType="number-pad"
+            secureTextEntry
+            maxLength={4}
+            value={confirmPin}
+            onChangeText={handleConfirmPinChange}
           />
         </View>
       </View>
@@ -95,12 +120,14 @@ const ConfirmPin = () => {
         <TouchableOpacity
           style={[
             styles.button,
-            pin.length === 4 ? styles.activeButton : styles.inactiveButton,
+            pin.length === 4 && confirmPin.length === 4 && pin === confirmPin
+              ? styles.activeButton
+              : styles.inactiveButton,
           ]}
-          onPress={handleChangePin}
-          disabled={pin.length !== 4 || isLoading}>
+          onPress={handleCreatePin}
+          disabled={pin.length !== 4 || confirmPin.length !== 4 || pin !== confirmPin || isLoading}>
           <Text style={styles.buttonText}>
-            {isLoading ? 'Processing...' : 'Change PIN'}
+            {isLoading ? 'Processing...' : 'Create PIN'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -167,4 +194,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ConfirmPin;
+export default CreatePinScreen;
