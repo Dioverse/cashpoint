@@ -94,6 +94,7 @@ class AdminAuthController extends Controller
     {
         return response()->json(auth()->user());
     }
+    
 
     public function logout()
     {

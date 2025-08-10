@@ -114,8 +114,8 @@ const VerifyScreen = () => {
         
         const currentUserData = result.data.results?.user || JSON.parse(await AsyncStorage.getItem('user_data'));
         
-        if (!currentUserData?.pin_set) {
-          navigation.navigate('ChangePin');
+        if (!currentUserData?.pin) {
+          navigation.navigate('CreatePin');
         } else {
           navigation.navigate('Dashboard');
         }

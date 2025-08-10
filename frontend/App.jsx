@@ -1,5 +1,5 @@
-// App.js
-import React, {useEffect, useState} from 'react';
+// App.jsx
+import React, {useEffect, useState, useRef} from 'react';
 import {
   View,
   Image,
@@ -8,6 +8,7 @@ import {
   StatusBar,
   Platform,
   ImageBackground,
+  AppState,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {NavigationContainer} from '@react-navigation/native';
@@ -74,6 +75,8 @@ import Leaderboard from './src/screens/Leaderboard';
 import logo from './src/assets/images/1.png';
 import bgImage from './src/assets/images/3.png';
 import './global.css';
+import { AuthProvider } from './src/context/AuthContext';
+import CreatePinScreen from './src/screens/CreatePin';
 
 // Navigators
 const Stack = createNativeStackNavigator();
@@ -179,22 +182,61 @@ export default function App() {
   const [isFirstLaunch, setIsFirstLaunch] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [shouldCheckAuth, setShouldCheckAuth] = useState(0);
+  const appState = useRef(AppState.currentState);
+
+  // Handle app state changes for auto logout
+  useEffect(() => {
+    const handleAppStateChange = async (nextAppState) => {
+      console.log('App state changed from', appState.current, 'to', nextAppState);
+      
+      // App going to background - logout user
+      if (
+        appState.current.match(/active|foreground/) &&
+        nextAppState === 'background'
+      ) {
+        console.log('App going to background - logging out user');
+        await AsyncStorage.removeItem('auth_token');
+      }
+
+      // App coming to foreground - check auth status
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        console.log('App coming to foreground - checking auth');
+        setShouldCheckAuth(prev => prev + 1);
+      }
+
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => subscription?.remove();
+  }, []);
 
   useEffect(() => {
     const initializeApp = async () => {
       try {
         const hasLaunched = await AsyncStorage.getItem('hasLaunched');
         const userToken = await AsyncStorage.getItem('auth_token');
+        
         setIsFirstLaunch(hasLaunched === null);
         setIsAuthenticated(!!userToken);
+        
+        console.log('Auth check - Has launched:', hasLaunched !== null);
+        console.log('Auth check - Token exists:', !!userToken);
       } catch (error) {
         console.error('App init error:', error);
+        setIsAuthenticated(false);
       } finally {
         setTimeout(() => setIsLoading(false), 2000);
       }
     };
+
     initializeApp();
-  }, []);
+  }, [shouldCheckAuth]); // Re-run when shouldCheckAuth changes
 
   if (isLoading || isFirstLaunch === null) {
     return (
@@ -216,36 +258,37 @@ export default function App() {
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{headerShown: false}}
-          initialRouteName={initialRoute}>
-          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Signup" component={SignupScreen} />
-          <Stack.Screen name="Verify" component={VerifyScreen} />
-          <Stack.Screen name="Dashboard" component={MyTabs} />
-          <Stack.Screen name="ChangePin" component={ChangePin} />
-          <Stack.Screen name="ConfirmPin" component={ConfirmPin} />
-          <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-          
-          <Stack.Screen name="MoreServices" component={ServicesNav} />
-          <Stack.Screen name="Pin" component={Pin} />
-          <Stack.Screen name="Receipt" component={Receipt} />
-          <Stack.Screen name="LockFunds" component={LockFunds} />
-          {/* <Stack.Screen name="Notification" component={Notification} /> */}
-          <Stack.Screen name="FundWalletCrypto" component={FundWalletCrypto} />
-          <Stack.Screen name="KycStatus" component={KycStatus} />
-          <Stack.Screen name="UpgradeToTierTwo" component={UpgradeToTierTwoScreen} />
-          <Stack.Screen name="UpgradeToTierThree" component={UpgradeToTierThreeScreen} />
-          <Stack.Screen name="Notifications" component={Notifications} />
-          <Stack.Screen name="Referral" component={Referral} />
-          {/* <Stack.Screen name="FundWallet" component={FundWallet} /> */}
-          <Stack.Screen name="Transfer" component={Transfer} />
-          <Stack.Screen name="WalletReferral" component={WalletReferral} />
-          <Stack.Screen name="Leaderboard" component={Leaderboard} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <AuthProvider>
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{headerShown: false}}
+            initialRouteName={initialRoute}>
+            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Signup" component={SignupScreen} />
+            <Stack.Screen name="Verify" component={VerifyScreen} />
+            <Stack.Screen name="CreatePin" component={CreatePinScreen} />
+
+            <Stack.Screen name="Dashboard" component={MyTabs} />
+            <Stack.Screen name="ChangePin" component={ChangePin} />
+            <Stack.Screen name="ConfirmPin" component={ConfirmPin} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+            <Stack.Screen name="MoreServices" component={ServicesNav} />
+            <Stack.Screen name="Pin" component={Pin} />
+            <Stack.Screen name="Receipt" component={Receipt} />
+            <Stack.Screen name="LockFunds" component={LockFunds} />
+            <Stack.Screen name="FundWalletCrypto" component={FundWalletCrypto} />
+            <Stack.Screen name="KycStatus" component={KycStatus} />
+            <Stack.Screen name="UpgradeToTierTwo" component={UpgradeToTierTwoScreen} />
+            <Stack.Screen name="UpgradeToTierThree" component={UpgradeToTierThreeScreen} />
+            <Stack.Screen name="Notifications" component={Notifications} />
+            <Stack.Screen name="Referral" component={Referral} />
+            <Stack.Screen name="Transfer" component={Transfer} />
+            <Stack.Screen name="WalletReferral" component={WalletReferral} />
+            <Stack.Screen name="Leaderboard" component={Leaderboard} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AuthProvider>
     </>
   );
 }

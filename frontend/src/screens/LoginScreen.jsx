@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useAuth } from '../context/AuthContext';
 import {
   View,
   Text,
@@ -31,6 +32,8 @@ const LoginScreen = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useAuth();
+
 
   // Animated value for the zoom effect
   const zoomAnim = useRef(new Animated.Value(0)).current;
@@ -62,48 +65,50 @@ const LoginScreen = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Email validation
     if (!email) {
       newErrors.email = 'Please enter your email';
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = 'Please enter a valid email';
     }
-    
+
     // Password validation
     if (!password) {
       newErrors.password = 'Please enter your password';
     } else if (password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleLogin = async () => {
     if (!validateForm()) return;
-
     setIsLoading(true);
     setErrors({}); // Clear any previous errors
-
     try {
       // Call your Laravel API
       const result = await authAPI.login(email, password);
 
       if (result.success) {
-        // CORRECTED: Access token and user from result.data.results
-        const { token, user } = result.data.results; 
+        // Access token and user from result.data.results
+        // await signIn(user, token);
+        const { token, user } = result.data.results;
 
         // Store the token
         await AsyncStorage.setItem('auth_token', token);
-        
+
+        // Save last used email for prefill regardless of Remember Me (added)
+        await AsyncStorage.setItem('last_email', email.toLowerCase().trim());
+
         // Store user data if needed
-        if (user) { // Check if user object exists
+        if (user) {
           await AsyncStorage.setItem('user_data', JSON.stringify(user));
         }
 
-        // Handle remember me
+        // Handle remember me (unchanged)
         if (rememberMe) {
           await AsyncStorage.setItem('remember_email', email);
         } else {
@@ -111,7 +116,6 @@ const LoginScreen = () => {
         }
 
         // Check if user needs to verify email/phone or create PIN
-        // Assuming user object has these properties directly
         if (user?.email_verified_at === null) {
           const otpResult = await authAPI.sendOTP({ email: email.toLowerCase().trim() });
           if (otpResult.success) {
@@ -124,20 +128,19 @@ const LoginScreen = () => {
           }
           // Navigate to email verification
           navigation.navigate('Verify', { email: email.toLowerCase().trim() }); // Pass email to VerifyScreen
-        } 
-        // else if (!user?.pin_set) { // Assuming 'pin_set' is a boolean or similar
-        //   // Navigate to create PIN
-        //   navigation.navigate('ChangePin'); // Or 'CreatePin' if you have a dedicated screen
+        }
+        // else if (!user?.pin_set) {
+        //   navigation.navigate('ChangePin');
         // }
-         else {
+        else {
           // Navigate to main dashboard
+          await signIn(user, token);
           navigation.navigate('Dashboard');
         }
-
-        // Alert.alert('Success', 'Login successful!'); // You might remove this if navigation is immediate
       } else {
         // Handle API errors
         Alert.alert('Login Failed', result.error);
+        console.log(result);
       }
     } catch (error) {
       console.error('Login error:', error); // Log the full error for debugging
@@ -148,19 +151,25 @@ const LoginScreen = () => {
   };
 
   // Load remembered email on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     const loadRememberedEmail = async () => {
       try {
+        // Prefer remember_email (when user opted-in)
         const rememberedEmail = await AsyncStorage.getItem('remember_email');
         if (rememberedEmail) {
           setEmail(rememberedEmail);
           setRememberMe(true);
+          return;
+        }
+        // Fallback to last used email (added)
+        const lastEmail = await AsyncStorage.getItem('last_email');
+        if (lastEmail) {
+          setEmail(lastEmail);
         }
       } catch (error) {
         console.error('Error loading remembered email:', error);
       }
     };
-
     loadRememberedEmail();
   }, []);
 
@@ -183,7 +192,7 @@ const LoginScreen = () => {
             showsVerticalScrollIndicator={false}
           >
             <Text className="text-5xl font-bold text-black mb-10">Log In</Text>
-            
+
             {/* Email Input */}
             <View className="mb-6 mt-6">
               <Text className="text-base font-medium text-gray-800 mb-4">
@@ -201,6 +210,14 @@ const LoginScreen = () => {
                 onChangeText={(text) => {
                   setEmail(text.toLowerCase().trim());
                   if (errors.email) setErrors({ ...errors, email: null });
+                }}
+                // Optional: persist last_email on blur so it's saved even if login isn't completed
+                onBlur={async () => {
+                  try {
+                    if (email) {
+                      await AsyncStorage.setItem('last_email', email.toLowerCase().trim());
+                    }
+                  } catch {}
                 }}
                 editable={!isLoading}
               />
@@ -224,8 +241,7 @@ const LoginScreen = () => {
                 value={password}
                 onChangeText={(text) => {
                   setPassword(text);
-                  if (errors.password)
-                    setErrors({ ...errors, password: null });
+                  if (errors.password) setErrors({ ...errors, password: null });
                 }}
                 editable={!isLoading}
               />
@@ -248,14 +264,12 @@ const LoginScreen = () => {
                     rememberMe ? 'border-gray-400' : 'border-gray-400'
                   } justify-center items-center`}
                 >
-                  {rememberMe && (
-                    <Icon name="check-box" size={15} color="black" />
-                  )}
+                  {rememberMe && <Icon name="check-box" size={15} color="black" />}
                 </View>
                 <Text className="text-sm text-gray-700">Remember me</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 onPress={() => navigation.navigate('ForgotPassword')}
                 disabled={isLoading}
               >
@@ -279,14 +293,14 @@ const LoginScreen = () => {
                 {isLoading ? 'Login' : 'Login'}
               </Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               className="mt-6 items-center"
               onPress={() => navigation.navigate('Signup')}
               disabled={isLoading}
             >
               <Text className="text-sm text-gray-700">
-                Don't have an account?{' '}
+                {"Don't have an account? "}
                 <Text className="text-blue-500 font-medium">Register Here!</Text>
               </Text>
             </TouchableOpacity>

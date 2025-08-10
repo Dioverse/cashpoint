@@ -264,7 +264,6 @@ class AuthServices
         auth()->user()->tokens()->delete();
     }
 
-<<<<<<< HEAD
     // Admin functionalities ........................ +++++++++++++++++++++++++++++++++++++++++++
     public function block($id)
     {
@@ -288,12 +287,6 @@ class AuthServices
     {
         return User::findOrFail($id)->delete();
     }
-=======
-
-
-    
-
->>>>>>> 2c91fc5e0a1a922f6cf416f85356df53c96443ec
 }
 
 

@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,9 @@ import {
   Alert,
   StyleSheet,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation} from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { authAPI } from '../services/api'; // Update the path based on your project structure
 
 const ConfirmPin = () => {
   const navigation = useNavigation();
@@ -17,7 +18,6 @@ const ConfirmPin = () => {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Monitor keyboard visibility
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
@@ -35,7 +35,6 @@ const ConfirmPin = () => {
   }, []);
 
   const handlePinChange = text => {
-    // Only allow digits and limit to 4 characters
     const newPin = text.replace(/[^0-9]/g, '').slice(0, 4);
     setPin(newPin);
   };
@@ -49,12 +48,15 @@ const ConfirmPin = () => {
     setIsLoading(true);
 
     try {
-      // API call would go here
-      // await api.changePin(pin);
+      const response = await authAPI.resetPin({ pin });
 
-      Alert.alert('Success', 'Your PIN has been changed successfully', [
-        {text: 'OK', onPress: () => navigation.navigate('Dashboard')},
-      ]);
+      if (response.success) {
+        Alert.alert('Success', 'Your PIN has been changed successfully', [
+          { text: 'OK', onPress: () => navigation.navigate('Dashboard') },
+        ]);
+      } else {
+        Alert.alert('Error', response.error || 'Failed to change PIN');
+      }
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to change PIN');
     } finally {
