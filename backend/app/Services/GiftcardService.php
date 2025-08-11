@@ -21,11 +21,12 @@ class GiftcardService
             foreach ($data['images'] as $image) {
                 $imagePaths[] = $image->store('giftcard_proofs', 'public');
             }
-
+            $reference      = Str::random(10);
             $nairaEquivalent = $this->convertToNaira($data['card_type'], $data['amount']);
             $nairaEquivalent = round($nairaEquivalent, 2);
             $trade = GiftcardHistory::create([
                 'user_id'           => $user->id,
+                'reference'         => $reference,
                 'type'              => 'sell',
                 'card_type'         => $data['card_type'],
                 'category'          => $data['category'],
@@ -54,13 +55,15 @@ class GiftcardService
     {
         DB::beginTransaction();
         try {
-            $totalAmount = $data['quantity'] * $this->getGiftcardRate($data['card_type']);
+            $reference       = Str::random(10);
+            $totalAmount     = $data['quantity'] * $this->getGiftcardRate($data['card_type']);
             $nairaEquivalent = $this->convertToNaira($data['card_type'], $totalAmount);
             $nairaEquivalent = round($nairaEquivalent, 2);
 
             // Assume wallet deduction logic here
             GiftcardHistory::create([
                 'user_id'       => $user->id,
+                'reference'     => $reference,
                 'type'          => 'buy',
                 'card_type'     => $data['card_type'],
                 'category'      => $data['category'],
@@ -135,12 +138,12 @@ class GiftcardService
 
     public function allGiftcardHistory()
     {
-        return GiftcardHistory::get();
+        return GiftcardHistory::with('user')->paginate(10);
     }
 
     public function findGiftcardHistory($id)
     {
-        return GiftcardHistory::find($id);
+        return GiftcardHistory::with('user')->find($id);
     }
 
     public function getUserGiftcardHistories($user)

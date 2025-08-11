@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       try {
-        const { data } = await api.get('/user'); // adjust if your endpoint differs
+        const { data } = await api.get('/user');
         setUser(data);
       } catch (e) {
         console.error('Fetch user failed', e);
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (email, password) => {
-    // adapt to your login response shape
+
     const res = await api.post('/login', { email, password });
     const tokenFromServer = res.data.results.token || res.data.results.token || res.data.data?.token;
     if (!tokenFromServer) throw new Error('No token in login response');

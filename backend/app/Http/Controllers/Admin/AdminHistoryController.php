@@ -124,7 +124,7 @@ class AdminHistoryController extends Controller
             'message'   => __('app.data_retrieved_successfully'),
             'status'    => true,
             'results'   => [
-                'Data'  => cryptoResource::collection($query),
+                'Data'  => $query,
             ],
         ], 201);
     }

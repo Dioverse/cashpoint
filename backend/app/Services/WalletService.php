@@ -17,7 +17,7 @@ class WalletService
 
     public function allWalletTransactions(): \Illuminate\Database\Eloquent\Collection
     {
-        return WalletTransaction::get();
+        return WalletTransaction::with('user')->get();
     }
 
     public function create(array $data): WalletTransaction

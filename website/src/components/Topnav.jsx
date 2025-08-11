@@ -51,7 +51,7 @@ export default class Topnav extends Component {
                         <div className="d-flex">
                         <div className="flex-shrink-0 me-3">
                             <div className="avatar avatar-online">
-                            <img src="../../assets/img/avatars/1.png" alt className="w-px-40 h-auto rounded-circle" />
+                            <img src="../../assets/img/avatars/1.png" className="w-px-40 h-auto rounded-circle" />
                             </div>
                         </div>
                         <div className="flex-grow-1">

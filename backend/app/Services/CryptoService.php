@@ -210,7 +210,7 @@ class CryptoService
 
     public function allCryptoHistory()
     {
-        return CryptoHistory::get();
+        return CryptoHistory::with('user', 'crypto')->paginate(10);
     }
 
     public function getCryptoById($id)

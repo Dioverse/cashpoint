@@ -10,7 +10,7 @@ class AirtimeService
     // Airtime percentage goes ..........................
     public function getAirtimePercentages()
     {
-        return AirtimePercentage::get();
+        return AirtimePercentage::with('network')->get();
     }
 
     public function query()
@@ -41,7 +41,7 @@ class AirtimeService
     // Airtime History goes ........................................................
     public function allAirtimeHistory()
     {
-        return AirtimeHistory::get();
+        return AirtimeHistory::with('user', 'network')->paginate(10);
     }
 
     public function createAirtimeHistory(array $data)

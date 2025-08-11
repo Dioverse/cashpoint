@@ -19,7 +19,7 @@ class DataService
 
     public function query()
     {
-        return DataPrice::query();
+        return DataPrice::query()->with('network');
     }
 
 
@@ -47,7 +47,7 @@ class DataService
     // Data History goes ........................................................
     public function allDataHistory()
     {
-        return DataHistory::get();
+        return DataHistory::with('user', 'dataPlan', 'network')->paginate(10);
     }
 
     public function createDataHistory(array $data)

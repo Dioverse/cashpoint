@@ -3,17 +3,13 @@ import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import Users from "../pages/Users";
-import AirtimePricing from "../pages/AirtimePricing";
-import CablePlan from "../pages/CablePlan";
-import CryptoPlan from "../pages/CryptoPlan";
-import GiftcardPlan from "../pages/GiftcardPlan";
-import DataPlan from "../pages/DataPlan";
-import AirtimeHistory from "../pages/AirtimeHistory";
-import BillHistory from "../pages/BillHistory";
-import CableHistory from "../pages/CableHistory";
-import CryptoHistory from "../pages/CryptoHistory";
-import GiftcardHistory from "../pages/GiftcardHistory";
-import DataHistory from "../pages/DataHistory";
+
+import AirtimeHistory from "../pages/history/AirtimeHistory";
+import BillHistory from "../pages/history/BillHistory";
+import CableHistory from "../pages/history/CableHistory";
+import CryptoHistory from "../pages/history/CryptoHistory";
+import GiftcardHistory from "../pages/history/GiftcardHistory";
+import DataHistory from "../pages/history/DataHistory";
 import Setting from "../pages/setting";
 import Support from "../pages/Support";
 import Notification from "../pages/Notification";
@@ -21,6 +17,11 @@ import Account from "../pages/Account";
 import Profile from "../pages/Profile";
 import { AuthProvider } from "../AuthContext";
 import RequireAuth from "../components/RequireAuth";
+import AirtimePricing from "../pages/pricing/AirtimePricing";
+import CablePlan from "../pages/pricing/CablePlan";
+import CryptoPlan from "../pages/pricing/CryptoPlan";
+import GiftcardPlan from "../pages/pricing/GiftcardPlan";
+import DataPlan from "../pages/pricing/DataPlan";
 
 export default function AppRoutes() {
   return (
@@ -31,6 +32,7 @@ export default function AppRoutes() {
           <Route path="/admin/login" element={<LoginPage />} />
           <Route path="/admin/home" element={<RequireAuth adminonly={true}><Dashboard /> </RequireAuth>} />
           <Route path="/admin/users" element={<RequireAuth adminonly={true}><Users /></RequireAuth>} />
+
           <Route path="/admin/pricing/airtime" element={<RequireAuth adminonly={true}><AirtimePricing /></RequireAuth>} />
           <Route path="/admin/pricing/cable" element={<RequireAuth adminonly={true}><CablePlan /></RequireAuth>} />
           <Route path="/admin/pricing/crypto" element={<RequireAuth adminonly={true}><CryptoPlan /></RequireAuth>} />

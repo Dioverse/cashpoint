@@ -134,7 +134,6 @@ Route::prefix('admin')->group(function () {
 
     // Public Admin Routes
     Route::post('/login', [AdminAuthController::class, 'login']);
-    Route::get('/user', [AdminAuthController::class, 'me'])->name('api.admin.user');
 
     // Protected Admin Routes
     Route::middleware(['auth:sanctum', 'admin'])->group(function () {

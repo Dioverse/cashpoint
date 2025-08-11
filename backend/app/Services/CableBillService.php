@@ -88,7 +88,7 @@ class CableBillService {
     // Cable, create, read, and update history ++++++++++++++++++++
     public function allCableHistory()
     {
-        return CableHistory::get();
+        return CableHistory::with('cable', 'user', 'cablePlan')->paginate(10);
     }
 
     public function createCableHistory(array $data) {
@@ -113,7 +113,7 @@ class CableBillService {
     // Bill, create, read, and update history +++++++++++++++++++++++++++
     public function allBillHistory()
     {
-        return BillHistory::get();
+        return BillHistory::with('bill', 'user')->get();
     }
 
     public function createBillHistory(array $data)

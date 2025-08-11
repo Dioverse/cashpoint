@@ -16,7 +16,7 @@ class AuthServices
 {
     public function allUsers()
     {
-        return User::select('id', 'firstName', 'lastName', 'middleName', 'email', 'phone', 'status', 'created_at')
+        return User::select('id', 'firstName', 'lastName', 'middleName', 'email', 'phone', 'role', 'status', 'created_at')
             ->latest()
             ->paginate(20);
     }

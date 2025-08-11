@@ -1,10 +1,33 @@
-import React from "react";
-import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
-import Topnav from "../components/Topnav";
-import NavLink from "../components/NavLink";
+import React, { useEffect, useState } from "react";
+import Footer from "../../components/Footer";
+import Navbar from "../../components/Navbar";
+import Topnav from "../../components/Topnav";
+import NavLink from "../../components/NavLink";
+import { getRequest } from "../../services/apiServices";
 
 export default function CryptoPlan() {
+    const [datas, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const pageSize = 10;
+
+    useEffect(() => {
+        fetchData(page);
+    }, [page]);
+    
+    const fetchData = async (pageNum) => {
+        setLoading(true);
+        try {
+            const res = await getRequest(`/pricings/crypto/?page=${pageNum}&limit=${pageSize}`);
+            setData(res.data?.results?.Data || []);
+            setTotalPages(res.data.results.total);
+        } catch (err) {
+            console.error("Failed to fetch plan:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
   return (
     <>
         <div className="layout-wrapper layout-content-navbar">
@@ -121,78 +144,66 @@ export default function CryptoPlan() {
                                         </div>
                                         <div className="d-flex align-items-end row">
                                             <div className="table-responsive text-nowrap">
-                                                <table className="table">
-                                                    <thead>
-                                                        <tr>
-                                                        <th width="50">#</th>
-                                                        <th>Name</th>
-                                                        <th>Symbol</th>
-                                                        <th>Rate</th>
-                                                        <th>Chain</th>
-                                                        <th>Ticker</th>
-                                                        <th>Status</th>
-                                                        <th>Actions</th>
-                                                        </tr>
-                                                    </thead>
+                                                {loading ? (
+                                                <div className="text-center p-4">
+                                                    <div
+                                                    className="spinner-border text-primary"
+                                                    role="status"
+                                                    style={{ width: "3rem", height: "3rem" }}
+                                                    >
+                                                    <span className="visually-hidden">Loading...</span>
+                                                    </div>
+                                                </div>
+                                                ) : (
+                                                    <table className="table">
+                                                        <thead>
+                                                            <tr>
+                                                            <th width="50">#</th>
+                                                            <th>Name</th>
+                                                            <th>Symbol</th>
+                                                            <th>Rate</th>
+                                                            <th>Chain</th>
+                                                            <th>Ticker</th>
+                                                            <th>Status</th>
+                                                            <th>Actions</th>
+                                                            </tr>
+                                                        </thead>
                                                     <tbody class="table-border-bottom-0">
-                                                        <tr>
-                                                            <td>1</td>
+                                                        {datas.map((data, index) => (
+                                                        <tr key={index}>
+                                                            <td>{(page-1) * pageSize + index + 1}</td>
                                                             <td>
-                                                                GOTV, Gotv-Lite
+                                                                {data.name}
                                                             </td>
-                                                            <td>
-                                                                123
-                                                            </td>
-                                                            <td>#3,000</td>
-                                                            <td>#3,300</td>
-                                                            <td>#3,300</td>
+                                                            <td>{data.symbol}</td>
+                                                            <td>{data.usd_rate}</td>
+                                                            <td>{data.chain}</td>
+                                                            <td>{data.nownode_ticker}</td>
                                                             <td><span class="badge bg-label-primary me-1">Active</span></td>
                                                             <td>
-                                                                <div class="dropdown">
-                                                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                                                <div className="dropdown">
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn p-0 dropdown-toggle hide-arrow"
+                                                                    data-bs-toggle="dropdown"
+                                                                >
+                                                                    <i className="bx bx-dots-vertical-rounded"></i>
                                                                 </button>
-                                                                <div class="dropdown-menu">
-                                                                    <a class="dropdown-item" href="javascript:void(0);"
-                                                                    ><i class="bx bx-edit-alt me-1"></i> Edit</a
-                                                                    >
-                                                                    <a class="dropdown-item" href="javascript:void(0);"
-                                                                    ><i class="bx bx-trash me-1"></i> Delete</a
-                                                                    >
+                                                                <div className="dropdown-menu">
+                                                                    <button className="dropdown-item">
+                                                                    <i className="bx bx-edit-alt me-1"></i> Edit
+                                                                    </button>
+                                                                    <button className="dropdown-item">
+                                                                    <i className="bx bx-trash me-1"></i> Delete
+                                                                    </button>
                                                                 </div>
                                                                 </div>
                                                             </td>
                                                         </tr>
-                                                        <tr>
-                                                            <td>2</td>
-                                                            <td>
-                                                                GOTV, Gotv-Smalie
-                                                            </td>
-                                                            <td>
-                                                                128
-                                                            </td>
-                                                            <td>#4,000</td>
-                                                            <td>#4,500</td>
-                                                            <td>#4,500</td>
-                                                            <td><span class="badge bg-label-primary me-1">Active</span></td>
-                                                            <td>
-                                                                <div class="dropdown">
-                                                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                                                    <i class="bx bx-dots-vertical-rounded"></i>
-                                                                </button>
-                                                                <div class="dropdown-menu">
-                                                                    <a class="dropdown-item" href="javascript:void(0);"
-                                                                    ><i class="bx bx-edit-alt me-1"></i> Edit</a
-                                                                    >
-                                                                    <a class="dropdown-item" href="javascript:void(0);"
-                                                                    ><i class="bx bx-trash me-1"></i> Delete</a
-                                                                    >
-                                                                </div>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
+                                                        ))}
                                                     </tbody>
                                                 </table>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -200,7 +211,23 @@ export default function CryptoPlan() {
                             </div>
                         </div>
                         {/* / Content */}
-
+                        
+                        {/* Pagination */}
+                        <nav className="mt-3">
+                            <ul className="pagination justify-content-center">
+                            <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
+                                <button className="page-link" onClick={() => setPage(page - 1)}>Previous</button>
+                            </li>
+                            {Array.from({ length: totalPages }, (_, i) => (
+                                <li key={i} className={`page-item ${page === i + 1 ? "active" : ""}`}>
+                                <button className="page-link" onClick={() => setPage(i + 1)}>{i + 1}</button>
+                                </li>
+                            ))}
+                            <li className={`page-item ${page === totalPages ? "disabled" : ""}`}>
+                                <button className="page-link" onClick={() => setPage(page + 1)}>Next</button>
+                            </li>
+                            </ul>
+                        </nav>
                         {/* Footer */}
                         <Footer/>
                         {/* / Footer */}

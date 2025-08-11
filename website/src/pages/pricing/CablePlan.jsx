@@ -1,10 +1,35 @@
-import React from "react";
-import Footer from "../components/Footer";
-import Navbar from "../components/Navbar";
-import Topnav from "../components/Topnav";
-import NavLink from "../components/NavLink";
+import React, { useEffect, useState } from "react";
+import Footer from "../../components/Footer";
+import Navbar from "../../components/Navbar";
+import Topnav from "../../components/Topnav";
+import NavLink from "../../components/NavLink";
+import { getRequest } from "../../services/apiServices";
 
-export default function DataPlan() {
+export default function CablePlan() {
+
+    const [datas, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const pageSize = 10;
+
+    useEffect(() => {
+        fetchData(page);
+    }, [page]);
+    
+    const fetchData = async (pageNum) => {
+        setLoading(true);
+        try {
+            const res = await getRequest(`/pricings/cable/?page=${pageNum}&limit=${pageSize}`);
+            setData(res.data?.results?.Data || []);
+            setTotalPages(res.data.results.total);
+        } catch (err) {
+            console.error("Failed to fetch plan:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
   return (
     <>
         <div className="layout-wrapper layout-content-navbar">
@@ -27,25 +52,24 @@ export default function DataPlan() {
 
                         <div className="container-xxl flex-grow-1 container-p-y">
 
-                            <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Home /Pricing</span> / Data</h4>
+                            <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Home /Pricing</span> / Cable</h4>
                             
                             <div className="row">
                                 <div className="col-lg-12 mb-4 order-0">
                                     <NavLink />
                                     <div className="card">
                                         <div className="card-header">
-                                            
                                             <h5 className="mb-0">Filter Pricing Plans</h5>
+
                                             <div className="card-header-actions">
                                                 <div className="row">
                                                     <div className="col-md-4">
                                                         <form action="">
                                                             <select className="form-select">
                                                                 <option value="">All Plans</option>
-                                                                <option value="1">MTN</option>
-                                                                <option value="2">AIRTEL</option>
-                                                                <option value="3">GLO</option>
-                                                                <option value="4">9MOBILE</option>
+                                                                <option value="1">GOTV</option>
+                                                                <option value="2">DSTV</option>
+                                                                <option value="3">StarTimes</option>
                                                             </select>
                                                         </form>
                                                     </div>
@@ -76,12 +100,11 @@ export default function DataPlan() {
                                                                     <div className="modal-body">
                                                                         <div className="row">
                                                                         <div className="col mb-3">
-                                                                            <label for="nameBasic" className="form-label">Name</label>
-                                                                            <select className="form-select">
-                                                                                <option value="1">MTN</option>
-                                                                                <option value="2">AIRTEL</option>
-                                                                                <option value="3">GLO</option>
-                                                                                <option value="4">9MOBILE</option>
+                                                                            <label for="nameBasic" className="form-label">Cable TVs</label>
+                                                                            <select id="statusBasic" className="form-select">
+                                                                                <option value="1">GOTV</option>
+                                                                                <option value="2">DSTV</option>
+                                                                                <option value="3">Startimes</option>
                                                                             </select>
                                                                         </div>
                                                                         </div>
@@ -91,39 +114,24 @@ export default function DataPlan() {
                                                                                 <input type="text" id="planName" className="form-control" />
                                                                             </div>
                                                                             <div className="col mb-0">
-                                                                                <label for="planId" className="form-label">Plan ID</label>
-                                                                                <input type="text" id="planId" className="form-control" />
+                                                                                <label for="planCode" className="form-label">Plan Code</label>
+                                                                                <input type="text" id="planCode" className="form-control" />
                                                                             </div>
-                                                                            
                                                                         </div>
-                                                                       
                                                                         <div className="row g-2 mt-2">
-                                                                            <div className="col mb-0">
-                                                                                <label for="size" className="form-label">Size</label>
-                                                                                <input type="text" id="size" className="form-control" placeholder="GB" />
-                                                                            </div>
-                                                                            <div className="col mb-0">
-                                                                                <label for="size" className="form-label">Size in MB</label>
-                                                                                <input type="text" id="size" className="form-control" placeholder="MB" />
-                                                                            </div>
-                                                                        </div>
-
-                                                                         <div className="row g-2 mt-2">
                                                                             <div className="col mb-0">
                                                                                 <label for="buyPrice" className="form-label">Buy Price</label>
                                                                                 <input type="number" id="buyPrice" className="form-control" min={1} max={5} />
                                                                             </div>
                                                                             <div className="col mb-0">
                                                                                 <label for="sellingPrice" className="form-label">Selling Price</label>
-                                                                                <input type="text" id="sellingPrice" className="form-control" />
+                                                                                <input type="number" id="sellingPrice" className="form-control" min={1} max={5} />
                                                                             </div>
                                                                             <div className="col mb-0">
-                                                                                <label for="validity" className="form-label">Validity</label>
-                                                                                <select className="form-select" id="validity">
-                                                                                    <option value="7 Days">7 Days</option>
-                                                                                    <option value="30 Days">30 Days</option>
-                                                                                    <option value="90 Days">90 Days</option>
-                                                                                    <option value="180 Days">180 Days</option>
+                                                                                <label for="dobBasic" className="form-label">Status</label>
+                                                                                <select id="statusBasic" className="form-select">
+                                                                                    <option value="active">Active</option>
+                                                                                    <option value="inactive">Inactive</option>
                                                                                 </select>
                                                                             </div>
                                                                         </div>
@@ -139,81 +147,77 @@ export default function DataPlan() {
                                                         </div>
                                                     </div>
                                                 </div>
+                                                
                                             </div>
 
                                                                                        
                                         </div>
                                         <div className="d-flex align-items-end row">
                                             <div className="table-responsive text-nowrap">
+                                                {loading ? (
+                                                <div className="text-center p-4">
+                                                    <div
+                                                    className="spinner-border text-primary"
+                                                    role="status"
+                                                    style={{ width: "3rem", height: "3rem" }}
+                                                    >
+                                                    <span className="visually-hidden">Loading...</span>
+                                                    </div>
+                                                </div>
+                                                ) : (
                                                 <table className="table">
                                                     <thead>
                                                         <tr>
                                                         <th width="50">#</th>
-                                                        <th>Network</th>
-                                                        <th>Size</th>
+                                                        <th>Cable</th>
+                                                        <th>Code</th>
                                                         <th>Buy Price</th>
                                                         <th>Selling Price</th>
                                                         <th>Status</th>
                                                         <th>Actions</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody class="table-border-bottom-0">
-                                                        <tr>
-                                                            <td>1</td>
+                                                    <tbody className="table-border-bottom-0">
+                                                        {datas.map((data, index) => (
+                                                        <tr key={data.id}>
+                                                            <td>{(page-1) * pageSize + index + 1}</td>
                                                             <td>
-                                                                MTN, MTN-2Gb
+                                                                {data.name}
                                                             </td>
                                                             <td>
-                                                                20GB (2024MB)
+                                                                {data.code}
                                                             </td>
-                                                            <td>#3,000</td>
-                                                            <td>#3,300</td>
-                                                            <td><span class="badge bg-label-primary me-1">Active</span></td>
+                                                            <td>{data.buy_price}</td>
+                                                            <td>{data.amount}</td>
                                                             <td>
-                                                                <div class="dropdown">
-                                                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                                                <span className={`badge ${data.is_active === 1 ? "bg-label-success" : "bg-label-danger"}`}>
+                                                                    {data.is_active === 1 ? "Active" : "Inactive"}
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <div className="dropdown">
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn p-0 dropdown-toggle hide-arrow"
+                                                                    data-bs-toggle="dropdown"
+                                                                >
+                                                                    <i className="bx bx-dots-vertical-rounded"></i>
                                                                 </button>
-                                                                <div class="dropdown-menu">
-                                                                    <a class="dropdown-item" href="javascript:void(0);"
-                                                                    ><i class="bx bx-edit-alt me-1"></i> Edit</a
-                                                                    >
-                                                                    <a class="dropdown-item" href="javascript:void(0);"
-                                                                    ><i class="bx bx-trash me-1"></i> Delete</a
-                                                                    >
+                                                                <div className="dropdown-menu">
+                                                                    <button className="dropdown-item">
+                                                                    <i className="bx bx-edit-alt me-1"></i> Edit
+                                                                    </button>
+                                                                    <button className="dropdown-item">
+                                                                    <i className="bx bx-trash me-1"></i> Delete
+                                                                    </button>
                                                                 </div>
                                                                 </div>
                                                             </td>
                                                         </tr>
-                                                        <tr>
-                                                            <td>2</td>
-                                                            <td>
-                                                                Glo, Glo-2Gb
-                                                            </td>
-                                                            <td>
-                                                                20GB (2024MB)
-                                                            </td>
-                                                            <td>#3,000</td>
-                                                            <td>#3,300</td>
-                                                            <td><span class="badge bg-label-primary me-1">Active</span></td>
-                                                            <td>
-                                                                <div class="dropdown">
-                                                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                                                    <i class="bx bx-dots-vertical-rounded"></i>
-                                                                </button>
-                                                                <div class="dropdown-menu">
-                                                                    <a class="dropdown-item" href="javascript:void(0);"
-                                                                    ><i class="bx bx-edit-alt me-1"></i> Edit</a
-                                                                    >
-                                                                    <a class="dropdown-item" href="javascript:void(0);"
-                                                                    ><i class="bx bx-trash me-1"></i> Delete</a
-                                                                    >
-                                                                </div>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
+                                                        ))}
                                                     </tbody>
                                                 </table>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -221,7 +225,22 @@ export default function DataPlan() {
                             </div>
                         </div>
                         {/* / Content */}
-
+                        {/* Pagination */}
+                        <nav className="mt-3">
+                            <ul className="pagination justify-content-center">
+                            <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
+                                <button className="page-link" onClick={() => setPage(page - 1)}>Previous</button>
+                            </li>
+                            {Array.from({ length: totalPages }, (_, i) => (
+                                <li key={i} className={`page-item ${page === i + 1 ? "active" : ""}`}>
+                                <button className="page-link" onClick={() => setPage(i + 1)}>{i + 1}</button>
+                                </li>
+                            ))}
+                            <li className={`page-item ${page === totalPages ? "disabled" : ""}`}>
+                                <button className="page-link" onClick={() => setPage(page + 1)}>Next</button>
+                            </li>
+                            </ul>
+                        </nav>
                         {/* Footer */}
                         <Footer/>
                         {/* / Footer */}
