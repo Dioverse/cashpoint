@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -7,22 +7,16 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Modal,
-  Pressable,
-  Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import {useNavigation} from '@react-navigation/native';
 
+import Icon from 'react-native-vector-icons/Ionicons';
 import ProfileHeader from '../components/ProfileHeader';
-import { authAPI } from '../services/auth'; // adjust path if needed
 
 function ProfileScreen() {
   const navigation = useNavigation();
-  const [logoutVisible, setLogoutVisible] = useState(false);
 
-  const ProfileItem = ({ icon, title, description, onPress, isPersonIcon, isLogout }) => {
+  const ProfileItem = ({icon, title, description, onPress, isPersonIcon}) => {
     return (
       <TouchableOpacity style={styles.itemContainer} onPress={onPress}>
         <View
@@ -32,43 +26,22 @@ function ProfileScreen() {
               ? styles.personIconContainer
               : styles.regularIconContainer,
           ]}>
-          <Icon name={icon} size={16} color={isLogout ? '#FF3B30' : isPersonIcon ? '#FFF' : '#C7C7C7'} />
+          {isPersonIcon ? (
+            <Icon name={icon} size={16} color="#FFF" />
+          ) : (
+            <Icon name={icon} size={16} color="#C7C7C7" />
+          )}
         </View>
         <View style={styles.itemContent}>
-          <Text style={[styles.itemTitle, isLogout && { color: '#FF3B30' }]}>{title}</Text>
+          <Text style={styles.itemTitle}>{title}</Text>
           <Text style={styles.itemDescription}>{description}</Text>
         </View>
       </TouchableOpacity>
     );
   };
 
-  const SectionTitle = ({ title }) => {
+  const SectionTitle = ({title}) => {
     return <Text style={styles.sectionTitle}>{title}</Text>;
-  };
-
-  const handleLogout = async () => {
-    try {
-      const result = await authAPI.logout();
-
-      // Clear AsyncStorage
-      await AsyncStorage.removeItem('auth_token');
-      await AsyncStorage.removeItem('user_data');
-
-      // Reset navigation stack to Login
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
-
-      if (!result.success) {
-        Alert.alert('Logout Error', result.error || 'Logout failed');
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-      Alert.alert('Error', 'Something went wrong during logout.');
-    } finally {
-      setLogoutVisible(false);
-    }
   };
 
   return (
@@ -111,7 +84,6 @@ function ProfileScreen() {
             description="Make changes to your account password"
             isPersonIcon={true}
             onPress={() => navigation.navigate('ChangePassword')}
-            
           />
           <View style={styles.divider} />
           <ProfileItem
@@ -159,43 +131,8 @@ function ProfileScreen() {
           />
         </View>
 
-        {/* Logout Section */}
-        <SectionTitle title=" " />
-        <View style={styles.sectionContainer}>
-          <ProfileItem
-            icon="log-out-outline"
-            title="Logout"
-            description="Sign out from your account"
-            isPersonIcon={false}
-            isLogout={true}
-            onPress={() => setLogoutVisible(true)}
-          />
-        </View>
-
-        <View style={{ height: 20 }} />
+        <View style={{height: 20}} />
       </ScrollView>
-
-      {/* Logout Confirmation Modal */}
-      <Modal
-        visible={logoutVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setLogoutVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Are you sure you want to logout?</Text>
-            <View style={styles.modalButtons}>
-              <Pressable style={styles.cancelButton} onPress={() => setLogoutVisible(false)}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </Pressable>
-              <Pressable style={styles.confirmButton} onPress={handleLogout}>
-                <Text style={styles.confirmButtonText}>Logout</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -224,7 +161,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
@@ -266,53 +203,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#EEEEEE',
     marginLeft: 62,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    width: '80%',
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  cancelButton: {
-    flex: 1,
-    marginRight: 10,
-    paddingVertical: 10,
-    backgroundColor: '#ddd',
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  confirmButton: {
-    flex: 1,
-    paddingVertical: 10,
-    backgroundColor: '#FF3B30',
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: '#333',
-    fontWeight: '500',
-  },
-  confirmButtonText: {
-    color: '#fff',
-    fontWeight: '500',
   },
 });
 

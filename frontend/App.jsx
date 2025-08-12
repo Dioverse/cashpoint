@@ -102,6 +102,13 @@ function ServicesNav() {
       <ServicesStack.Screen name="GiftUser" component={GiftUser} />
       <ServicesStack.Screen name="BuyGiftCard" component={BuyGiftCard} />
       <ServicesStack.Screen name="RateCalculator" component={RateCalculator} />
+
+      <ServicesStack.Screen name="ChangePassword" component={ChangePassword} />
+    <ServicesStack.Screen name="ProfileUpdateScreen" component={ProfileUpdateScreen} />
+    <ServicesStack.Screen name="Terms" component={Terms} />
+    <ServicesStack.Screen name="AboutUs" component={AboutUs} />
+    <ServicesStack.Screen name="Support" component={Support} />
+    <ServicesStack.Screen name="MoreServices" component={ServicesNav} />
     </ServicesStack.Navigator>
   );
 }
@@ -109,12 +116,12 @@ function ServicesNav() {
 const ProfileStackScreen = () => (
   <Stack.Navigator screenOptions={{headerShown: false}}>
     <Stack.Screen name="Profile" component={ProfileScreen} />
-    <Stack.Screen name="ChangePassword" component={ChangePassword} />
+    {/* <Stack.Screen name="ChangePassword" component={ChangePassword} />
     <Stack.Screen name="ProfileUpdateScreen" component={ProfileUpdateScreen} />
     <Stack.Screen name="Terms" component={Terms} />
     <Stack.Screen name="AboutUs" component={AboutUs} />
     <Stack.Screen name="Support" component={Support} />
-    <Stack.Screen name="MoreServices" component={ServicesNav} />
+    <Stack.Screen name="MoreServices" component={ServicesNav} /> */}
   </Stack.Navigator>
 );
 
