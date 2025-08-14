@@ -16,6 +16,9 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
         $this->call(GiftcardSeeder::class);
         $this->call(CryptoSeeder::class);
+        $this->call(VTUSetupSeeder::class);
+        $this->call(CableBillSeeder::class);
+        $this->call(CablePlanSeeder::class);
         // User::factory()->create([
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',

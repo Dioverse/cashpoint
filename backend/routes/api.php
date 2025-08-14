@@ -108,4 +108,3 @@ Route::prefix('admin')->group(function () {
 
 // Webhook route goes here ....................................................................................
 Route::post('/webhook/paystack', [VirtualAccountController::class, 'store'])->name('api.webhook.paystack');
-

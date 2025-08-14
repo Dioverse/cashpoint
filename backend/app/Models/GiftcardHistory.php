@@ -9,6 +9,7 @@ class GiftcardHistory extends Model
     //
     protected $fillable = [
         'user_id',
+        'reference',
         'type', // buy or sell
         'card_type',
         'category',

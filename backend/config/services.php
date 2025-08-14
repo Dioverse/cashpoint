@@ -50,5 +50,18 @@ return [
         'api_key' => env('FIREBASE_SERVER_KEY'),
     ],
 
+    'smeplug' => [
+        'key' => env('SMEPLUG_KEY'),
+    ],
+
+    'vtpass' => [
+        'url'       => env('VTPASS_URL'),
+        'username'  => env('VTPASS_USERNAME'),
+        'password'  => env('VTPASS_PASSWORD'),
+        'api_key'   => env('VTPASS_API_KEY'),
+        'public_key'=> env('VTPASS_PUBLIC_KEY'),
+        'secrete_key'=> env('VTPASS_SECRETE_KEY'),
+    ]
+
 
 ];

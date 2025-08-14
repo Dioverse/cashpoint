@@ -13,8 +13,15 @@ return new class extends Migration
     {
         Schema::create('data_histories', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('network_id')->constrained()->onDelete('cascade');
+            $table->foreignId('data_price_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('phone');
+            $table->decimal('amount', 10, 2);
+            $table->string('status')->default('pending'); // pending, success, failed
+            $table->string('reference')->unique();
             $table->timestamps();
-        });
+        }); 
     }
 
     /**

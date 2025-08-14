@@ -25,3 +25,11 @@ if (!function_exists('getCryptoRates')) {
 }
 
 
+if (!function_exists('checkWalletBalance')) {
+    function checkWalletBalance($user, $amount) {
+        return $user->wallet_naira >= $amount;
+    }
+}
+
+
+

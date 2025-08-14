@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('giftcard_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('reference');
             $table->enum('type', ['buy', 'sell'])->default('sell');
             $table->string('card_type'); // e.g., Amazon, iTunes, etc.
             $table->integer('quantity')->default(1); // e.g., 1, 2, 3, etc.

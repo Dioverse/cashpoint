@@ -92,5 +92,32 @@ class User extends Authenticatable
         return $this->hasMany(Notification::class);
     }
 
+    public function cryptoHistory()
+    {
+        return $this->hasMany(CryptoHistory::class);
+    }
+
+    public function giftcardHistory()
+    {
+        return $this->hasMany(GiftcardHistory::class);
+    }
+
+    public function airtimeHistory()
+    {
+        return $this->hasMany(AirtimeHistory::class);
+    }
+
+    public function billHistory()
+    {
+        return $this->hasMany(BillHistory::class);
+    }
+
+    public function cableHistory()
+    {
+        return $this->hasMany(CableHistory::class);
+    }
+
+
+
 
 }

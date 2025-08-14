@@ -9,12 +9,14 @@ use App\Models\Giftcard;
 use App\Models\WalletAddress;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class CryptoService
 {
     public function processSell($user, $data)
     {
+        DB::beginTransaction();
         $crypto = Crypto::findOrFail($data['crypto_id']);
         $rate = app(SettingService::class)->getExchangeRate();
         $usd = $data['amount_crypto'] * $this->getRate($crypto->symbol);
@@ -31,13 +33,7 @@ class CryptoService
         ]);
 
         $tradeType = ($data['crypto_id'] == '1') ? 'BTC' : 'USDT';
-        // return response()->json([
-        //     'success' => true,
-        //     'message' => 'Trade submitted successfully',
-        //     'results' => [
-        //         'data' => $trade
-        //     ]
-        //     ]);
+
         // Notify Admin for manual approval or webhook-based NowNode checking can be added
         NotificationHelper::notifyAdmin(
             'New Crypto Trade',
@@ -53,6 +49,7 @@ class CryptoService
             // ['trade_id' => $trade->id]
         );
 
+        DB::commit();
         return response([
             'message'   => __('app.crypto_trade_submitted'),
             'status'    => true,
@@ -75,6 +72,8 @@ class CryptoService
     }
 
     public function processBuy($user, $data) {
+        DB::beginTransaction();
+
         $crypto = Crypto::findOrFail($data['crypto_id']);
         $rate   = app(SettingService::class)->getExchangeRate(); // USD to NGN
 
@@ -88,7 +87,7 @@ class CryptoService
             'user_id'           => $user->id,
             'crypto_id'         => $data['crypto_id'],
             'type'              => 'buy',
-            'amount_usd'        => $data['amount_usd'],
+            'amount'            => $data['amount_usd'],
             'amount_crypto'     => $amountCrypto,
             'naira_equivalent'  => $naira,
             'wallet_address'    => $data['wallet_address'],
@@ -98,10 +97,25 @@ class CryptoService
         // Trigger sending from NowNode using your client API key (See NowNodeService below)
         $hash = app(NowNodeService::class)->sendToWallet($crypto, $data['wallet_address'], $amountCrypto);
 
+        NotificationHelper::notifyAdmin(
+            'New Crypto Trade',
+            'User ' . $user->username . ' initiated a ' . $crypto->name . ' trade.',
+            ['trade_id' => $trade->id]
+        );
+
+        NotificationHelper::notifyUser(
+            $user->id,
+            'Your '. $crypto->name .' Trade is Processing',
+            'We have received your '. $crypto->name .' trade and are processing it.',
+            $trade->id
+            // ['trade_id' => $trade->id]
+        );
+
         $trade->update([
             'transaction_hash' => $hash,
             'status' => 'completed',
         ]);
+        DB::commit();
 
         return response()->json(['message' => __('app.crypto_sent'), 'trade' => $trade]);
     }
@@ -189,6 +203,21 @@ class CryptoService
         return getCryptoRate($symbol);
     }
 
+    public function getUserCryptoHistories($user)
+    {
+        return CryptoHistory::where('user_id', $user->id)->get();
+    }
+
+    public function allCryptoHistory()
+    {
+        return CryptoHistory::with('user', 'crypto')->paginate(10);
+    }
+
+    public function getCryptoById($id)
+    {
+        return CryptoHistory::findOrFail($id);
+    }
+
 
     // private function getRate($symbol)
     // {
@@ -212,6 +241,59 @@ class CryptoService
         'BTC' => 'btc',
         'USDT' => 'trx', // or 'eth' if using ERC20
     ];
+
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++==
+    public function cryptos()
+    {
+        return Crypto::get();
+    }
+
+    public function findCrypto($id)
+    {
+        return Crypto::findOrFail($id);
+    }
+
+    public function createCrypto($data)
+    {
+        $crypto = Crypto::create($data);
+        return $crypto;
+    }
+
+    public function updateCrypto($id, $data)
+    {
+        $crypto = Crypto::findOrFail($id);
+        $crypto->update($data);
+        return $crypto;
+    }
+
+    public function deleteCrypto($id)
+    {
+        $crypto = Crypto::findOrFail($id);
+        return $crypto->delete();
+    }
+
+    public function toggleCryptoStatus($id)
+    {
+        $crypto = Crypto::findOrFail($id);
+        $crypto->is_active = ! $crypto->is_active;
+        $crypto->save();
+        return $crypto;
+    }
+
+    public function getCryptoBySymbol($symbol)
+    {
+        return Crypto::where('symbol', strtoupper($symbol))->first();
+    }
+
+    public function getCryptoByName($name)
+    {
+        return Crypto::where('name', 'like', '%' . $name . '%')->get();
+    }
+
+    public function getCryptoByCode($code)
+    {
+        return Crypto::where('code', $code)->first();
+    }
 
 
 

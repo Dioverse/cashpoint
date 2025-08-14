@@ -75,5 +75,44 @@ class CryptoController extends Controller
     }
 
 
+    public function getMyCryptoHistories(Request $request)
+    {
+        $user = Auth::user();
+        return response([
+            'message' => __('app.crypto_history_retrieved'),
+            'success' => true,
+            'results' => [
+                'data' => $this->cryptoService->getUserCryptoHistories($user),
+            ],
+        ]);
+    }
+
+
+
+    public function cryptoDetails($id)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response([
+                'message'   => __('auth.unauthorized'),
+                'status'    => false,
+            ], 401);
+        }
+        $giftcard = $this->cryptoService->getCryptoById($id);
+        if (!$giftcard) {
+
+            return response([
+                'message'   => __('app.crypto_not_found'),
+                'status'    => true,
+            ], 404);
+        }
+        return response([
+            'success' => true,
+            'message' => __('app.crypto_history_retrieved'),
+            'result' => ['data' => $giftcard]
+        ]);
+    }
+
+
 
 }
