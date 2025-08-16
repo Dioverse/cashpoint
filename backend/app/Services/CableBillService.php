@@ -28,8 +28,13 @@ class CableBillService {
         return Bill::create($data);
     }
 
-    public function updateBill(Bill $bill, array $data) {
-        return $bill->update($data);
+    public function updateBill($id, array $data) {
+        $bill = Bill::find($id);
+        if ($bill) {
+            $bill->update($data);
+            return $bill;
+        }
+        return null;
     }
 
     public function cablePlans() {
@@ -80,8 +85,13 @@ class CableBillService {
         return Cable::create($data);
     }
 
-    public function updateCable(Cable $bill, array $data) {
-        return $bill->update($data);
+    public function updateCable($id, array $data) {
+        $cable = Cable::find($id);
+        if ($cable) {
+            $cable->update($data);
+            return $cable;
+        }
+        return null;
     }
 
     //  Utilities history ................................................................

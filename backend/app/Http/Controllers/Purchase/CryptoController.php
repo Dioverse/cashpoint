@@ -63,6 +63,17 @@ class CryptoController extends Controller
         return $this->cryptoService->confirmCryptoPayment($validated);
     }
 
+    public function getTypes()
+    {
+        return response([
+            'message' => __('app.data_retrieved_successfully'),
+            'success' => true,
+            'results' => [
+                'data' => $this->cryptoService->types(),
+            ],
+        ]);
+    }
+
     public function getRates()
     {
         return response([

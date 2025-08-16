@@ -14,7 +14,10 @@ use App\Http\Controllers\Admin\DataPricingController;
 use App\Http\Controllers\Admin\GiftCardController as AdminGiftCardController;
 use App\Http\Controllers\Admin\PricingController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\BillController;
+use App\Http\Controllers\CableController;
 use App\Http\Controllers\KYCController;
+use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Purchase\CryptoController;
 use App\Http\Controllers\Purchase\GiftcardController;
@@ -52,10 +55,17 @@ Route::controller(KYCController::class)->middleware('auth:sanctum')->group(funct
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-        // Gift Card
+
+    // ++++++++++++++++ LIST OF SERVICES +++++++++++++++++++++++++++++
+    Route::get('/networks', [NetworkController::class, 'index']);
+    Route::get('/bills', [BillController::class, 'index']);
+    Route::get('/cables', [CableController::class, 'index']);
+    Route::get('/cryptos', [CryptoController::class, 'getTypes']);
+    Route::get('/giftcard/types', [GiftcardController::class, 'getTypes']);
+
+    // Gift Card
     Route::post('/giftcard/sell', [GiftcardController::class, 'sell']);
     Route::post('/giftcard/buy', [GiftcardController::class, 'buy']);
-    Route::get('/giftcard/types', [GiftcardController::class, 'getTypes']);
     Route::get('/giftcard/rates', [GiftcardController::class, 'getRates']);
     Route::get('/giftcard/history', [GiftcardController::class, 'getMyGiftcardHistories']);
     Route::get('/giftcard/history/{id}', [GiftcardController::class, 'giftcardDetails']);
