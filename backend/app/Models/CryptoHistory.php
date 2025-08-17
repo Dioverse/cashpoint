@@ -14,12 +14,14 @@ class CryptoHistory extends Model
         'user_id',
         'crypto_id',
         'type',
+        'currency',
         'amount',
         'amount_crypto',
         'naira_equivalent',
         'wallet_address',
         'transaction_hash',
-        'status'
+        'status',
+        'api_response'
     ];
 
     public function crypto()

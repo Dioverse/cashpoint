@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\PricingController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\BillController;
 use App\Http\Controllers\CableController;
+use App\Http\Controllers\CoinbaseController;
 use App\Http\Controllers\KYCController;
 use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\NotificationController;
@@ -71,6 +72,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/giftcard/history/{id}', [GiftcardController::class, 'giftcardDetails']);
 
     // Crypto
+    Route::post('/crypto/buy-btc', [CoinbaseController::class, 'buyBTC']);
+    Route::post('/crypto/sell-btc', [CoinbaseController::class, 'sellBTC']);
     Route::post('/crypto/sell', [CryptoController::class, 'sell']);
     Route::post('/crypto/buy', [CryptoController::class, 'buy']);
     Route::post('/crypto/generate-address', [CryptoController::class, 'generateWalletAddress']);
@@ -78,6 +81,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/crypto/rates', [CryptoController::class, 'getRates']);
     Route::get('/crypto/history', [CryptoController::class, 'getMyCryptoHistories']);
     Route::get('/crypto/history/{id}', [CryptoController::class, 'cryptoDetails']);
+
+    // ++++++++++++++++ END LIST OF SERVICES +++++++++++++++++++++++++++++
 
     Route::prefix('notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);

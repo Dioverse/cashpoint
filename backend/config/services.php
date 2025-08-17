@@ -46,6 +46,12 @@ return [
         'base_url' => env('NOWNODE_BASE_URL'),
     ],
 
+    'coinbase' => [
+        'api_key' => env('COINBASE_API_KEY'),
+        'base_url' => env('COINBASE_BASE_URL'),
+        'secret_key' => env('COINBASE_SECRET_KEY'),
+    ],
+
     'firebase' => [
         'api_key' => env('FIREBASE_SERVER_KEY'),
     ],
