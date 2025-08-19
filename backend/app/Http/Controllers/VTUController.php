@@ -146,6 +146,13 @@ class VTUController extends Controller
             $user->wallet_naira -= $amtTopay;
             $user->save();
             $response   = $this->smeplug->purchaseAirtime($network, $phone, $amount, $ref);
+            // return response([
+            //     'success' => 'success',
+            //     'message' => $response['message'] ?? 'Something went wrong!',
+            //     'results' => [
+            //         'data' => $response,
+            //     ]
+            // ]);
             $status     = $response['status'] == 'success' ? 'success' : 'failed';
             $commission = ($percentage / 100) * $amount;
 
@@ -160,7 +167,7 @@ class VTUController extends Controller
             ]);
 
             DB::commit();
-            return response()->json([
+            return response([
                 'success' => $status === 'success',
                 'message' => $response['message'] ?? 'Something went wrong!',
                 'results' => [

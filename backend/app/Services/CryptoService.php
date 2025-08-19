@@ -197,6 +197,11 @@ class CryptoService
         ]);
     }
 
+    public function types()
+    {
+        return Crypto::all();
+    }
+
 
     private function getRate($symbol)
     {
