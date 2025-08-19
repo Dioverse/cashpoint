@@ -1,3 +1,5 @@
+// BuyGiftCardScreen.js
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -20,9 +22,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-import { giftcardAPI } from '../services/apiServices'; // Import your giftcard API service
-
-const loadingImage = require('../assets/images/1.png'); // Adjust path if necessary
+import { giftcardAPI } from '../services/apiServices'; // API service
+const loadingImage = require('../assets/images/1.png');
 
 const CustomSelect = ({ options, onValueChange, selectedValue, placeholder, disabled }) => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -77,14 +78,16 @@ const CustomSelect = ({ options, onValueChange, selectedValue, placeholder, disa
 
 const BuyGiftCardScreen = () => {
   const navigation = useNavigation();
+
   const [country, setCountry] = useState('');
-  const [giftCard, setGiftCard] = useState(''); // Stores the selected gift card NAME (e.g., "Amazon")
+  const [giftCard, setGiftCard] = useState('');
+  const [selectedGiftCardCategory, setSelectedGiftCardCategory] = useState('');
   const [creditUnit, setCreditUnit] = useState('');
   const [quantity, setQuantity] = useState('');
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingTypes, setIsFetchingTypes] = useState(true);
-  const [fetchedGiftCardTypes, setFetchedGiftCardTypes] = useState([]); // Stores names for CustomSelect
+  const [fetchedGiftCardTypes, setFetchedGiftCardTypes] = useState([]);
 
   const zoomAnim = useRef(new Animated.Value(0)).current;
 
@@ -110,17 +113,15 @@ const BuyGiftCardScreen = () => {
       zoomAnim.stopAnimation();
       zoomAnim.setValue(0);
     }
-  }, [isLoading, zoomAnim]);
+  }, [isLoading]);
 
   useEffect(() => {
     const fetchTypes = async () => {
       setIsFetchingTypes(true);
       try {
-        const result = await giftcardAPI.getTypes(); // Using getTypes as per your apiServices.js
-        if (result.success && result.data && result.data.results && result.data.results.data) {
-          // Extracting 'name' from each object in the 'data' array
-          const types = result.data.results.data.map(item => item.name);
-          setFetchedGiftCardTypes(types);
+        const result = await giftcardAPI.getTypes();
+        if (result.success && result.data?.results?.data) {
+          setFetchedGiftCardTypes(result.data.results.data); // store full gift card objects
         } else {
           Alert.alert('Error', result.error || 'Failed to fetch gift card types.');
         }
@@ -169,6 +170,7 @@ const BuyGiftCardScreen = () => {
       const payload = {
         country,
         card_type: giftCard,
+        category: selectedGiftCardCategory,
         credit_unit: creditUnit.replace(/\$/g, ''),
         quantity: Number(quantity),
         amount: Number(amount),
@@ -180,6 +182,7 @@ const BuyGiftCardScreen = () => {
         Alert.alert('Success', result.data.message || 'Gift Card purchase submitted successfully!');
         setCountry('');
         setGiftCard('');
+        setSelectedGiftCardCategory('');
         setCreditUnit('');
         setQuantity('');
         navigation.navigate('Transaction');
@@ -202,10 +205,7 @@ const BuyGiftCardScreen = () => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <StatusBar backgroundColor="#4B39EF" barStyle="light-content" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} disabled={isLoading}>
             <Icon name="arrow-back" size={24} color="white" />
@@ -214,14 +214,10 @@ const BuyGiftCardScreen = () => {
             <Text style={styles.headerText}>Buy Gift Card</Text>
           </View>
         </View>
+
         <View style={styles.formWrapper}>
           <View style={styles.formSection}>
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ paddingBottom: 100 }}
-              showsVerticalScrollIndicator={false}
-              showsHorizontalScrollIndicator={false}
-            >
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 100 }}>
               {/* Country */}
               <View style={{ marginBottom: 25, zIndex: 5 }}>
                 <Text style={styles.label}>Country</Text>
@@ -234,6 +230,7 @@ const BuyGiftCardScreen = () => {
                 />
                 {errors.country && <Text style={styles.errorText}>{errors.country}</Text>}
               </View>
+
               {/* Gift Card */}
               <View style={{ marginBottom: 25, zIndex: 4 }}>
                 <Text style={styles.label}>Gift Card</Text>
@@ -244,15 +241,20 @@ const BuyGiftCardScreen = () => {
                   </View>
                 ) : (
                   <CustomSelect
-                    options={fetchedGiftCardTypes}
+                    options={fetchedGiftCardTypes.map(item => item.name)}
                     selectedValue={giftCard}
-                    onValueChange={setGiftCard}
+                    onValueChange={(name) => {
+                      setGiftCard(name);
+                      const selected = fetchedGiftCardTypes.find(item => item.name === name);
+                      setSelectedGiftCardCategory(selected?.category || '');
+                    }}
                     placeholder="Select gift card"
-                    disabled={isLoading || isFetchingTypes}
+                    disabled={isLoading}
                   />
                 )}
                 {errors.giftCard && <Text style={styles.errorText}>{errors.giftCard}</Text>}
               </View>
+
               {/* Credit Unit */}
               <View style={{ marginBottom: 25, zIndex: 3 }}>
                 <Text style={styles.label}>Credit Unit</Text>
@@ -265,6 +267,7 @@ const BuyGiftCardScreen = () => {
                 />
                 {errors.creditUnit && <Text style={styles.errorText}>{errors.creditUnit}</Text>}
               </View>
+
               {/* Quantity */}
               <View style={{ marginBottom: 25, zIndex: 2 }}>
                 <Text style={styles.label}>Quantity</Text>
@@ -282,6 +285,7 @@ const BuyGiftCardScreen = () => {
                 />
                 {errors.quantity && <Text style={styles.errorText}>{errors.quantity}</Text>}
               </View>
+
               {/* Amount */}
               <View style={{ marginBottom: 30 }}>
                 <Text style={styles.label}>Amount</Text>
@@ -289,6 +293,7 @@ const BuyGiftCardScreen = () => {
                   <Text style={styles.valueText}>${calculateAmount()}</Text>
                 </View>
               </View>
+
               {/* Submit */}
               <TouchableOpacity
                 onPress={handleSubmit}
@@ -304,13 +309,8 @@ const BuyGiftCardScreen = () => {
         </View>
       </KeyboardAvoidingView>
 
-      {/* Loading Overlay Modal */}
-      <Modal
-        transparent={true}
-        animationType="fade"
-        visible={isLoading}
-        onRequestClose={() => {}}
-      >
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={isLoading} onRequestClose={() => {}}>
         <View style={styles.overlay}>
           <Animated.Image
             source={loadingImage}
@@ -471,5 +471,4 @@ const dropdownStyles = StyleSheet.create({
     color: '#1e90ff',
   },
 });
-
 export default BuyGiftCardScreen;

@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 import ProfileHeader from '../components/ProfileHeader';
-import { authAPI } from '../services/auth'; // adjust path if needed
+import { authAPI } from '../services/apiServices'; // adjust path if needed
 
 function ProfileScreen() {
   const navigation = useNavigation();

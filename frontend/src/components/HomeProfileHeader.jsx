@@ -1,9 +1,20 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import { useAuth } from '../context/AuthContext';
 
-const HomeProfileHeader = ({ imageUrl, badgeCount = 0, navigation, firstName = '' }) => {
-  const displayName = firstName ? firstName : 'User';
+const HomeProfileHeader = ({ imageUrl, badgeCount = 0, navigation }) => {
+  
+
+  const { user } = useAuth();
+    const firstName = (() => {
+      const n =
+        user?.firstName ||
+        '';
+      if (!n) return '';
+      return n.charAt(0).toUpperCase() + n.slice(1);
+    })();
+
   return (
     <View style={styles.headerContainer} className="mb-2">
       <TouchableOpacity
@@ -12,7 +23,7 @@ const HomeProfileHeader = ({ imageUrl, badgeCount = 0, navigation, firstName = '
       >
         <Image source={{ uri: imageUrl }} style={styles.profileImage} />
         <Text style={styles.welcomeText}>
-          {'Welcome, '}<Text style={styles.userName}>{displayName}!</Text>
+          {'Welcome, '}<Text style={styles.userName}>{firstName}!</Text>
         </Text>
       </TouchableOpacity>
       {/* Notification Icon with Badge */}

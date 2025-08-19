@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,10 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {ArrowLeftIcon} from 'react-native-heroicons/outline';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { ArrowLeftIcon } from 'react-native-heroicons/outline';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { vtuAPI } from '../services/apiServices';
 
 const Cable = () => {
   const navigation = useNavigation();
@@ -20,79 +21,79 @@ const Cable = () => {
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isValidating, setIsValidating] = useState(false);
+  const [plans, setPlans] = useState([]);
+  const [loadingPlans, setLoadingPlans] = useState(false);
 
-  // Provider options
   const providers = [
-    {id: 'gotv', name: 'GOTV', icon: require('../assets/images/gotv.png')},
-    {id: 'dstv', name: 'DSTV', icon: require('../assets/images/dstv.png')},
-    {
-      id: 'startimes',
-      name: 'STARTIME',
-      icon: require('../assets/images/startimes.png'),
-    },
+    { id: 'gotv', name: 'GOTV', icon: require('../assets/images/gotv.png') },
+    { id: 'dstv', name: 'DSTV', icon: require('../assets/images/dstv.png') },
+    { id: 'startimes', name: 'STARTIME', icon: require('../assets/images/startimes.png') },
   ];
 
-  // Plan options
-  const plans = [
-    {name: 'Smalie', price: 680.0, id: 'plan1'},
-    {name: 'Big', price: 1360.0, id: 'plan2'},
-    {name: 'Home', price: 2040.0, id: 'plan3'},
-    {name: 'Hize', price: 2720.0, id: 'plan4'},
-    {name: 'Hamp', price: 3400.0, id: 'plan5'},
-    {name: 'Uit', price: 680.0, id: 'plan6'},
-    {name: 'Homp', price: 1360.0, id: 'plan7'},
-    {name: 'Pro', price: 340.0, id: 'plan8'},
-    {name: 'Joly', price: 2720.0, id: 'plan9'},
-    {name: 'Lily', price: 3400.0, id: 'plan10'},
-  ];
-
-  // Recent IUC numbers
   const recentIucs = [
-    {number: '12121212121', provider: 'gotv'},
-    {number: '12121212121', provider: 'dstv'},
-    {number: '12121212121', provider: 'gotv'},
-    {number: '12121212121', provider: 'startimes'},
+    { number: '12121212121', provider: 'gotv' },
+    { number: '23232323232', provider: 'dstv' },
+    { number: '34343434343', provider: 'startimes' },
   ];
 
-  const handleValidate = () => {
-    if (!iucNumber || !selectedProvider) return;
+  useEffect(() => {
+    const fetchPlans = async () => {
+      setLoadingPlans(true);
+      const res = await vtuAPI.getCablePlans();
+      if (res.success) {
+        setPlans(res.data.results.data);
+        console.log(res);
+      }
+      setLoadingPlans(false);
+    };
 
+    fetchPlans();
+  }, []);
+
+  const handleValidate = async () => {
+    if (!iucNumber || !selectedProvider) return;
     setIsValidating(true);
 
-    // Simulate API call to validate IUC
+    // Simulate customer name fetch
     setTimeout(() => {
       setValidatedUser('IDOWU ABIODUN JOHNSON');
       setIsValidating(false);
-    }, 1500);
+    }, 1000);
   };
 
-  const handleProceed = () => {
-    if (
-      phoneNumber &&
-      selectedProvider &&
-      selectedPlan &&
-      iucNumber &&
-      validatedUser
-    ) {
-      navigation.navigate('Pin', {
-        phoneNumber,
-        provider: selectedProvider,
-        amount: selectedPlan.price,
-        plan: selectedPlan.name,
-        iucNumber,
-        customerName: validatedUser,
-        transactionType: 'Cable TV Subscription',
+  const handleProceed = async () => {
+    if (!phoneNumber || !iucNumber || !selectedPlan || !selectedProvider || !validatedUser) return;
+
+    const payload = {
+      phone: phoneNumber,
+      billersCode: iucNumber,
+      planID: selectedPlan.id,
+    };
+
+    const res = await vtuAPI.buyCable(payload);
+
+    if (res.success) {
+      navigation.navigate('Success', {
+        title: 'Payment Successful',
+        message: res.data.message,
+        reference: res.data.results.data.requestId,
       });
+    } else {
+      alert(res.error || 'Cable TV purchase failed.');
     }
   };
 
-  const getProviderIcon = providerId => {
-    return providers.find(p => p.id === providerId)?.icon;
+  const getProviderIcon = (providerId) => {
+    return providers.find((p) => p.id === providerId)?.icon;
   };
 
-  const formatPrice = price => {
-    return price.toFixed(2);
+  const formatPrice = (price) => {
+    return Number(price).toLocaleString();
   };
+
+  const filteredPlans = selectedProvider
+    ? plans.filter((p) => p.cable?.identifier === selectedProvider)
+    : [];
 
   return (
     <SafeAreaView className="flex-1 bg-[#4B39EF]">
@@ -100,12 +101,11 @@ const Cable = () => {
       <View className="flex-row items-center justify-center px-4 py-4 relative">
         <TouchableOpacity
           className="absolute left-4 z-10"
-          onPress={() => navigation.goBack()}>
+          onPress={() => navigation.goBack()}
+        >
           <ArrowLeftIcon size={24} color="white" />
         </TouchableOpacity>
-        <Text className="text-white text-lg font-semibold">
-          Cable Tv Purchase
-        </Text>
+        <Text className="text-white text-lg font-semibold">Cable TV Purchase</Text>
       </View>
 
       {/* Recent IUCs */}
@@ -117,21 +117,19 @@ const Cable = () => {
             onPress={() => {
               setIucNumber(item.number);
               setSelectedProvider(item.provider);
-            }}>
+            }}
+          >
             <View className="w-12 h-12 rounded-full bg-white justify-center items-center mb-1">
-              <Image
-                source={getProviderIcon(item.provider)}
-                className="w-8 h-8"
-              />
+              <Image source={getProviderIcon(item.provider)} className="w-8 h-8" />
             </View>
             <Text className="text-white text-xs">{item.number}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Main Content */}
+      {/* Main Form */}
       <ScrollView className="flex-1 bg-white rounded-t-3xl px-4 pt-6">
-        {/* Phone Number Input */}
+        {/* Phone Input */}
         <View className="bg-[#3C3ADD21] p-4 rounded-xl mb-6">
           <Text className="text-gray-800 font-medium mb-2">Phone Number</Text>
           <TextInput
@@ -145,20 +143,23 @@ const Cable = () => {
 
         {/* Provider Selection */}
         <View className="flex-row justify-between mb-6">
-          {providers.map(provider => (
+          {providers.map((provider) => (
             <TouchableOpacity
               key={provider.id}
-              className={`w-[31%] h-20 items-center justify-center rounded-lg bg-[#3C3ADD21]`}
-              onPress={() => setSelectedProvider(provider.id)}>
+              className={`w-[31%] h-20 items-center justify-center rounded-lg ${
+                selectedProvider === provider.id ? 'bg-[#4B39EF]' : 'bg-[#3C3ADD21]'
+              }`}
+              onPress={() => setSelectedProvider(provider.id)}
+            >
               <View className="w-12 h-12 rounded-full bg-white justify-center items-center mb-1">
                 <Image source={provider.icon} className="w-8 h-8" />
               </View>
-              <Text className="text-sm font-medium">{provider.name}</Text>
+              <Text className="text-sm font-medium text-center text-gray-800">{provider.name}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* IUC Number with Validation */}
+        {/* IUC Validation */}
         <View className="mb-1">
           <Text className="text-gray-800 font-medium mb-2">IUC Number</Text>
           <View className="flex-row mb-1">
@@ -174,7 +175,8 @@ const Cable = () => {
                 iucNumber && selectedProvider ? 'bg-black' : 'bg-gray-400'
               }`}
               onPress={handleValidate}
-              disabled={!iucNumber || !selectedProvider || isValidating}>
+              disabled={!iucNumber || !selectedProvider || isValidating}
+            >
               {isValidating ? (
                 <ActivityIndicator color="white" size="small" />
               ) : (
@@ -183,95 +185,57 @@ const Cable = () => {
             </TouchableOpacity>
           </View>
           {validatedUser ? (
-            <Text className="text-right text-gray-600 mb-4">
-              {validatedUser}
-            </Text>
+            <Text className="text-right text-gray-600 mb-4">{validatedUser}</Text>
           ) : null}
         </View>
 
         {/* Plan Selection */}
-        <Text className="text-gray-800 font-medium mb-3 mt-2">
-          Select an Plan
-        </Text>
+        <Text className="text-gray-800 font-medium mb-3 mt-2">Select a Plan</Text>
         <View className="bg-[#3C3ADD21] p-4 rounded-xl mb-8">
-          {/* First Row - 5 plans */}
-          <View className="flex-row justify-between mb-2">
-            {plans.slice(0, 5).map(plan => (
-              <TouchableOpacity
-                key={plan.id}
-                className={`w-[18%] aspect-square items-center justify-center rounded-lg ${
-                  selectedPlan?.id === plan.id ? 'bg-[#4B39EF]' : 'bg-white'
-                }`}
-                onPress={() => setSelectedPlan(plan)}>
-                <Text
-                  className={`font-medium text-center ${
-                    selectedPlan?.id === plan.id
-                      ? 'text-white'
-                      : 'text-gray-800'
-                  }`}>
-                  {plan.name}
-                </Text>
-                <Text
-                  className={`text-xs text-center ${
-                    selectedPlan?.id === plan.id
-                      ? 'text-white'
-                      : 'text-gray-600'
-                  }`}>
-                  {formatPrice(plan.price)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Second Row - 5 plans */}
-          <View className="flex-row justify-between">
-            {plans.slice(5, 10).map(plan => (
-              <TouchableOpacity
-                key={plan.id}
-                className={`w-[18%] aspect-square items-center justify-center rounded-lg ${
-                  selectedPlan?.id === plan.id ? 'bg-[#4B39EF]' : 'bg-white'
-                }`}
-                onPress={() => setSelectedPlan(plan)}>
-                <Text
-                  className={`font-medium text-center ${
-                    selectedPlan?.id === plan.id
-                      ? 'text-white'
-                      : 'text-gray-800'
-                  }`}>
-                  {plan.name}
-                </Text>
-                <Text
-                  className={`text-xs text-center ${
-                    selectedPlan?.id === plan.id
-                      ? 'text-white'
-                      : 'text-gray-600'
-                  }`}>
-                  {formatPrice(plan.price)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {loadingPlans ? (
+            <ActivityIndicator size="large" color="#4B39EF" />
+          ) : (
+            <View className="flex-row flex-wrap justify-between gap-y-2">
+              {filteredPlans.map((plan) => (
+                <TouchableOpacity
+                  key={plan.id}
+                  className={`w-[30%] p-2 rounded-lg items-center justify-center ${
+                    selectedPlan?.id === plan.id ? 'bg-[#4B39EF]' : 'bg-white'
+                  }`}
+                  onPress={() => setSelectedPlan(plan)}
+                >
+                  <Text
+                    className={`font-medium text-center text-xs ${
+                      selectedPlan?.id === plan.id ? 'text-white' : 'text-gray-800'
+                    }`}
+                  >
+                    {plan.name}
+                  </Text>
+                  <Text
+                    className={`text-xs ${
+                      selectedPlan?.id === plan.id ? 'text-white' : 'text-gray-600'
+                    }`}
+                  >
+                    ₦{formatPrice(plan.amount)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Proceed Button */}
         <TouchableOpacity
           className={`h-14 rounded-xl items-center justify-center mb-6 ${
-            phoneNumber &&
-            selectedProvider &&
-            selectedPlan &&
-            iucNumber &&
-            validatedUser
+            phoneNumber && selectedProvider && selectedPlan && iucNumber && validatedUser
               ? 'bg-gray-900'
               : 'bg-gray-400'
           }`}
           onPress={handleProceed}
           disabled={
-            !phoneNumber ||
-            !selectedProvider ||
-            !selectedPlan ||
-            !iucNumber ||
-            !validatedUser
-          }>
+            !phoneNumber || !selectedProvider || !selectedPlan || !iucNumber || !validatedUser
+          }
+        >
           <Text className="text-white font-semibold text-base">Proceed</Text>
         </TouchableOpacity>
       </ScrollView>

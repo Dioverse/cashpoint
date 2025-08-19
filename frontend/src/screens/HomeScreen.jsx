@@ -8,47 +8,24 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../context/AuthContext';
 
 export default function HomeScreen({ navigation }) {
-  const [user, setUser] = useState(null);
+  // const [user, setUser] = useState(null);
+  // const { user } = useAuth();
+  // const firstName = (() => {
+  //   const n =
+  //     user?.first_name ||
+  //     user?.firstname ||
+  //     (user?.name ? String(user.name).split(' ')[0] : null) ||
+  //     (user?.full_name ? String(user.full_name).split(' ')[0] : null) ||
+  //     user?.username ||
+  //     '';
+  //   if (!n) return '';
+  //   return n.charAt(0).toUpperCase() + n.slice(1);
+  // })();
 
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      const loadUser = async () => {
-        try {
-          const raw = await AsyncStorage.getItem('user_data');
-          if (!isActive) return;
-          if (raw) setUser(JSON.parse(raw));
-        } catch (e) {
-          // noop
-        }
-      };
-      loadUser();
-      return () => {
-        isActive = false;
-      };
-    }, [])
-  );
-
-  const firstName = (() => {
-    const n =
-      user?.first_name ||
-      user?.firstname ||
-      (user?.name ? String(user.name).split(' ')[0] : null) ||
-      (user?.full_name ? String(user.full_name).split(' ')[0] : null) ||
-      user?.username ||
-      '';
-    if (!n) return '';
-    return n.charAt(0).toUpperCase() + n.slice(1);
-  })();
-
-  const avatarUrl =
-    user?.avatar ||
-    user?.avatar_url ||
-    user?.photo ||
-    user?.profile_image ||
-    'https://randomuser.me/api/portraits/women/44.jpg';
+  const avatarUrl ='https://randomuser.me/api/portraits/women/44.jpg';
 
   return (
     <ScrollView className="flex-1 bg-white px-4">
@@ -57,7 +34,7 @@ export default function HomeScreen({ navigation }) {
         navigation={navigation}
         imageUrl={avatarUrl}
         badgeCount={5}
-        firstName={firstName}
+        // firstName={firstName}
       />
 
       {/* Balance Card */}

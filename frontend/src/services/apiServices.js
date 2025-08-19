@@ -79,6 +79,7 @@ resendOTP: async (email) => {
       const response = await api.get('/user');
       return { success: true, data: response.data };
     } catch (error) {
+      // console.log(error)
       return { success: false, error: error.response?.data?.message };
     }
   },
@@ -116,6 +117,24 @@ resendOTP: async (email) => {
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  adminLogin: async (email, password) => {
+    try {
+      const response = await api.post('/adminlogin', { email, password });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message || 'Admin login failed' };
+    }
+  },
+
+  passport: async (passportData) => {
+    try {
+      const response = await api.post('/passport', passportData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message || 'Passport verification failed' };
     }
   },
 };
@@ -223,6 +242,26 @@ export const cryptoAPI = {
       return { success: false, error: error.response?.data?.message };
     }
   },
+
+
+    getHistory: async () => {
+    try {
+      const response = await api.get('/crypto/history');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getDetails: async (id) => {
+    try {
+      const response = await api.get(`/crypto/history/${id}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
 };
 
 // Virtual Account APIs
@@ -275,3 +314,231 @@ export const notificationAPI = {
     }
   },
 };
+
+
+// KYC APIs
+export const kycAPI = {
+  submitKycTier2: async (data) => {
+    try {
+      const response = await api.post('/kyc/tier2', data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  submitKycTier3: async (data) => {
+    try {
+      const response = await api.post('/kyc/tier3', data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+};
+
+
+// VTU APIs
+export const vtuAPI = {
+   buyAirtime: async (data) => {
+    try {
+      const response = await api.post('/vtu/airtime', data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.log('[BUY AIRTIME FULL ERROR]', error.toJSON?.() || error); // logs full Axios error
+      return {
+        success: false,
+        error: error.response?.data?.message || error.response?.data?.error || 'Something went wrong',
+      };
+    }
+  },
+
+  buyBill: async (data) => {
+    try {
+      const response = await api.post('/vtu/bill', data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  buyCable: async (data) => {
+    try {
+      const response = await api.post('/vtu/cable', data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  buyData: async (data) => {
+    try {
+      const response = await api.post('/vtu/data', data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getDataPlans: async () => {
+    try {
+      const response = await api.get('/vtu/data/plans');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getDataPlansByNetwork: async (id) => {
+    try {
+      const response = await api.get(`/vtu/data/plans/${id}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  verifyBillNo: async (data) => {
+    try {
+      const response = await api.post('/vtu/verify', data);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getBills: async () => {
+    try {
+      const response = await api.get('/vtu/bills');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getCables: async () => {
+    try {
+      const response = await api.get('/vtu/cables');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  
+
+  getCablePlans: async () => {
+  try {
+    const response = await api.get('/vtu/cable/plans');
+    console.log('getCablePlans response:', response.data);  // <-- Log success response
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('getCablePlans error:', error.response?.data?.message || error);  // <-- Log error
+    return { success: false, error: error.response?.data?.message };
+  }
+},
+
+
+  getCablePlanById: async (id) => {
+    try {
+      const response = await api.get(`/vtu/cable/plan/${id}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getAirtimePercentageById: async (id) => {
+    try {
+      const response = await api.get(`/vtu/airtime/perc/${id}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getAirtimePercentages: async () => {
+    try {
+      const response = await api.get('/vtu/airtime/percentages');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getDataHistory: async () => {
+    try {
+      const response = await api.get('/vtu/data/history');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getDataDetails: async (id) => {
+    try {
+      const response = await api.get(`/vtu/data/history/${id}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getAirtimeHistory: async () => {
+    try {
+      const response = await api.get('/vtu/airtime/history');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getAirtimeDetails: async (id) => {
+    try {
+      const response = await api.get(`/vtu/airtime/history/${id}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getCableHistory: async () => {
+    try {
+      const response = await api.get('/vtu/cable/history');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getCableDetails: async (id) => {
+    try {
+      const response = await api.get(`/vtu/cable/history/${id}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getBillHistory: async () => {
+    try {
+      const response = await api.get('/vtu/bill/history');
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+  getBillDetails: async (id) => {
+    try {
+      const response = await api.get(`/vtu/bill/history/${id}`);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+};
+
+
+
+

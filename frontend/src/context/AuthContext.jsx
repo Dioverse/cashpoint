@@ -17,7 +17,7 @@ export function AuthProvider({ children }) {
           AsyncStorage.getItem('user_data'),
         ]);
         if (storedToken) setToken(storedToken);
-        if (storedUser) setUser(JSON.parse(storedUser));
+        if (storedUser) setUser(JSON.parse(storedUser)); console.log(storedUser)
       } catch (e) {
         // noop
       } finally {

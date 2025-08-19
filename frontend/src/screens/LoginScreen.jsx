@@ -84,73 +84,155 @@ const LoginScreen = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // const handleLogin = async () => {
+  //   if (!validateForm()) return;
+  //   setIsLoading(true);
+  //   setErrors({}); // Clear any previous errors
+  //   try {
+  //     // Call your Laravel API
+  //     const result = await authAPI.login(email, password);
+
+  //     if (result.success) {
+  //       // Access token and user from result.data.results
+  //       // await signIn(user, token);
+  //       const { token, user } = result.data.results;
+
+  //       console.log(result.data.results)
+
+  //       // Store the token
+  //       await AsyncStorage.setItem('auth_token', token);
+
+  //       // Save last used email for prefill regardless of Remember Me (added)
+  //       await AsyncStorage.setItem('last_email', email.toLowerCase().trim());
+
+  //       // Store user data if needed
+  //       if (user) {
+  //         await AsyncStorage.setItem('user_data', JSON.stringify(user));
+  //       }
+
+  //       // Handle remember me (unchanged)
+  //       if (rememberMe) {
+  //         await AsyncStorage.setItem('remember_email', email);
+  //       } else {
+  //         await AsyncStorage.removeItem('remember_email');
+  //       }
+
+  //       // Check if user needs to verify email/phone or create PIN
+  //       if (user?.email_verified_at === null) {
+  //         const otpResult = await authAPI.sendOTP({ email: email.toLowerCase().trim() });
+  //         if (otpResult.success) {
+  //           Alert.alert('Success', otpResult.data.message || 'OTP sent successfully! Please verify your account.');
+  //           // Navigate to Verify screen
+  //           navigation.navigate('Verify', { email: email.toLowerCase().trim() });
+  //         } else {
+  //           // Handle OTP sending failure (e.g., show error but still logged in)
+  //           Alert.alert('OTP Error', otpResult.error || 'Failed to send OTP. Please try again later.');
+  //         }
+  //         // Navigate to email verification
+  //         navigation.navigate('Verify', { email: email.toLowerCase().trim() }); // Pass email to VerifyScreen
+  //       }
+  //       // else if (!user?.pin_set) {
+  //       //   navigation.navigate('ChangePin');
+  //       // }
+  //       else {
+  //         // Navigate to main dashboard
+  //         await signIn(user, token);
+  //         navigation.navigate('Dashboard');
+  //       }
+  //     } else {
+  //       // Handle API errors
+  //       Alert.alert('Login Failed', result.error);
+  //       console.log(result);
+  //     }
+  //   } catch (error) {
+  //     console.error('Login error:', error); // Log the full error for debugging
+  //     Alert.alert('Login Failed', 'Network error. Please try again.');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+
   const handleLogin = async () => {
-    if (!validateForm()) return;
-    setIsLoading(true);
-    setErrors({}); // Clear any previous errors
-    try {
-      // Call your Laravel API
-      const result = await authAPI.login(email, password);
+  if (!validateForm()) return;
+  setIsLoading(true);
+  setErrors({}); // Clear any previous errors
 
-      if (result.success) {
-        // Access token and user from result.data.results
-        // await signIn(user, token);
-        const { token, user } = result.data.results;
+  try {
+    const result = await authAPI.login(email, password);
 
-        // Store the token
-        await AsyncStorage.setItem('auth_token', token);
+    if (result.success) {
+      const { token } = result.data.results;
 
-        // Save last used email for prefill regardless of Remember Me (added)
-        await AsyncStorage.setItem('last_email', email.toLowerCase().trim());
+      console.log("Login Token:", token);
 
-        // Store user data if needed
-        if (user) {
-          await AsyncStorage.setItem('user_data', JSON.stringify(user));
-        }
+      // Store the token first
+      await AsyncStorage.setItem('auth_token', token);
 
-        // Handle remember me (unchanged)
-        if (rememberMe) {
-          await AsyncStorage.setItem('remember_email', email);
-        } else {
-          await AsyncStorage.removeItem('remember_email');
-        }
+      // Save last used email for prefill regardless of Remember Me
+      await AsyncStorage.setItem('last_email', email.toLowerCase().trim());
 
-        // Check if user needs to verify email/phone or create PIN
-        if (user?.email_verified_at === null) {
-          const otpResult = await authAPI.sendOTP({ email: email.toLowerCase().trim() });
-          if (otpResult.success) {
-            Alert.alert('Success', otpResult.data.message || 'OTP sent successfully! Please verify your account.');
-            // Navigate to Verify screen
-            navigation.navigate('Verify', { email: email.toLowerCase().trim() });
-          } else {
-            // Handle OTP sending failure (e.g., show error but still logged in)
-            Alert.alert('OTP Error', otpResult.error || 'Failed to send OTP. Please try again later.');
-          }
-          // Navigate to email verification
-          navigation.navigate('Verify', { email: email.toLowerCase().trim() }); // Pass email to VerifyScreen
-        }
-        // else if (!user?.pin_set) {
-        //   navigation.navigate('ChangePin');
-        // }
-        else {
-          // Navigate to main dashboard
-          await signIn(user, token);
-          navigation.navigate('Dashboard');
-        }
+      // Handle remember me
+      if (rememberMe) {
+        await AsyncStorage.setItem('remember_email', email);
       } else {
-        // Handle API errors
-        Alert.alert('Login Failed', result.error);
-        console.log(result);
+        await AsyncStorage.removeItem('remember_email');
       }
-    } catch (error) {
-      console.error('Login error:', error); // Log the full error for debugging
-      Alert.alert('Login Failed', 'Network error. Please try again.');
-    } finally {
-      setIsLoading(false);
+
+      // NOW: Fetch user using token
+      const userResult = await authAPI.getUser();
+
+      if (!userResult.success) {
+        Alert.alert('User Fetch Failed', userResult.error || 'Unable to fetch user details.');
+        return;
+      }
+
+      const user = userResult.data;
+
+      // Store user data if needed
+      if (user) {
+        await AsyncStorage.setItem('user_data', JSON.stringify(user));
+      }
+
+      // Handle email verification
+      if (user?.email_verified_at === null) {
+        const otpResult = await authAPI.sendOTP({ email: email.toLowerCase().trim() });
+
+        if (otpResult.success) {
+          Alert.alert('Success', otpResult.data.message || 'OTP sent successfully! Please verify your account.');
+        } else {
+          Alert.alert('OTP Error', otpResult.error || 'Failed to send OTP. Please try again later.');
+        }
+
+        navigation.navigate('Verify', { email: email.toLowerCase().trim() });
+      }
+      // else if (!user?.pin_set) {
+      //   navigation.navigate('ChangePin');
+      // }
+      else {
+        // Proceed to main dashboard
+        await signIn(user, token);
+        navigation.navigate('Dashboard');
+      }
+
+    } else {
+      Alert.alert('Login Failed', result.error);
+      console.log(result);
     }
-  };
+
+  } catch (error) {
+    console.error('Login error:', error);
+    Alert.alert('Login Failed', 'Network error. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+
 
   // Load remembered email on component mount
+
   useEffect(() => {
     const loadRememberedEmail = async () => {
       try {
