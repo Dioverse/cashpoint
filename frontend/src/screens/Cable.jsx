@@ -22,6 +22,7 @@ const Cable = () => {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isValidating, setIsValidating] = useState(false);
   const [plans, setPlans] = useState([]);
+  const [cables, setCables] = useState([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
 
   const providers = [
@@ -42,14 +43,26 @@ const Cable = () => {
       const res = await vtuAPI.getCablePlans();
       if (res.success) {
         setPlans(res.data.results.data);
-        console.log(res);
+      
       }
       setLoadingPlans(false);
     };
 
     fetchPlans();
   }, []);
+  useEffect(() => {
+    const fetchCables = async () => {
+      setLoadingPlans(true);
+      const res = await vtuAPI.getCables();
+      if (res.success) {
+       setCables(res.data.results.data);
+     
+      }
+      setLoadingPlans(false);
+    };
 
+    fetchCables();
+  }, []);
   const handleValidate = async () => {
     if (!iucNumber || !selectedProvider) return;
     setIsValidating(true);
@@ -92,7 +105,7 @@ const Cable = () => {
   };
 
   const filteredPlans = selectedProvider
-    ? plans.filter((p) => p.cable?.identifier === selectedProvider)
+    ? plans?.filter((p) => p?.cable_id === selectedProvider)
     : [];
 
   return (
@@ -141,12 +154,17 @@ const Cable = () => {
           />
         </View>
 
-        {/* Provider Selection */}
-        <View className="flex-row justify-between mb-6">
-          {providers.map((provider) => (
+       
+        <ScrollView
+  horizontal
+  showsHorizontalScrollIndicator={false}
+  contentContainerStyle={{ gap: 12 }} 
+  className="mb-6"
+>
+          {cables.map((provider) => (
             <TouchableOpacity
               key={provider.id}
-              className={`w-[31%] h-20 items-center justify-center rounded-lg ${
+              className={`w-32 h-20 items-center justify-center rounded-lg ${
                 selectedProvider === provider.id ? 'bg-[#4B39EF]' : 'bg-[#3C3ADD21]'
               }`}
               onPress={() => setSelectedProvider(provider.id)}
@@ -157,7 +175,7 @@ const Cable = () => {
               <Text className="text-sm font-medium text-center text-gray-800">{provider.name}</Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
 
         {/* IUC Validation */}
         <View className="mb-1">
