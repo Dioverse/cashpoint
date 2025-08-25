@@ -1,0 +1,8 @@
+POST https://cashpoint.deovaze.com/api/crypto/sell
+Content-Type: application/json
+Authorization: Bearer 
+
+{
+    "crypto_id": 1,
+    "amount_crypto": 1
+}
