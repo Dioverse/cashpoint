@@ -30,20 +30,7 @@ const coins = [
     price: '$26,000.00',
     image: require('../assets/images/btc_logo.png'),
   },
-  {
-    name: 'PI COIN',
-    pair: 'PI - USD',
-    change: '+0.00',
-    price: '$0.10',
-    image: require('../assets/images/pi_logo.png'),
-  },
-  {
-    name: 'BNB',
-    pair: 'BNB - USD',
-    change: '+0.00',
-    price: '$300.00',
-    image: require('../assets/images/bnb_logo.png'),
-  },
+
 ];
 
 const CARD_WIDTH = (Dimensions.get('window').width - 64) / 2;
