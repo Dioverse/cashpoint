@@ -17,10 +17,12 @@ import Icon from 'react-native-vector-icons/Ionicons';
 
 import ProfileHeader from '../components/ProfileHeader';
 import { authAPI } from '../services/apiServices'; // adjust path if needed
+import { useAuth } from '../context/AuthContext';
 
 function ProfileScreen() {
   const navigation = useNavigation();
   const [logoutVisible, setLogoutVisible] = useState(false);
+  const { user } = useAuth();
 
   const ProfileItem = ({ icon, title, description, onPress, isPersonIcon, isLogout }) => {
     return (
@@ -90,7 +92,9 @@ function ProfileScreen() {
             title="Personal Information"
             description="See your account information and login details"
             isPersonIcon={true}
-            onPress={() => navigation.navigate('ProfileUpdateScreen')}
+            // onPress={() => navigation.navigate('')}
+            onPress={() => navigation.navigate('MoreServices', { screen: 'ProfileUpdateScreen' })}
+
           />
           <View style={styles.divider} />
           <ProfileItem
@@ -98,7 +102,9 @@ function ProfileScreen() {
             title="Bank Card/Account"
             description="2 visa / 1 Naira linked Card/Account"
             isPersonIcon={false}
-            onPress={() => navigation.navigate('BankAccounts')}
+            // onPress={() => navigation.navigate('BankAccounts')}
+            onPress={() => navigation.navigate('MoreServices', { screen: 'BankAccounts' })}
+
           />
         </View>
 
@@ -110,7 +116,8 @@ function ProfileScreen() {
             title="Change Password"
             description="Make changes to your account password"
             isPersonIcon={true}
-            onPress={() => navigation.navigate('ChangePassword')}
+            // onPress={() => navigation.navigate('')}
+            onPress={() => navigation.navigate('MoreServices', { screen: 'ChangePassword' })}
             
           />
           <View style={styles.divider} />
@@ -139,7 +146,9 @@ function ProfileScreen() {
             title="About Us"
             description="Learn more about CashPoint"
             isPersonIcon={true}
-            onPress={() => navigation.navigate('AboutUs')}
+            // onPress={() => navigation.navigate('AboutUs')}
+            onPress={() => navigation.navigate('MoreServices', { screen: 'AboutUs' })}
+
           />
           <View style={styles.divider} />
           <ProfileItem
@@ -147,7 +156,8 @@ function ProfileScreen() {
             title="Help and Support"
             description="Contact our support, we are available to assist you 24/7"
             isPersonIcon={false}
-            onPress={() => navigation.navigate('Support')}
+            // onPress={() => navigation.navigate('Support')}
+            onPress={() => navigation.navigate('MoreServices', { screen: 'Support' })}
           />
           <View style={styles.divider} />
           <ProfileItem
@@ -155,7 +165,8 @@ function ProfileScreen() {
             title="Terms and Conditions"
             description="See our terms of use and conditions"
             isPersonIcon={false}
-            onPress={() => navigation.navigate('Terms')}
+            // onPress={() => navigation.navigate('Terms')}
+            onPress={() => navigation.navigate('MoreServices', { screen: 'Terms' })}
           />
         </View>
 

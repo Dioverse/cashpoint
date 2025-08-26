@@ -1,6 +1,8 @@
 import {View, Text, Image, StyleSheet} from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
 const ProfileHeader = ({title}) => {
+  const { user } = useAuth();
   return (
     <View style={styles.headerContainer}>
       <View style={styles.profileContainer}>
@@ -9,7 +11,7 @@ const ProfileHeader = ({title}) => {
           style={styles.profileImage}
         />
         <Text style={styles.welcomeText}>
-          Welcome, <Text style={styles.userName}>Alex!</Text>
+          Welcome, <Text style={styles.userName}>{user.firstName}!</Text>
         </Text>
       </View>
       {title && <Text style={styles.titleText}>{title}</Text>}

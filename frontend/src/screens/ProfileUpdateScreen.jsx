@@ -13,13 +13,23 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../context/AuthContext';
 
 const ProfileUpdateScreen = () => {
+  const { user } = useAuth();
   const navigation = useNavigation();
-  const [fullName, setFullName] = useState('Alex Johnson');
-  const [email, setEmail] = useState('alex.johnson@example.com');
-  const [phoneNumber, setPhoneNumber] = useState('123-456-7890');
-  const [username, setUsername] = useState('alexj');
+
+  // Dynamically build full name from parts
+  const fullNameString = [user?.firstName, user?.middleName, user?.lastName]
+    .filter(Boolean)
+    .join(' ');
+
+  // Form state initialized with user data
+  const [fullName, setFullName] = useState(fullNameString);
+  const [email, setEmail] = useState(user?.email || '');
+  const [phoneNumber, setPhoneNumber] = useState(user?.phone || '');
+  const [username, setUsername] = useState(user?.username || '');
+
   const [errors, setErrors] = useState({});
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -35,12 +45,12 @@ const ProfileUpdateScreen = () => {
 
   const handleUpdate = async () => {
     if (!validateForm()) return;
-  
+
     setIsUpdating(true);
     try {
-      // Simulate update logic
-      console.log({ fullName, email, phoneNumber, username });
-  
+      // Simulated update logic
+      console.log('Updating profile with:', { fullName, email, phoneNumber, username });
+
       // Show success alert
       Alert.alert('Success', 'Profile updated successfully', [
         {
@@ -54,7 +64,6 @@ const ProfileUpdateScreen = () => {
       setIsUpdating(false);
     }
   };
-  
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -63,11 +72,12 @@ const ProfileUpdateScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1"
       >
+        {/* Header */}
         <View className="bg-[#4B39EF] px-5 pb-10 items-center justify-center">
           <View className="mt-20 items-center">
             <View className="flex-row items-center mb-2">
               <Image
-                source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }}
+                source={{ uri: 'https://randomuser.me/api/portraits/men/44.jpg' }} // Change image source as needed
                 className="w-20 h-20 rounded-full mr-2"
               />
               <TouchableOpacity className="bg-black px-3 py-2 rounded-lg">
@@ -75,11 +85,12 @@ const ProfileUpdateScreen = () => {
               </TouchableOpacity>
             </View>
             <Text className="text-white text-xl font-normal">
-              Welcome, <Text className="font-bold">Alex!</Text>
+              Welcome, <Text className="font-bold">{user?.firstName}!</Text>
             </Text>
           </View>
         </View>
 
+        {/* Form Section */}
         <View className="flex-1 pt-12 px-6 bg-white rounded-t-3xl -mt-6">
           <ScrollView
             contentContainerStyle={{ paddingBottom: 24 }}
@@ -88,7 +99,7 @@ const ProfileUpdateScreen = () => {
           >
             {/* Full Name */}
             <View className="mb-6">
-              <Text className="text-xl font-normal text-gray-800 mb-4">Full name</Text>
+              <Text className="text-xl font-normal text-gray-800 mb-4">Full Name</Text>
               <TextInput
                 className={`h-14 border rounded-xl px-4 text-base ${
                   errors.fullName ? 'border-red-500' : 'border-gray-300'
@@ -150,10 +161,10 @@ const ProfileUpdateScreen = () => {
 
             {/* Email */}
             <View className="mb-6">
-            <Text className="text-xl font-normal text-gray-800 mb-4">Email Address</Text>
-            <TextInput
+              <Text className="text-xl font-normal text-gray-800 mb-4">Email Address</Text>
+              <TextInput
                 className={`h-14 border rounded-xl px-4 text-base ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
+                  errors.email ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="Enter your email"
                 placeholderTextColor="#9CA3AF"
@@ -161,17 +172,17 @@ const ProfileUpdateScreen = () => {
                 autoCapitalize="none"
                 value={email}
                 onChangeText={(text) => {
-                setEmail(text);
-                if (errors.email) setErrors({ ...errors, email: null });
+                  setEmail(text);
+                  if (errors.email) setErrors({ ...errors, email: null });
                 }}
-            />
-            {errors.email && (
+              />
+              {errors.email && (
                 <Text className="text-red-500 mt-1 text-sm">{errors.email}</Text>
-            )}
+              )}
             </View>
           </ScrollView>
 
-          {/* Update Button at Bottom */}
+          {/* Submit Button */}
           <View className="mt-auto pb-6 mb-5">
             <TouchableOpacity
               className={`h-14 rounded-xl justify-center items-center ${
