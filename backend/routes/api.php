@@ -21,6 +21,7 @@ use App\Http\Controllers\KYCController;
 use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Purchase\CryptoController;
+use App\Http\Controllers\Purchase\CryptoServiceController;
 use App\Http\Controllers\Purchase\GiftcardController;
 use App\Http\Controllers\VTUController;
 use Illuminate\Http\Request;
@@ -63,6 +64,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/cables', [CableController::class, 'index']);
     Route::get('/cryptos', [CryptoController::class, 'getTypes']);
     Route::get('/giftcard/types', [GiftcardController::class, 'getTypes']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/v2/crypto/rate/{from}/{to}', [CryptoServiceController::class, 'rate']);
+        Route::post('/v2/crypto/buy', [CryptoServiceController::class, 'buy']);
+        Route::post('/v2/crypto/sell', [CryptoServiceController::class, 'sellCrypto']);
+        Route::post('/v2/crypto/deposit-address', [CryptoServiceController::class, 'getDepositAddress']);
+    });
+
 
     // Gift Card
     Route::post('/giftcard/sell', [GiftcardController::class, 'sell']);

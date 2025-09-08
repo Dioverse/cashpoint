@@ -10,7 +10,7 @@ class SmeplugService
 
     public function __construct()
     {
-        $this->baseUrl = 'https://smeplug.ng/api/v1/';
+        $this->baseUrl = 'https://smeplug.ng/api/v1';
         $this->apiKey = config('services.smeplug.key');
     }
 
@@ -19,7 +19,7 @@ class SmeplugService
         return Http::withHeaders([
                     'Authorization' => "Bearer {$this->apiKey}",
                     'Content-Type'  => 'application/json'
-                ])->post("{$this->baseUrl}data/purchase", [
+                ])->post("{$this->baseUrl}/data/purchase", [
                     'network_id'       => $networkId,
                     'plan_id'          => $planId,
                     'phone'            => $phone,
@@ -30,9 +30,9 @@ class SmeplugService
     public function purchaseAirtime($network, $phone, $amount, $ref)
     {
         return Http::withHeaders([
-                    'Authorization' => "Bearer {$this->apiKey}",
+                    'Authorization' => "Bearer " .$this->apiKey,
                     'Content-Type'  => 'application/json'
-                ])->post("{$this->baseUrl}airtime/purchase", [
+                ])->post($this->baseUrl . "/airtime/purchase", [
                     'network_id'        => $network,
                     'phone'             => $phone,
                     'amount'            => $amount,

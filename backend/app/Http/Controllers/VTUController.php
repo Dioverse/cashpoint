@@ -60,6 +60,10 @@ class VTUController extends Controller
             $dataPlan   = $this->dataService->findDataPlan($request->plan_id);
             $amount     = $dataPlan->price;
             $ref        = Str::uuid();
+            $networkId  = $dataPlan->network_id;
+            $planId     = $dataPlan->smeplug_plan_id;
+            $phone      = $request->phone;
+            $price      = $dataPlan->price;
 
             if ($wallet < $amount) {
                 return response([
@@ -71,7 +75,7 @@ class VTUController extends Controller
             $user->wallet_naira -= $amount;
             $user->save();
 
-            $response   = $this->smeplug->purchaseData($dataPlan->network_id, $dataPlan->smeplug_plan_id, $request->phone, $ref);
+            $response   = $this->smeplug->purchaseData($networkId, $planId , $phone, $ref);
             // return response([
             //     'success' => true,
             //     'data'    => $response
@@ -80,10 +84,10 @@ class VTUController extends Controller
 
             $this->dataService->createDataHistory([
                 'user_id'       => $user->id,
-                'network_id'    => $dataPlan->network_id,
-                'data_price_id' => $dataPlan->id,
-                'phone'         => $request->phone,
-                'amount'        => $dataPlan->price,
+                'network_id'    => $networkId,
+                'data_price_id' => $planId ,
+                'phone'         => $phone,
+                'amount'        => $price,
                 'status'        => $status,
                 'reference'     => $ref,
             ]);
@@ -91,7 +95,7 @@ class VTUController extends Controller
             DB::commit();
             return response([
                 'success' => $status === 'success',
-                'message' => $response['message'] ?? 'Something went wrong!',
+                'message' => $response['msg'] ?? 'Something went wrong!',
                 'results' => [
                     'data' => $response,
                 ],
@@ -124,7 +128,7 @@ class VTUController extends Controller
             $request->validate([
                 'network_id'    => 'required|exists:networks,id',
                 'phone'         => 'required|string',
-                'amount'        => 'required|numeric|min:50'
+                'amount'        => 'required|numeric|min:10'
             ]);
 
             $user       = auth()->user();
@@ -146,9 +150,10 @@ class VTUController extends Controller
             $user->wallet_naira -= $amtTopay;
             $user->save();
             $response   = $this->smeplug->purchaseAirtime($network, $phone, $amount, $ref);
+            // return $response;
             // return response([
             //     'success' => 'success',
-            //     'message' => $response['message'] ?? 'Something went wrong!',
+            //     'message' => $response['msg'] ?? 'Something went wrong!',
             //     'results' => [
             //         'data' => $response,
             //     ]
@@ -158,7 +163,7 @@ class VTUController extends Controller
 
             $this->airtimeService->createAirtimeHistory([
                 'user_id'       => $user->id,
-                'network_id'    => $network->id,
+                'network_id'    => $network,
                 'phone'         => $request->phone,
                 'amount'        => $amount,
                 'commission'    => $commission,
@@ -169,7 +174,7 @@ class VTUController extends Controller
             DB::commit();
             return response([
                 'success' => $status === 'success',
-                'message' => $response['message'] ?? 'Something went wrong!',
+                'message' => $response['msg'] ?? 'Something went wrong!',
                 'results' => [
                     'data' => $response,
                 ]
