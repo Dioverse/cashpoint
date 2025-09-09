@@ -9,15 +9,14 @@ import {
   Alert,
   PermissionsAndroid,
   Platform,
-  Modal,
-  FlatList,
-  ActivityIndicator,
 } from 'react-native';
 import Contacts from 'react-native-contacts';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeftIcon } from 'react-native-heroicons/outline';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { vtuAPI } from '../services/apiServices';
+import { authAPI, vtuAPI } from '../services/apiServices';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../services/api';
 
 const Airtime = () => {
   const navigation = useNavigation();
@@ -25,11 +24,6 @@ const Airtime = () => {
   const [selectedNetworkKey, setSelectedNetworkKey] = useState(null);
   const [selectedAmount, setSelectedAmount] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  // Modal & contacts states
-  const [modalVisible, setModalVisible] = useState(false);
-  const [contactsList, setContactsList] = useState([]);
-  const [contactsLoading, setContactsLoading] = useState(false);
 
   const networks = [
     { id: 1, key: 'mtn', name: 'MTN', icon: require('../assets/images/mtn.png') },
@@ -78,9 +72,7 @@ const Airtime = () => {
         }
       }
 
-      setContactsLoading(true);
       const contacts = await Contacts.getAll();
-
       const contactsWithPhone = contacts.filter(
         (contact) => contact.phoneNumbers && contact.phoneNumbers.length > 0
       );
@@ -90,23 +82,18 @@ const Airtime = () => {
         return;
       }
 
-      setContactsList(contactsWithPhone);
-      setModalVisible(true);
+      // For demo: pick the first one
+      const firstContact = contactsWithPhone[0];
+      const number = firstContact.phoneNumbers[0]?.number;
+
+      if (number) {
+        const cleaned = number.replace(/\s+/g, '').replace(/[-()]/g, '');
+        setPhoneNumber(cleaned);
+      }
     } catch (error) {
       console.log('Contact error:', error);
       Alert.alert('Error', 'Something went wrong while accessing contacts');
-    } finally {
-      setContactsLoading(false);
     }
-  };
-
-  const onSelectContactFromModal = (contact) => {
-    const number = contact.phoneNumbers[0]?.number;
-    if (number) {
-      const cleaned = number.replace(/\s+/g, '').replace(/[-()]/g, '');
-      setPhoneNumber(cleaned);
-    }
-    setModalVisible(false);
   };
 
   const handleBuyAirtime = async () => {
@@ -249,45 +236,6 @@ const Airtime = () => {
           </Text>
         </TouchableOpacity>
       </ScrollView>
-
-      {/* Modal for contacts list */}
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <SafeAreaView className="flex-1 bg-white">
-          <View className="flex-row justify-between items-center p-4 border-b border-gray-300">
-            <Text className="text-lg font-semibold">Select Contact</Text>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Text className="text-blue-600 font-medium">Close</Text>
-            </TouchableOpacity>
-          </View>
-
-          {contactsLoading ? (
-            <View className="flex-1 justify-center items-center">
-              <ActivityIndicator size="large" color="#4B39EF" />
-            </View>
-          ) : (
-            <FlatList
-              data={contactsList}
-              keyExtractor={(item) => item.recordID}
-              renderItem={({ item }) => {
-                const displayNumber = item.phoneNumbers[0]?.number || 'No number';
-                return (
-                  <TouchableOpacity
-                    className="px-4 py-3 border-b border-gray-200"
-                    onPress={() => onSelectContactFromModal(item)}
-                  >
-                    <Text className="text-base">{item.givenName} {item.familyName}</Text>
-                    <Text className="text-gray-500">{displayNumber}</Text>
-                  </TouchableOpacity>
-                );
-              }}
-            />
-          )}
-        </SafeAreaView>
-      </Modal>
     </SafeAreaView>
   );
 };

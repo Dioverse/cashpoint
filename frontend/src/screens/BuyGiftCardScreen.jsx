@@ -1,5 +1,3 @@
-// BuyGiftCardScreen.js
-
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -21,8 +19,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { giftcardAPI } from '../services/apiServices';
 
-import { giftcardAPI } from '../services/apiServices'; // API service
 const loadingImage = require('../assets/images/1.png');
 
 const CustomSelect = ({ options, onValueChange, selectedValue, placeholder, disabled }) => {
@@ -81,7 +79,7 @@ const BuyGiftCardScreen = () => {
 
   const [country, setCountry] = useState('');
   const [giftCard, setGiftCard] = useState('');
-  const [selectedGiftCardCategory, setSelectedGiftCardCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [creditUnit, setCreditUnit] = useState('');
   const [quantity, setQuantity] = useState('');
   const [errors, setErrors] = useState({});
@@ -90,6 +88,10 @@ const BuyGiftCardScreen = () => {
   const [fetchedGiftCardTypes, setFetchedGiftCardTypes] = useState([]);
 
   const zoomAnim = useRef(new Animated.Value(0)).current;
+
+  const countryOptions = ['USA', 'UK', 'Canada', 'Germany', 'Australia'];
+  const creditUnitOptions = ['$5', '$10', '$25', '$50', '$100'];
+  const categoryOptions = ['Lifeline', 'Entertainment', 'Shopping'];
 
   useEffect(() => {
     if (isLoading) {
@@ -121,7 +123,7 @@ const BuyGiftCardScreen = () => {
       try {
         const result = await giftcardAPI.getTypes();
         if (result.success && result.data?.results?.data) {
-          setFetchedGiftCardTypes(result.data.results.data); // store full gift card objects
+          setFetchedGiftCardTypes(result.data.results.data);
         } else {
           Alert.alert('Error', result.error || 'Failed to fetch gift card types.');
         }
@@ -134,9 +136,6 @@ const BuyGiftCardScreen = () => {
     };
     fetchTypes();
   }, []);
-
-  const countryOptions = ['USA', 'UK', 'Canada', 'Germany', 'Australia'];
-  const creditUnitOptions = ['$5', '$10', '$25', '$50', '$100'];
 
   const calculateAmount = () => {
     const unitValue = Number(creditUnit.replace(/\$/g, ''));
@@ -151,6 +150,7 @@ const BuyGiftCardScreen = () => {
     const newErrors = {};
     if (!country) newErrors.country = 'Please select a country.';
     if (!giftCard) newErrors.giftCard = 'Please select a gift card.';
+    if (!selectedCategory) newErrors.category = 'Please select a category.';
     if (!creditUnit) newErrors.creditUnit = 'Please select a credit unit.';
     if (!quantity || isNaN(Number(quantity)) || Number(quantity) <= 0 || !Number.isInteger(Number(quantity))) {
       newErrors.quantity = 'Please enter a valid whole number quantity greater than 0.';
@@ -166,14 +166,10 @@ const BuyGiftCardScreen = () => {
     setErrors({});
 
     try {
-      const amount = calculateAmount();
       const payload = {
-        country,
         card_type: giftCard,
-        category: selectedGiftCardCategory,
-        credit_unit: creditUnit.replace(/\$/g, ''),
+        category: selectedCategory,
         quantity: Number(quantity),
-        amount: Number(amount),
       };
 
       const result = await giftcardAPI.buy(payload);
@@ -182,12 +178,13 @@ const BuyGiftCardScreen = () => {
         Alert.alert('Success', result.data.message || 'Gift Card purchase submitted successfully!');
         setCountry('');
         setGiftCard('');
-        setSelectedGiftCardCategory('');
+        setSelectedCategory('');
         setCreditUnit('');
         setQuantity('');
         navigation.navigate('Transaction');
       } else {
-        Alert.alert('Purchase Failed', result.error || 'Something went wrong. Please try again.');
+        console.log(result.error)
+        Alert.alert('Purchase Failed', result.error );
       }
     } catch (error) {
       console.error('Buy Gift Card error:', error);
@@ -243,11 +240,7 @@ const BuyGiftCardScreen = () => {
                   <CustomSelect
                     options={fetchedGiftCardTypes.map(item => item.name)}
                     selectedValue={giftCard}
-                    onValueChange={(name) => {
-                      setGiftCard(name);
-                      const selected = fetchedGiftCardTypes.find(item => item.name === name);
-                      setSelectedGiftCardCategory(selected?.category || '');
-                    }}
+                    onValueChange={(name) => setGiftCard(name)}
                     placeholder="Select gift card"
                     disabled={isLoading}
                   />
@@ -255,8 +248,21 @@ const BuyGiftCardScreen = () => {
                 {errors.giftCard && <Text style={styles.errorText}>{errors.giftCard}</Text>}
               </View>
 
-              {/* Credit Unit */}
+              {/* Category */}
               <View style={{ marginBottom: 25, zIndex: 3 }}>
+                <Text style={styles.label}>Category</Text>
+                <CustomSelect
+                  options={categoryOptions}
+                  selectedValue={selectedCategory}
+                  onValueChange={setSelectedCategory}
+                  placeholder="Select category"
+                  disabled={isLoading}
+                />
+                {errors.category && <Text style={styles.errorText}>{errors.category}</Text>}
+              </View>
+
+              {/* Credit Unit */}
+              <View style={{ marginBottom: 25, zIndex: 2 }}>
                 <Text style={styles.label}>Credit Unit</Text>
                 <CustomSelect
                   options={creditUnitOptions}
@@ -269,7 +275,7 @@ const BuyGiftCardScreen = () => {
               </View>
 
               {/* Quantity */}
-              <View style={{ marginBottom: 25, zIndex: 2 }}>
+              <View style={{ marginBottom: 25, zIndex: 1 }}>
                 <Text style={styles.label}>Quantity</Text>
                 <TextInput
                   style={[styles.inputGray, errors.quantity && { borderColor: 'red' }]}
@@ -471,4 +477,5 @@ const dropdownStyles = StyleSheet.create({
     color: '#1e90ff',
   },
 });
+
 export default BuyGiftCardScreen;

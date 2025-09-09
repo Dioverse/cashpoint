@@ -340,15 +340,39 @@ export const kycAPI = {
 
 // VTU APIs
 export const vtuAPI = {
-   buyAirtime: async (data) => {
+  //  buyAirtime: async (data) => {
+  //   try {
+  //     const response = await api.post('/vtu/airtime', data);
+  //     return { success: true, data: response.data };
+  //   } catch (error) {
+  //     console.log('[BUY AIRTIME FULL ERROR]', error.toJSON?.() || error); // logs full Axios error
+  //     return {
+  //       success: false,
+  //       error: error.response?.data?.message || error.response?.data?.error || 'Something went wrong',
+  //     };
+  //   }
+  // },
+
+  buyAirtime: async (data) => {
     try {
       const response = await api.post('/vtu/airtime', data);
       return { success: true, data: response.data };
     } catch (error) {
-      console.log('[BUY AIRTIME FULL ERROR]', error.toJSON?.() || error); // logs full Axios error
+      console.log('[BUY AIRTIME FULL ERROR]', error.toJSON?.() || error); // still useful for debugging
+
+      let message = 'Something went wrong';
+
+      if (error.response) {
+        // Server responded with a status code outside 2xx
+        message = error.response.data?.message || error.response.data?.error || message;
+      } else if (error.message === 'Network Error') {
+        // No response received at all (e.g., server is unreachable)
+        message = 'Network error. Please check your internet connection or try again later.';
+      }
+
       return {
         success: false,
-        error: error.response?.data?.message || error.response?.data?.error || 'Something went wrong',
+        error: message,
       };
     }
   },
@@ -398,14 +422,30 @@ export const vtuAPI = {
     }
   },
 
+  // verifyBillNo: async (data) => {
+  //   try {
+  //     const response = await api.post('/vtu/verify', data);
+  //     return { success: true, data: response.data };
+  //   } catch (error) {
+  //     return { success: false, error: error.response?.data?.message };
+  //   }
+  // },
+
   verifyBillNo: async (data) => {
-    try {
-      const response = await api.post('/vtu/verify', data);
-      return { success: true, data: response.data };
-    } catch (error) {
-      return { success: false, error: error.response?.data?.message };
-    }
-  },
+  try {
+    const response = await api.post('/vtu/verify', data);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.log('🔴 verifyBillNo Error:', error); // Log the full error
+
+    const fallbackMessage = error?.response?.data?.message ||
+                            error?.message ||
+                            'Unknown error occurred during verification';
+
+    return { success: false, error: fallbackMessage };
+  }
+},
+
 
   getBills: async () => {
     try {
