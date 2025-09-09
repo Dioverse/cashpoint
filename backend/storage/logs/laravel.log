@@ -1,0 +1,4 @@
+[2025-09-07 16:26:12] local.INFO: Vaultody Headers {"timestamp":1757262372,"message":"1757262372POSTPOST/vaults/deposit","signature":"1rHGs+JzmrkHaMFzEdTp+2neeBuydeox+RKymAbBCXc="} 
+[2025-09-07 16:27:30] local.INFO: Vaultody Headers {"timestamp":1757262450,"message":"1757262450POSTPOST/vaults/deposit","signature":"SEcnIxXHsRJDWeuObwaDy6a/NVtDv83Pl8mDMUJz/Uk="} 
+[2025-09-07 16:30:02] local.INFO: Vaultody Headers {"timestamp":1757262602,"message":"1757262602POST/vaults/68bb0eaf607a0700082327a8/bitcoin/testnet/addresses{\"data\":{\"item\":{\"label\":\"admin@admin.com\"}}}","signature":"HireQHpmPWleE704CO7sv4CNDDVeb6smPAwItPK3CFw="} 
+[2025-09-07 16:30:07] local.INFO: Vaultody Headers {"timestamp":1757262606,"message":"1757262606POST/vaults/68bb0eaf607a0700082327a8/bitcoin/testnet/addresses{\"data\":{\"item\":{\"label\":\"admin@admin.com\"}}}","signature":"jgBWGbA1hLXwMEkJjFBuXMuxaTl+/8BoBb6SN8kZrfU="} 
