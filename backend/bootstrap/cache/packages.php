@@ -1,4 +1,11 @@
 <?php return array (
+  'coinremitter/laravel' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Coinremitter\\CoinremiterServiceProvider',
+    ),
+  ),
   'laravel/pail' => 
   array (
     'providers' => 

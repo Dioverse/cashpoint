@@ -23,6 +23,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Purchase\CryptoController;
 use App\Http\Controllers\Purchase\CryptoServiceController;
 use App\Http\Controllers\Purchase\GiftcardController;
+use App\Http\Controllers\Purchase\CryptoWalletController;
 use App\Http\Controllers\VTUController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -65,13 +66,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/cryptos', [CryptoController::class, 'getTypes']);
     Route::get('/giftcard/types', [GiftcardController::class, 'getTypes']);
 
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/v2/crypto/rate/{from}/{to}', [CryptoServiceController::class, 'rate']);
-        Route::post('/v2/crypto/buy', [CryptoServiceController::class, 'buy']);
-        Route::post('/v2/crypto/sell', [CryptoServiceController::class, 'sellCrypto']);
-        Route::post('/v2/crypto/deposit-address', [CryptoServiceController::class, 'getDepositAddress']);
-    });
-
 
     // Gift Card
     Route::post('/giftcard/sell', [GiftcardController::class, 'sell']);
@@ -81,6 +75,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/giftcard/history/{id}', [GiftcardController::class, 'giftcardDetails']);
 
     // Crypto
+    // Crypto Wallet vs 2 with standard package handler ........................
+    Route::post('/wallet/create', [CryptoWalletController::class, 'createWallet']);
+    Route::post('/wallet/deposit', [CryptoWalletController::class, 'deposit']);
+    Route::post('/wallet/withdraw', [CryptoWalletController::class, 'withdraw']);
+    Route::get('/wallet/transactions', [CryptoWalletController::class, 'transactions']);
+    Route::post('/wallet/callback', [CryptoWalletController::class, 'handleCallback']);
+
+
     Route::post('/crypto/buy-btc', [CoinbaseController::class, 'buyBTC']);
     Route::post('/crypto/sell-btc', [CoinbaseController::class, 'sellBTC']);
     Route::post('/crypto/sell', [CryptoController::class, 'sell']);
