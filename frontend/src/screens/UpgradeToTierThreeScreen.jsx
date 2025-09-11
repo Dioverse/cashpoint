@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -9,49 +9,103 @@ import {
   Platform,
   KeyboardAvoidingView,
   Modal,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { launchImageLibrary } from 'react-native-image-picker';
+import {launchImageLibrary} from 'react-native-image-picker';
+import kycService from '../services/kycService';
+import {useAuth} from '../context/AuthContext';
 
 const UpgradeToTierThreeScreen = () => {
   const navigation = useNavigation();
+  const {user, setUser} = useAuth();
   const [proofOfAddressImage, setProofOfAddressImage] = useState(null);
   const [sourceOfFundImage, setSourceOfFundImage] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleProofOfAddressPick = () => {
-    launchImageLibrary(
-      { mediaType: 'photo', quality: 0.8 },
-      (response) => {
-        if (!response.didCancel && !response.errorCode) {
-          setProofOfAddressImage(response.assets[0].uri);
-        }
+    launchImageLibrary({mediaType: 'photo', quality: 0.8}, response => {
+      if (!response.didCancel && !response.errorCode) {
+        setProofOfAddressImage(response.assets[0]);
       }
-    );
+    });
   };
 
   const handleSourceOfFundPick = () => {
-    launchImageLibrary(
-      { mediaType: 'photo', quality: 0.8 },
-      (response) => {
-        if (!response.didCancel && !response.errorCode) {
-          setSourceOfFundImage(response.assets[0].uri);
-        }
+    launchImageLibrary({mediaType: 'photo', quality: 0.8}, response => {
+      if (!response.didCancel && !response.errorCode) {
+        setSourceOfFundImage(response.assets[0]);
       }
-    );
+    });
+  };
+
+  const handleSubmitKYC = async () => {
+    try {
+      setIsLoading(true);
+      setErrors({});
+
+      const kycData = {
+        address_prove: proofOfAddressImage,
+        fund_prove: sourceOfFundImage,
+      };
+
+      // Validate data
+      const validation = kycService.validateKYCData(kycData, 3);
+      if (!validation.isValid) {
+        setErrors(validation.errors);
+        setIsLoading(false);
+        return;
+      }
+
+      // Submit to backend
+      const response = await kycService.submitTier3KYC(kycData);
+
+      if (response.status) {
+        // Update user data in context
+        if (user) {
+          setUser({
+            ...user,
+            kyc_status: 'pending',
+            kyc_tier: 'tier3',
+            prove_of_address:
+              response.results?.data?.prove_of_address || user.prove_of_address,
+            prove_of_fund:
+              response.results?.data?.prove_of_fund || user.prove_of_fund,
+          });
+        }
+
+        setShowSuccessModal(true);
+      } else {
+        Alert.alert(
+          'Error',
+          response.message || 'Failed to submit KYC verification',
+        );
+      }
+    } catch (error) {
+      console.error('KYC submission error:', error);
+      Alert.alert(
+        'Error',
+        error.response?.data?.message ||
+          'Failed to submit KYC verification. Please try again.',
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const isButtonEnabled = proofOfAddressImage && sourceOfFundImage;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#4B39EF' }}>
+    <SafeAreaView style={{flex: 1, backgroundColor: '#4B39EF'}}>
       <StatusBar backgroundColor="#4B39EF" barStyle="light-content" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
+        style={{flex: 1}}>
         {/* Header */}
         <View style={styles.headerWrapper}>
           <View style={styles.header}>
@@ -63,58 +117,94 @@ const UpgradeToTierThreeScreen = () => {
         </View>
 
         {/* Body */}
-        <View style={{ flex: 1, position: 'relative' }}>
+        <View style={{flex: 1, position: 'relative'}}>
           <ScrollView contentContainerStyle={styles.bodyContainer}>
             <Text style={styles.kycHeading}>Complete Your KYC</Text>
             <Text style={styles.kycDescription}>
-              Please upload the required documents to complete your Tier 3 upgrade
+              Please upload the required documents to complete your Tier 3
+              upgrade
             </Text>
 
-
             <View style={styles.verifiedItem}>
-                <Text style={styles.verifiedText}>Tier 1</Text>
-                <Icon name="checkmark" size={24} color="green" />
+              <Text style={styles.verifiedText}>Tier 1</Text>
+              <Icon name="checkmark" size={24} color="green" />
             </View>
             <View style={styles.verifiedItem}>
-                <Text style={styles.verifiedText}>Tier 2</Text>
-                <Icon name="checkmark" size={24} color="green" />
+              <Text style={styles.verifiedText}>Tier 2</Text>
+              <Icon name="checkmark" size={24} color="green" />
             </View>
 
             {/* Proof of Address */}
             <Text style={styles.inputLabel}>Proof of Address</Text>
             <TouchableOpacity
-              style={styles.inputField}
+              style={[
+                styles.inputField,
+                errors.address_prove && styles.inputFieldError,
+              ]}
               onPress={handleProofOfAddressPick}
-            >
-              <Text style={proofOfAddressImage ? styles.selectedText : styles.placeholderText}>
+              disabled={isLoading}>
+              <Text
+                style={
+                  proofOfAddressImage
+                    ? styles.selectedText
+                    : styles.placeholderText
+                }>
                 {proofOfAddressImage
                   ? 'Proof of Address Selected'
                   : 'Please upload a clear image of your utility bill, bank statement or resident permit'}
               </Text>
               <Icon name="image" size={20} color="#999" />
             </TouchableOpacity>
+            {errors.address_prove && (
+              <Text style={styles.errorText}>{errors.address_prove}</Text>
+            )}
 
             {/* Source of Fund Verification */}
             <Text style={styles.inputLabel}>Source of Fund Verification</Text>
             <TouchableOpacity
-              style={styles.inputField}
+              style={[
+                styles.inputField,
+                errors.fund_prove && styles.inputFieldError,
+              ]}
               onPress={handleSourceOfFundPick}
-            >
-              <Text style={sourceOfFundImage ? styles.selectedText : styles.placeholderText}>
+              disabled={isLoading}>
+              <Text
+                style={
+                  sourceOfFundImage
+                    ? styles.selectedText
+                    : styles.placeholderText
+                }>
                 {sourceOfFundImage
                   ? 'Source of Fund Document Selected'
                   : 'Upload a clear image of your business registration slip or payslip'}
               </Text>
               <Icon name="image" size={20} color="#999" />
             </TouchableOpacity>
+            {errors.fund_prove && (
+              <Text style={styles.errorText}>{errors.fund_prove}</Text>
+            )}
+
+            {/* Loading Indicator */}
+            {isLoading && (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#4B39EF" />
+                <Text style={styles.loadingText}>
+                  Submitting KYC verification...
+                </Text>
+              </View>
+            )}
 
             {/* Upgrade Button */}
             <TouchableOpacity
-              style={[styles.upgradeButton, !isButtonEnabled && styles.upgradeButtonDisabled]}
-              disabled={!isButtonEnabled}
-              onPress={() => setShowSuccessModal(true)}
-            >
-              <Text style={styles.upgradeButtonText}>Upgrade</Text>
+              style={[
+                styles.upgradeButton,
+                (!isButtonEnabled || isLoading) && styles.upgradeButtonDisabled,
+              ]}
+              disabled={!isButtonEnabled || isLoading}
+              onPress={handleSubmitKYC}>
+              <Text style={styles.upgradeButtonText}>
+                {isLoading ? 'Submitting...' : 'Upgrade'}
+              </Text>
             </TouchableOpacity>
           </ScrollView>
 
@@ -123,16 +213,16 @@ const UpgradeToTierThreeScreen = () => {
             visible={showSuccessModal}
             transparent
             animationType="slide"
-            onRequestClose={() => setShowSuccessModal(false)}
-          >
+            onRequestClose={() => setShowSuccessModal(false)}>
             <View style={styles.successModalOverlay}>
               <View style={styles.successModalContainer}>
                 <Icon name="checkmark-circle" size={160} color="black" />
                 <Text style={styles.successMessage}>Upgrade Successful</Text>
                 <TouchableOpacity
                   style={styles.goHomeButton}
-                  onPress={() => navigation.navigate('Dashboard', { screen: 'Home' })}
-                >
+                  onPress={() =>
+                    navigation.navigate('Dashboard', {screen: 'Home'})
+                  }>
                   <Text style={styles.goHomeButtonText}>Go Home</Text>
                 </TouchableOpacity>
               </View>
@@ -298,5 +388,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#000',
+  },
+  inputFieldError: {
+    borderColor: '#ff4444',
+    borderWidth: 1,
+  },
+  errorText: {
+    color: '#ff4444',
+    fontSize: 12,
+    marginTop: -15,
+    marginBottom: 15,
+    marginLeft: 5,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#666',
   },
 });

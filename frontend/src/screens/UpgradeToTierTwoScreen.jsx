@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -9,63 +9,110 @@ import {
   Platform,
   KeyboardAvoidingView,
   Modal,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { launchImageLibrary } from 'react-native-image-picker';
+import {launchImageLibrary} from 'react-native-image-picker';
+import kycService from '../services/kycService';
+import {useAuth} from '../context/AuthContext';
 
-const ID_OPTIONS = [
-  { label: 'NIN Card / Slip', value: 'nin', icon: 'card' },
-  { label: 'Driver’s License', value: 'license', icon: 'car' },
-  { label: 'BVN Number', value: 'bvn', icon: 'key' },
-  { label: 'Passport', value: 'passport', icon: 'globe' },
-];
+const ID_OPTIONS = kycService.getIDTypes();
 
 const UpgradeToTierTwoScreen = () => {
   const navigation = useNavigation();
+  const {user, setUser} = useAuth();
   const [selectedID, setSelectedID] = useState(null);
   const [idImage, setIdImage] = useState(null);
   const [selfieImage, setSelfieImage] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showIdVerifiedModal, setShowIdVerifiedModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (idImage && selfieImage) {
-      setTimeout(() => setShowIdVerifiedModal(true), 500);
+    if (idImage && selfieImage && selectedID) {
+      handleSubmitKYC();
     }
-  }, [idImage, selfieImage]);
+  }, [idImage, selfieImage, selectedID]);
 
   const handleIdImagePick = () => {
-    launchImageLibrary(
-      { mediaType: 'photo', quality: 0.8 },
-      (response) => {
-        if (!response.didCancel && !response.errorCode) {
-          setIdImage(response.assets[0].uri);
-          setShowModal(false);
-        }
+    launchImageLibrary({mediaType: 'photo', quality: 0.8}, response => {
+      if (!response.didCancel && !response.errorCode) {
+        setIdImage(response.assets[0]);
+        setShowModal(false);
       }
-    );
+    });
   };
 
   const handleSelfiePick = () => {
-    launchImageLibrary(
-      { mediaType: 'photo', quality: 0.8 },
-      (response) => {
-        if (!response.didCancel && !response.errorCode) {
-          setSelfieImage(response.assets[0].uri);
-        }
+    launchImageLibrary({mediaType: 'photo', quality: 0.8}, response => {
+      if (!response.didCancel && !response.errorCode) {
+        setSelfieImage(response.assets[0]);
       }
-    );
+    });
+  };
+
+  const handleSubmitKYC = async () => {
+    try {
+      setIsLoading(true);
+      setErrors({});
+
+      const kycData = {
+        id_type: selectedID.value,
+        photo: idImage,
+      };
+
+      // Validate data
+      const validation = kycService.validateKYCData(kycData, 2);
+      if (!validation.isValid) {
+        setErrors(validation.errors);
+        setIsLoading(false);
+        return;
+      }
+
+      // Submit to backend
+      const response = await kycService.submitTier2KYC(kycData);
+
+      if (response.status) {
+        // Update user data in context
+        if (user) {
+          setUser({
+            ...user,
+            kyc_status: 'pending',
+            kyc_tier: 'tier2',
+            idtype: selectedID.value,
+            idmean: response.results?.data?.idmean || user.idmean,
+          });
+        }
+
+        setShowIdVerifiedModal(true);
+      } else {
+        Alert.alert(
+          'Error',
+          response.message || 'Failed to submit KYC verification',
+        );
+      }
+    } catch (error) {
+      console.error('KYC submission error:', error);
+      Alert.alert(
+        'Error',
+        error.response?.data?.message ||
+          'Failed to submit KYC verification. Please try again.',
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#4B39EF' }}>
+    <SafeAreaView style={{flex: 1, backgroundColor: '#4B39EF'}}>
       <StatusBar backgroundColor="#4B39EF" barStyle="light-content" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
+        style={{flex: 1}}>
         {/* Header */}
         <View style={styles.headerWrapper}>
           <View style={styles.header}>
@@ -77,11 +124,12 @@ const UpgradeToTierTwoScreen = () => {
         </View>
 
         {/* Body */}
-        <View style={{ flex: 1, position: 'relative' }}>
+        <View style={{flex: 1, position: 'relative'}}>
           <ScrollView contentContainerStyle={styles.bodyContainer}>
             <Text style={styles.kycHeading}>Complete Your KYC</Text>
             <Text style={styles.kycDescription}>
-              To keep your account safe and secure, we need to verify your identity
+              To keep your account safe and secure, we need to verify your
+              identity
             </Text>
 
             <View style={styles.verifiedItem}>
@@ -92,23 +140,48 @@ const UpgradeToTierTwoScreen = () => {
             {/* Upload Valid ID */}
             <Text style={styles.inputLabel}>Upload Valid ID</Text>
             <TouchableOpacity
-              style={styles.inputField}
+              style={[
+                styles.inputField,
+                errors.id_type && styles.inputFieldError,
+              ]}
               onPress={() => setShowModal(true)}
-            >
+              disabled={isLoading}>
               <Text style={styles.placeholderText}>
                 {selectedID ? selectedID.label : 'Please select your ID type'}
               </Text>
               <Icon name="chevron-forward" size={20} color="#999" />
             </TouchableOpacity>
+            {errors.id_type && (
+              <Text style={styles.errorText}>{errors.id_type}</Text>
+            )}
 
             {/* Selfie Verification */}
             <Text style={styles.inputLabel}>Selfie Verification</Text>
-            <TouchableOpacity style={styles.inputField} onPress={handleSelfiePick}>
+            <TouchableOpacity
+              style={[
+                styles.inputField,
+                errors.photo && styles.inputFieldError,
+              ]}
+              onPress={handleSelfiePick}
+              disabled={isLoading}>
               <Text style={styles.placeholderText}>
                 {selfieImage ? 'Selfie Selected' : 'Tap to select your selfie'}
               </Text>
               <Icon name="camera" size={20} color="#999" />
             </TouchableOpacity>
+            {errors.photo && (
+              <Text style={styles.errorText}>{errors.photo}</Text>
+            )}
+
+            {/* Loading Indicator */}
+            {isLoading && (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#4B39EF" />
+                <Text style={styles.loadingText}>
+                  Submitting KYC verification...
+                </Text>
+              </View>
+            )}
 
             {/* Account Limits */}
             <View style={styles.limitContainer}>
@@ -127,14 +200,15 @@ const UpgradeToTierTwoScreen = () => {
           {/* Verified Modal over white section */}
           {showIdVerifiedModal && (
             <View style={styles.verifiedBodyModal}>
-                <View className="flex flex-col items-center justify-center">
-                    <Icon name="checkmark-circle" size={160} color="black" />
-                    <Text style={styles.verifiedMessage}>ID VERIFIED</Text>
-                </View>
+              <View className="flex flex-col items-center justify-center">
+                <Icon name="checkmark-circle" size={160} color="black" />
+                <Text style={styles.verifiedMessage}>ID VERIFIED</Text>
+              </View>
               <TouchableOpacity
                 style={styles.upgradeButton}
-                onPress={() => navigation.navigate('Dashboard',{ screen: 'Home' })}
-              >
+                onPress={() =>
+                  navigation.navigate('Dashboard', {screen: 'Home'})
+                }>
                 <Text style={styles.upgradeButtonText}>Upgrade to Tier 2</Text>
               </TouchableOpacity>
             </View>
@@ -146,21 +220,18 @@ const UpgradeToTierTwoScreen = () => {
           visible={showModal}
           transparent
           animationType="slide"
-          onRequestClose={() => setShowModal(false)}
-        >
+          onRequestClose={() => setShowModal(false)}>
           <TouchableOpacity
             style={styles.modalOverlay}
             activeOpacity={1}
-            onPressOut={() => setShowModal(false)}
-          >
+            onPressOut={() => setShowModal(false)}>
             <View style={styles.modalContainer}>
               <Text style={styles.modalTitle}>Select ID Type</Text>
-              {ID_OPTIONS.map((option) => (
+              {ID_OPTIONS.map(option => (
                 <TouchableOpacity
                   key={option.value}
                   style={styles.modalOption}
-                  onPress={() => setSelectedID(option)}
-                >
+                  onPress={() => setSelectedID(option)}>
                   <Icon
                     name={option.icon}
                     size={20}
@@ -175,7 +246,9 @@ const UpgradeToTierTwoScreen = () => {
                   </View>
                 </TouchableOpacity>
               ))}
-              <TouchableOpacity style={styles.captureButton} onPress={handleIdImagePick}>
+              <TouchableOpacity
+                style={styles.captureButton}
+                onPress={handleIdImagePick}>
                 <Text style={styles.captureButtonText}>Capture Photo</Text>
               </TouchableOpacity>
             </View>
@@ -293,7 +366,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     width: '100%',
-    marginTpo: 'auto'
+    marginTpo: 'auto',
   },
   upgradeButtonText: {
     color: '#fff',
@@ -377,5 +450,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: 'black',
     marginVertical: 15,
+  },
+  inputFieldError: {
+    borderColor: '#ff4444',
+    borderWidth: 1,
+  },
+  errorText: {
+    color: '#ff4444',
+    fontSize: 12,
+    marginTop: -15,
+    marginBottom: 15,
+    marginLeft: 5,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#666',
   },
 });
