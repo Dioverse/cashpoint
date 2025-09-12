@@ -45,6 +45,9 @@ class User extends Authenticatable
         'idtype',
         'prove_of_address',
         'prove_of_fund',
+        'daily_spent',
+        'monthly_spent',
+        'last_reset_date',
         'password',
         'pin',
         'role',
@@ -72,7 +75,60 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'daily_spent' => 'decimal:2',
+            'monthly_spent' => 'decimal:2',
+            'last_reset_date' => 'date',
         ];
+    }
+
+    /**
+     * Get the daily limit attribute.
+     *
+     * @return float
+     */
+    public function getDailyLimitAttribute(): float
+    {
+        return match($this->kyc_tier) {
+            'tier1' => 1000.00,
+            'tier2' => 10000.00,
+            'tier3' => 100000.00,
+            default => 1000.00,
+        };
+    }
+
+    /**
+     * Get the monthly limit attribute.
+     *
+     * @return float
+     */
+    public function getMonthlyLimitAttribute(): float
+    {
+        return match($this->kyc_tier) {
+            'tier1' => 10000.00,
+            'tier2' => 100000.00,
+            'tier3' => 1000000.00,
+            default => 10000.00,
+        };
+    }
+
+    /**
+     * Get the daily remaining attribute.
+     *
+     * @return float
+     */
+    public function getDailyRemainingAttribute(): float
+    {
+        return max(0, $this->daily_limit - ($this->daily_spent ?? 0));
+    }
+
+    /**
+     * Get the monthly remaining attribute.
+     *
+     * @return float
+     */
+    public function getMonthlyRemainingAttribute(): float
+    {
+        return max(0, $this->monthly_limit - ($this->monthly_spent ?? 0));
     }
 
     public function walletTransactions()

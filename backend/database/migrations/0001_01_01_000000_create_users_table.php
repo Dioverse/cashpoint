@@ -39,6 +39,17 @@ return new class extends Migration
             $table->string('idtype')->nullable();
             $table->text('prove_of_address')->nullable(); //// Better for manual encryption openssl_encrypt($data, 'AES-256-CBC', $key, 0, $iv);
             $table->text('prove_of_fund')->nullable();
+
+            if (!Schema::hasColumn('users', 'daily_spent')) {
+                $table->decimal('daily_spent', 15, 2)->default(0.00);
+            }
+            if (!Schema::hasColumn('users', 'monthly_spent')) {
+                $table->decimal('monthly_spent', 15, 2)->default(0.00);
+            }
+            if (!Schema::hasColumn('users', 'last_reset_date')) {
+                $table->date('last_reset_date')->default(now());
+            }
+        
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('pin')->nullable();
@@ -74,5 +85,8 @@ return new class extends Migration
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn(['daily_spent', 'monthly_spent', 'last_reset_date']);
+        });
     }
 };

@@ -134,6 +134,10 @@ Route::middleware('auth:sanctum')->group(function () {
         // Route::get('/wallet/balance', [WalletController::class, 'getBalance']);
         // Route::post('/wallet/fund', [WalletController::class, 'fund']);
         // Route::post('/wallet/withdraw', [WalletController::class, 'withdraw']);
+    
+    // Security routes can be added here
+    Route::post('/kyc/check-limit', [AdminKycController::class, 'checkTransactionLimit'])->name('admin.kyc.check.limit');
+    Route::post('/kyc/record-transaction', [AdminKycController::class, 'recordTransaction'])->name('admin.kyc.record.transaction');
 
     // Virtual Accounts routes can be added here
     Route::post('/accounts/create', [VirtualAccountController::class, 'create'])->name('api.wallet.index');
@@ -169,9 +173,8 @@ Route::prefix('admin')->group(function () {
 
         Route::get('/kycs', [AdminKycController::class, 'index'])->name('admin.kycs.index');
         Route::get('/kycs/{kyc}', [AdminKycController::class, 'show'])->name('admin.kycs.show');
-        Route::post('/kycs/{kyc}/approve', [AdminKycController::class, 'approve'])->name('admin.kycs.approve');
+        Route::post('/kycs/{kyc}/approve', [AdminKycController::class, 'processApproval'])->name('admin.kycs.approve');
         Route::post('/kycs/{kyc}/reject', [AdminKycController::class, 'reject'])->name('admin.kycs.reject');
-
         // Settings
         Route::get('/settings', [SettingController::class, 'index']);
         Route::post('/settings', [SettingController::class, 'store']);
