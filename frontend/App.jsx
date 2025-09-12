@@ -48,6 +48,10 @@ import UpgradeToTierThreeScreen from './src/screens/UpgradeToTierThreeScreen';
 import KycStatus from './src/screens/KycStatus';
 import Terms from './src/screens/Terms';
 import AboutUs from './src/screens/AboutUs';
+import Withdrawal from './src/screens/Withdrawal';
+import VirtualAccountWithdrawal from './src/screens/VirtualAccountWithdrawal';
+import CryptoWithdrawal from './src/screens/CryptoWithdrawal';
+import WithdrawalHistory from './src/screens/WithdrawalHistory';
 import Support from './src/screens/Support';
 import Notification from './src/screens/NotificationScreen';
 import ProfileUpdateScreen from './src/screens/ProfileUpdateScreen';
@@ -322,6 +326,19 @@ export default function App() {
             <Stack.Screen name="Transfer" component={Transfer} />
             <Stack.Screen name="WalletReferral" component={WalletReferral} />
             <Stack.Screen name="Leaderboard" component={Leaderboard} />
+            <Stack.Screen name="Withdrawal" component={Withdrawal} />
+            <Stack.Screen
+              name="VirtualAccountWithdrawal"
+              component={VirtualAccountWithdrawal}
+            />
+            <Stack.Screen
+              name="CryptoWithdrawal"
+              component={CryptoWithdrawal}
+            />
+            <Stack.Screen
+              name="WithdrawalHistory"
+              component={WithdrawalHistory}
+            />
           </Stack.Navigator>
         </NavigationContainer>
       </AuthProvider>
