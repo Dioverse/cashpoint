@@ -40,8 +40,11 @@ export default function HomeScreen({ navigation }) {
       {/* Balance Card */}
       <BalanceCard balance={7250050.08} navigation={navigation} />
 
+      <View className='px-3 mt-5'>
+        <Text className='font-light text-2xl'>Quick Links</Text>
+      </View>
       {/* Action Cards - Two per row */}
-      <View className="flex-row flex flex-wrap justify-between gap-4 mt-6">
+      <View className="flex-row flex flex-wrap justify-between gap-0 mt-4 w-100 px-2">
         {/* Card 1: Trade Giftcard */}
         <ActionCard
           title="Trade Giftcard"
@@ -59,7 +62,7 @@ export default function HomeScreen({ navigation }) {
       </View>
 
       {/* 2nd row */}
-      <View className="flex-row flex flex-wrap justify-between gap-4 mt-">
+      <View className="flex-row flex flex-wrap justify-between gap-4 mt- px-2">
         {/* Card 3: Pay Bills */}
         <ActionCard
           title="Use Rate Calculator"

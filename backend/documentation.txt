@@ -101,3 +101,9 @@ php artisan db:seed --class=CablePlanSeeder
   - Assign role/permission
 - Admin KYC approval
   - Approve/Decline
+
+
+
+CRYTO PACKAGE - CRYPTOREMITTER
+composer require coinremitter/laravel
+php artisan vendor:publish --provider="Coinremitter\CoinremiterServiceProvider"

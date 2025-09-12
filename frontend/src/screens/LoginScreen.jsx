@@ -314,7 +314,7 @@ const LoginScreen = () => {
                 Password
               </Text>
               <TextInput
-                className={`h-14 border rounded-xl px-4 text-base ${
+                className={`h-14 border rounded-xl px-4 text-base text-black ${
                   errors.password ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="Enter your password"

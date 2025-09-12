@@ -10,23 +10,25 @@ const ActionCard = ({ title, description, icon, onPress }) => {
       onPress={onPress}
       style={{
         backgroundColor: '#3432a830',
-        width: '48%',
+        width: '45%',
         borderRadius: 12,
-        padding: 13,
+        padding: 10,
         marginBottom: 12,
-        justifyContent: 'center',
+        // marginRight: 0,
+        // marginLeft: 0,
+        // justifyContent: 'center',
         alignItems: 'center', // Center the content
       }}
     >
       <View
         style={{
-          width: 48,
-          height: 48,
+          width: 40,
+          height: 37,
           borderRadius: 24,
           backgroundColor: '#3C3ADD',
           justifyContent: 'center',
           alignItems: 'center',
-          marginBottom: 12,
+          marginBottom: 15,
         }}
       >
         {icon}

@@ -65,12 +65,12 @@ const BalanceCard = ({ balance = 0, navigation }) => {
       >
         {balances.map((item, index) => (
           <View key={index} style={{ width}} className='px-2'>
-            <View className="bg-[#3C3ADD] px-5 py-8 rounded-3xl mx-0 ml-0" style={{ width:'90%', }}>
+            <View className="bg-[#3C3ADD] px-5 py-3 rounded-3xl mx-0 ml-2" style={{ width:'84%', }}>
               {/* First Row */}
               <View className="flex-row items-center justify-between mb-2">
                 <View className="flex-column">
-                  <Text className="text-white text-2xl font-light">{item.label}</Text>
-                  <Text className="text-white text-3xl font-bold mt-2" style={{ minHeight: 40 }}>
+                  <Text className="text-white text-lg font-light">{item.label}</Text>
+                  <Text className="text-white text-2xl font-bold mt-2" style={{ minHeight: 40 }}>
                     {showBalance ? (
                       formatCurrency(item.amount, item.currency)
                     ) : (
@@ -82,29 +82,29 @@ const BalanceCard = ({ balance = 0, navigation }) => {
                   onPress={toggleBalance}
                   className="bg-[#9db0f585] rounded-full p-[2px]"
                 >
-                  <Icon name={showBalance ? 'eye-off' : 'eye'} size={24} color="white" />
+                  <Icon name={showBalance ? 'eye-off' : 'eye'} size={22} color="white" />
                 </TouchableOpacity>
               </View>
 
               {/* Second Row */}
               <View className="flex-row items-center justify-between">
-                <View className="py-1 flex-row items-center space-x-4">
+                <View className="py-1 flex-row items-center space-x-4 ">
                   <TouchableOpacity onPress={() => navigation.navigate('Referral')}>
-                    <Text className="text-white text-lg font-lighter">View Bonus</Text>
+                    <Text className="text-white text-sm font-lighter">View Bonus</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => navigation.navigate('MoreServices', { screen: 'SaveAndEarn' })}
-                    className="text-[#fff] bg-[#9db0f585] rounded-lg px-3 py-1 flex-row items-center"
+                    className="text-[#fff] bg-[#9db0f585] rounded-lg ml-2 px-1 py-1 flex-row items-center"
                   >
                     <Icon name={'lock-closed'} size={12} color="white" />
-                    <Text className="text-white ml-1">Save and Earn</Text>
+                    <Text className="text-white ml-1 text-sm ">Save and Earn</Text>
                   </TouchableOpacity>
                 </View>
                 <TouchableOpacity
                   onPress={() => navigation.navigate('Fund')}
                   className="bg-[#9db0f585] rounded-full p-2"
                 >
-                  <Icon name="wallet" size={24} color="white" />
+                  <Icon name="wallet" size={20} color="white" />
                 </TouchableOpacity>
               </View>
             </View>

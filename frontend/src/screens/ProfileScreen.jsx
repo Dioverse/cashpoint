@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -12,19 +12,27 @@ import {
   Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 import ProfileHeader from '../components/ProfileHeader';
-import { authAPI } from '../services/apiServices'; // adjust path if needed
-import { useAuth } from '../context/AuthContext';
+import KYCStatusCard from '../components/KYCStatusCard';
+import {authAPI} from '../services/apiServices'; // adjust path if needed
+import {useAuth} from '../context/AuthContext';
 
 function ProfileScreen() {
   const navigation = useNavigation();
   const [logoutVisible, setLogoutVisible] = useState(false);
-  const { user } = useAuth();
+  const {user} = useAuth();
 
-  const ProfileItem = ({ icon, title, description, onPress, isPersonIcon, isLogout }) => {
+  const ProfileItem = ({
+    icon,
+    title,
+    description,
+    onPress,
+    isPersonIcon,
+    isLogout,
+  }) => {
     return (
       <TouchableOpacity style={styles.itemContainer} onPress={onPress}>
         <View
@@ -34,17 +42,23 @@ function ProfileScreen() {
               ? styles.personIconContainer
               : styles.regularIconContainer,
           ]}>
-          <Icon name={icon} size={16} color={isLogout ? '#FF3B30' : isPersonIcon ? '#FFF' : '#C7C7C7'} />
+          <Icon
+            name={icon}
+            size={16}
+            color={isLogout ? '#FF3B30' : isPersonIcon ? '#FFF' : '#C7C7C7'}
+          />
         </View>
         <View style={styles.itemContent}>
-          <Text style={[styles.itemTitle, isLogout && { color: '#FF3B30' }]}>{title}</Text>
+          <Text style={[styles.itemTitle, isLogout && {color: '#FF3B30'}]}>
+            {title}
+          </Text>
           <Text style={styles.itemDescription}>{description}</Text>
         </View>
       </TouchableOpacity>
     );
   };
 
-  const SectionTitle = ({ title }) => {
+  const SectionTitle = ({title}) => {
     return <Text style={styles.sectionTitle}>{title}</Text>;
   };
 
@@ -59,7 +73,7 @@ function ProfileScreen() {
       // Reset navigation stack to Login
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Login' }],
+        routes: [{name: 'Login'}],
       });
 
       if (!result.success) {
@@ -73,6 +87,40 @@ function ProfileScreen() {
     }
   };
 
+  const handleKYCUpgrade = () => {
+    if (!user) return;
+
+    const currentTier = user.kyc_tier
+      ? user.kyc_tier === 'tier1'
+        ? 1
+        : user.kyc_tier === 'tier2'
+        ? 2
+        : 3
+      : 1;
+
+    if (currentTier === 1) {
+      navigation.navigate('UpgradeToTierTwo');
+    } else if (currentTier === 2) {
+      navigation.navigate('UpgradeToTierThree');
+    } else {
+      navigation.navigate('KycStatus', {currentTier});
+    }
+  };
+
+  const handleKYCStatus = () => {
+    if (!user) return;
+
+    const currentTier = user.kyc_tier
+      ? user.kyc_tier === 'tier1'
+        ? 1
+        : user.kyc_tier === 'tier2'
+        ? 2
+        : 3
+      : 1;
+
+    navigation.navigate('KycStatus', {currentTier});
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#4B39EF" barStyle="light-content" />
@@ -84,6 +132,13 @@ function ProfileScreen() {
       <ScrollView
         style={styles.contentContainer}
         showsVerticalScrollIndicator={false}>
+        {/* KYC Status Card */}
+        <KYCStatusCard
+          user={user}
+          onUpgrade={handleKYCUpgrade}
+          style={styles.kycCard}
+        />
+
         {/* Account Section */}
         <SectionTitle title="Account" />
         <View style={styles.sectionContainer}>
@@ -93,8 +148,11 @@ function ProfileScreen() {
             description="See your account information and login details"
             isPersonIcon={true}
             // onPress={() => navigation.navigate('')}
-            onPress={() => navigation.navigate('MoreServices', { screen: 'ProfileUpdateScreen' })}
-
+            onPress={() =>
+              navigation.navigate('MoreServices', {
+                screen: 'ProfileUpdateScreen',
+              })
+            }
           />
           <View style={styles.divider} />
           <ProfileItem
@@ -103,8 +161,9 @@ function ProfileScreen() {
             description="2 visa / 1 Naira linked Card/Account"
             isPersonIcon={false}
             // onPress={() => navigation.navigate('BankAccounts')}
-            onPress={() => navigation.navigate('MoreServices', { screen: 'BankAccounts' })}
-
+            onPress={() =>
+              navigation.navigate('MoreServices', {screen: 'BankAccounts'})
+            }
           />
         </View>
 
@@ -117,16 +176,17 @@ function ProfileScreen() {
             description="Make changes to your account password"
             isPersonIcon={true}
             // onPress={() => navigation.navigate('')}
-            onPress={() => navigation.navigate('MoreServices', { screen: 'ChangePassword' })}
-            
+            onPress={() =>
+              navigation.navigate('MoreServices', {screen: 'ChangePassword'})
+            }
           />
           <View style={styles.divider} />
           <ProfileItem
             icon="shield-checkmark-outline"
-            title="KYC"
-            description="Please verify your identity to have access to more features"
+            title="KYC Verification"
+            description="View your identity verification status and documents"
             isPersonIcon={false}
-            onPress={() => navigation.navigate('KycStatus', { currentTier: 2 })}
+            onPress={handleKYCStatus}
           />
           <View style={styles.divider} />
           <ProfileItem
@@ -147,8 +207,9 @@ function ProfileScreen() {
             description="Learn more about CashPoint"
             isPersonIcon={true}
             // onPress={() => navigation.navigate('AboutUs')}
-            onPress={() => navigation.navigate('MoreServices', { screen: 'AboutUs' })}
-
+            onPress={() =>
+              navigation.navigate('MoreServices', {screen: 'AboutUs'})
+            }
           />
           <View style={styles.divider} />
           <ProfileItem
@@ -157,7 +218,9 @@ function ProfileScreen() {
             description="Contact our support, we are available to assist you 24/7"
             isPersonIcon={false}
             // onPress={() => navigation.navigate('Support')}
-            onPress={() => navigation.navigate('MoreServices', { screen: 'Support' })}
+            onPress={() =>
+              navigation.navigate('MoreServices', {screen: 'Support'})
+            }
           />
           <View style={styles.divider} />
           <ProfileItem
@@ -166,7 +229,9 @@ function ProfileScreen() {
             description="See our terms of use and conditions"
             isPersonIcon={false}
             // onPress={() => navigation.navigate('Terms')}
-            onPress={() => navigation.navigate('MoreServices', { screen: 'Terms' })}
+            onPress={() =>
+              navigation.navigate('MoreServices', {screen: 'Terms'})
+            }
           />
         </View>
 
@@ -183,7 +248,7 @@ function ProfileScreen() {
           />
         </View>
 
-        <View style={{ height: 20 }} />
+        <View style={{height: 20}} />
       </ScrollView>
 
       {/* Logout Confirmation Modal */}
@@ -191,13 +256,16 @@ function ProfileScreen() {
         visible={logoutVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => setLogoutVisible(false)}
-      >
+        onRequestClose={() => setLogoutVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Are you sure you want to logout?</Text>
+            <Text style={styles.modalTitle}>
+              Are you sure you want to logout?
+            </Text>
             <View style={styles.modalButtons}>
-              <Pressable style={styles.cancelButton} onPress={() => setLogoutVisible(false)}>
+              <Pressable
+                style={styles.cancelButton}
+                onPress={() => setLogoutVisible(false)}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </Pressable>
               <Pressable style={styles.confirmButton} onPress={handleLogout}>
@@ -223,6 +291,10 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
+  kycCard: {
+    marginTop: 20,
+    marginBottom: 10,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '500',
@@ -235,7 +307,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,

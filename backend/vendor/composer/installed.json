@@ -136,6 +136,53 @@
             "install-path": "../carbonphp/carbon-doctrine-types"
         },
         {
+            "name": "coinremitter/laravel",
+            "version": "0.2.0",
+            "version_normalized": "0.2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/CoinRemitter/coinremitter-laravel.git",
+                "reference": "ebad82a8548de872c307e340b43647964b7dd13a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/CoinRemitter/coinremitter-laravel/zipball/ebad82a8548de872c307e340b43647964b7dd13a",
+                "reference": "ebad82a8548de872c307e340b43647964b7dd13a",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": ">=7.0"
+            },
+            "time": "2023-01-31T13:35:23+00:00",
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Coinremitter\\CoinremiterServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-master": "0.1-dev"
+                }
+            },
+            "installation-source": "source",
+            "autoload": {
+                "psr-4": {
+                    "Coinremitter\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Official laravel plugin for coinremitter cryptocurrency payment gateway",
+            "support": {
+                "issues": "https://github.com/CoinRemitter/coinremitter-laravel/issues",
+                "source": "https://github.com/CoinRemitter/coinremitter-laravel/tree/0.2.0"
+            },
+            "install-path": "../coinremitter/laravel"
+        },
+        {
             "name": "dflydev/dot-access-data",
             "version": "v3.0.3",
             "version_normalized": "3.0.3.0",
@@ -5715,7 +5762,7 @@
                     "dev-master": "6.x-dev"
                 }
             },
-            "installation-source": "dist",
+            "installation-source": "source",
             "autoload": {
                 "files": [
                     "src/helpers.php"

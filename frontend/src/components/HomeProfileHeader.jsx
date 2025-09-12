@@ -17,12 +17,12 @@ const HomeProfileHeader = ({ imageUrl, badgeCount = 0, navigation }) => {
     })();
 
   return (
-    <View style={styles.headerContainer} className="mb-2">
+    <View style={styles.headerContainer} className="mb-2 -mt-2">
       <TouchableOpacity
         style={styles.profileContainer}
         onPress={() => navigation.navigate('Profile')}
       >
-        <Image source={{ uri: 'https://cashpoint.deovaze.com/api/storage/passport/user_passport/ONiZEXM2q42rS3AatKLMKd0hvRHUzE8kuZYFZFLL.png' }} style={styles.profileImage} />
+        <Image source={{ uri: imageUrl }} style={styles.profileImage} />
         <Text style={styles.welcomeText}>
           {'Welcome, '}<Text style={styles.userName}>{firstName}!</Text>
         </Text>

@@ -268,7 +268,7 @@ const SignupScreen = () => {
             <View className="mb-6">
               <Text className="text-base font-medium text-gray-800 mb-4">Password</Text>
               <TextInput
-                className={`h-14 border rounded-xl px-4 text-base ${
+                className={`h-14 border rounded-xl px-4 text-base text-black ${
                   errors.password ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="Enter your password"

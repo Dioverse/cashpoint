@@ -22,7 +22,7 @@ const OnboardingScreen = () => {
   return (
     <View className="flex-1 bg-white">
       {/* Image section (2/5 height) */}
-      <View style={{ height: screenHeight * 0.5 }} className="justify-center items-center">
+      <View style={{ height: screenHeight * 0.45 }} className="justify-center items-center">
         <Image
           source={imageSrc}
           resizeMode="contain"
