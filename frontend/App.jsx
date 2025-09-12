@@ -109,6 +109,7 @@ function ServicesNav() {
     <ServicesStack.Screen name="AboutUs" component={AboutUs} />
     <ServicesStack.Screen name="Support" component={Support} />
     <ServicesStack.Screen name="MoreServices" component={ServicesNav} />
+    {/* <ServicesStack.Screen name="Profile" component={Profilesta} /> */}
     </ServicesStack.Navigator>
   );
 }
@@ -191,37 +192,53 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [shouldCheckAuth, setShouldCheckAuth] = useState(0);
   const appState = useRef(AppState.currentState);
-
+  const logoutTimeout = useRef(null);
   // Handle app state changes for auto logout
   useEffect(() => {
-    const handleAppStateChange = async (nextAppState) => {
-      console.log('App state changed from', appState.current, 'to', nextAppState);
-      
-      // App going to background - logout user
-      if (
-        appState.current.match(/active|foreground/) &&
-        nextAppState === 'background'
-      ) {
-        console.log('App going to background - logging out user');
+   // Define timeout reference outside handler
+
+  const handleAppStateChange = async (nextAppState) => {
+    console.log('App state changed from', appState.current, 'to', nextAppState);
+
+    // App going to background — start 30s logout timer
+    if (
+      appState.current.match(/active|foreground/) &&
+      nextAppState === 'background'
+    ) {
+      console.log('App is going to background — starting logout timer');
+      logoutTimeout.current = setTimeout(async () => {
+        console.log('App stayed in background — logging out user');
         await AsyncStorage.removeItem('auth_token');
-      }
-
-      // App coming to foreground - check auth status
-      if (
-        appState.current.match(/inactive|background/) &&
-        nextAppState === 'active'
-      ) {
-        console.log('App coming to foreground - checking auth');
         setShouldCheckAuth(prev => prev + 1);
+      }, 30000); // 30 seconds
+    }
+
+    // App coming back to foreground — cancel logout timer
+    if (
+      appState.current.match(/inactive|background/) &&
+      nextAppState === 'active'
+    ) {
+      if (logoutTimeout.current) {
+        clearTimeout(logoutTimeout.current);
+        logoutTimeout.current = null;
+        console.log('User returned — logout timer cancelled');
       }
+      setShouldCheckAuth(prev => prev + 1);
+    }
 
-      appState.current = nextAppState;
-    };
+    appState.current = nextAppState;
+  };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+  const subscription = AppState.addEventListener('change', handleAppStateChange);
 
-    return () => subscription?.remove();
-  }, []);
+  return () => {
+    subscription?.remove();
+    if (logoutTimeout.current) {
+      clearTimeout(logoutTimeout.current);
+    }
+  };
+}, []);
+
 
   useEffect(() => {
     const initializeApp = async () => {

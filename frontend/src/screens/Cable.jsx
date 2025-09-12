@@ -8,18 +8,20 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeftIcon } from 'react-native-heroicons/outline';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { vtuAPI } from '../services/apiServices';
 
-// Replace with your actual local images or fallback URLs
+// Local fallback icons
 const cableIcons = {
-  1: require('../assets/images/dstv.png'),
-  2: require('../assets/images/gotv.png'),
-  3: require('../assets/images/startimes.png'),
-  4: require('../assets/images/showmax.webp'),
+  dstv: require('../assets/images/dstv.png'),
+  gotv: require('../assets/images/gotv.png'),
+  startimes: require('../assets/images/startimes.png'),
+  showmax: require('../assets/images/showmax.webp'),
 };
 
 const Cable = () => {
@@ -28,7 +30,7 @@ const Cable = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [iucNumber, setIucNumber] = useState('');
   const [validatedUser, setValidatedUser] = useState('');
-  const [selectedProvider, setSelectedProvider] = useState(1);
+  const [selectedProvider, setSelectedProvider] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isValidating, setIsValidating] = useState(false);
 
@@ -37,23 +39,32 @@ const Cable = () => {
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [loadingCables, setLoadingCables] = useState(false);
 
-  // Example recent IUC numbers (you can customize)
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
+  const [successInfo, setSuccessInfo] = useState({
+    title: '',
+    message: '',
+    reference: '',
+  });
+
   const recentIucs = [
-    { number: '12121212121', providerId: 2 },
-    { number: '23232323232', providerId: 1 },
-    { number: '34343434343', providerId: 3 },
+    { number: '12121212121', providerIdentifier: 'gotv' },
+    { number: '23232323232', providerIdentifier: 'dstv' },
+    { number: '34343434343', providerIdentifier: 'startimes' },
   ];
 
-  // Fetch cables and plans on mount
   useEffect(() => {
     const fetchData = async () => {
       setLoadingCables(true);
       setLoadingPlans(true);
+
       try {
         const cablesRes = await vtuAPI.getCables();
-        if (cablesRes.status && cablesRes.results?.data) {
-          setCables(cablesRes.results.data);
-          console.log('Cables loaded:', cablesRes.results.data);
+        if (
+          cablesRes.success &&
+          cablesRes.data?.status &&
+          Array.isArray(cablesRes.data.results?.data)
+        ) {
+          setCables(cablesRes.data.results.data);
         } else {
           Alert.alert('Error', 'Failed to load cable providers');
         }
@@ -66,9 +77,12 @@ const Cable = () => {
 
       try {
         const plansRes = await vtuAPI.getCablePlans();
-        if (plansRes.status && plansRes.results?.data) {
-          setPlans(plansRes.results.data);
-          console.log('Plans loaded:', plansRes.results.data);
+        if (
+          plansRes.success &&
+          plansRes.data?.status &&
+          Array.isArray(plansRes.data.results?.data)
+        ) {
+          setPlans(plansRes.data.results.data);
         } else {
           Alert.alert('Error', 'Failed to load plans');
         }
@@ -83,28 +97,35 @@ const Cable = () => {
     fetchData();
   }, []);
 
-  // Format price with commas
   const formatPrice = (price) => {
     const num = Number(price);
     return isNaN(num) ? price : num.toLocaleString();
   };
 
-  // Filter plans by selected provider id
+  const getProviderIcon = (identifier) => {
+    const provider = cables.find((c) => c.identifier === identifier);
+    if (provider?.icon) return { uri: provider.icon };
+    return cableIcons[identifier] || null;
+  };
+
+  const getSelectedProviderIdentifier = () => {
+    const provider = cables.find((c) => c.id === selectedProvider);
+    return provider?.identifier || '';
+  };
+
   const filteredPlans = selectedProvider
     ? plans.filter((plan) => Number(plan.cable_id) === Number(selectedProvider))
     : [];
 
-  // Get provider icon (fallback to local images)
-  const getProviderIcon = (providerId) => {
-    const provider = cables.find((c) => Number(c.id) === Number(providerId));
-    if (provider?.icon) return { uri: provider.icon };
-    return cableIcons[providerId] || null;
-  };
-
-  // Handle IUC number validation
   const handleValidate = async () => {
     if (!iucNumber || !selectedProvider) {
       Alert.alert('Validation Error', 'Please select provider and enter IUC number');
+      return;
+    }
+
+    const serviceID = getSelectedProviderIdentifier();
+    if (!serviceID) {
+      Alert.alert('Validation Error', 'Invalid provider selected');
       return;
     }
 
@@ -114,7 +135,7 @@ const Cable = () => {
     try {
       const res = await vtuAPI.verifyBillNo({
         billersCode: iucNumber,
-        serviceID: selectedProvider,
+        serviceID,
       });
 
       if (res.success) {
@@ -134,10 +155,23 @@ const Cable = () => {
     }
   };
 
-  // Handle purchase proceed
+  const clearForm = () => {
+    setPhoneNumber('');
+    setIucNumber('');
+    setSelectedProvider(null);
+    setSelectedPlan(null);
+    setValidatedUser('');
+  };
+
   const handleProceed = async () => {
     if (!phoneNumber || !iucNumber || !selectedPlan || !selectedProvider || !validatedUser) {
       Alert.alert('Error', 'Please fill in all fields and validate IUC number');
+      return;
+    }
+
+    const serviceID = getSelectedProviderIdentifier();
+    if (!serviceID) {
+      Alert.alert('Error', 'Invalid provider selected');
       return;
     }
 
@@ -145,16 +179,22 @@ const Cable = () => {
       phone: phoneNumber,
       billersCode: iucNumber,
       planID: selectedPlan.id,
+      serviceID,
     };
 
     try {
       const res = await vtuAPI.buyCable(payload);
-      if (res.success) {
-        navigation.navigate('Success', {
-          title: 'Payment Successful',
-          message: res.data.message,
-          reference: res.data.results.data.requestId,
+      if (res.success && res.data?.success) {
+        const message = res.data.message || 'Payment Successful';
+        const requestId = res.data.results?.data?.requestId || '';
+        const transactionStatus = res.data.results?.data?.content?.transactions?.status || 'Unknown';
+
+        setSuccessInfo({
+          title: message,
+          message: `Transaction Status: ${transactionStatus}`,
+          reference: requestId,
         });
+        setSuccessModalVisible(true);
       } else {
         Alert.alert('Purchase Failed', res.error || 'Failed to buy cable');
       }
@@ -166,7 +206,6 @@ const Cable = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-[#4B39EF]">
-      {/* Header */}
       <View className="flex-row items-center justify-center px-4 py-4 relative">
         <TouchableOpacity
           className="absolute left-4 z-10"
@@ -185,14 +224,17 @@ const Cable = () => {
             key={index}
             className="items-center mr-4"
             onPress={() => {
-              setIucNumber(item.number);
-              setSelectedProvider(Number(item.providerId));
-              setValidatedUser('');
-              setSelectedPlan(null);
+              const provider = cables.find((p) => p.identifier === item.providerIdentifier);
+              if (provider) {
+                setIucNumber(item.number);
+                setSelectedProvider(provider.id);
+                setValidatedUser('');
+                setSelectedPlan(null);
+              }
             }}
           >
             <View className="w-12 h-12 rounded-full bg-white justify-center items-center mb-1">
-              <Image source={getProviderIcon(item.providerId)} className="w-8 h-8" />
+              <Image source={getProviderIcon(item.providerIdentifier)} className="w-8 h-8" />
             </View>
             <Text className="text-white text-xs">{item.number}</Text>
           </TouchableOpacity>
@@ -234,16 +276,16 @@ const Cable = () => {
                 <TouchableOpacity
                   key={provider.id}
                   className={`w-32 h-20 items-center justify-center rounded-lg ${
-                    selectedProvider === Number(provider.id) ? 'bg-[#4B39EF]' : 'bg-[#3C3ADD21]'
+                    selectedProvider === provider.id ? 'bg-[#4B39EF]' : 'bg-[#3C3ADD21]'
                   }`}
                   onPress={() => {
-                    setSelectedProvider(Number(provider.id));
+                    setSelectedProvider(provider.id);
                     setValidatedUser('');
                     setSelectedPlan(null);
                   }}
                 >
                   <View className="w-12 h-12 rounded-full bg-white justify-center items-center mb-1">
-                    <Image source={getProviderIcon(provider.id)} className="w-8 h-8" />
+                    <Image source={getProviderIcon(provider.identifier)} className="w-8 h-8" />
                   </View>
                   <Text className="text-sm font-medium text-center text-gray-800">
                     {provider.name}
@@ -314,7 +356,7 @@ const Cable = () => {
                       selectedPlan?.id === plan.id ? 'text-gray-200' : 'text-gray-600'
                     }`}
                   >
-                    {formatPrice(plan.price)} NGN
+                    NGN {formatPrice(plan.amount)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -347,6 +389,37 @@ const Cable = () => {
           <Text className="text-white font-semibold text-lg">Proceed</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Success Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={successModalVisible}
+        onRequestClose={() => {
+          setSuccessModalVisible(false);
+          clearForm();
+        }}
+      >
+        <View className="flex-1 justify-center items-center bg-opacity-50 px-6">
+          <View className="bg-white rounded-lg p-6 w-full max-w-md">
+            <Text className="text-xl font-bold mb-4">{successInfo.title}</Text>
+            <Text className="mb-2">{successInfo.message}</Text>
+            {successInfo.reference ? (
+              <Text className="mb-4 text-gray-600">Reference: {successInfo.reference}</Text>
+            ) : null}
+
+            <Pressable
+              className="bg-[#4B39EF] rounded-lg py-3"
+              onPress={() => {
+                setSuccessModalVisible(false);
+                clearForm();
+              }}
+            >
+              <Text className="text-white text-center font-semibold">Close</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };

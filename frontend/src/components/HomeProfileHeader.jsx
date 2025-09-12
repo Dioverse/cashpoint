@@ -7,6 +7,7 @@ const HomeProfileHeader = ({ imageUrl, badgeCount = 0, navigation }) => {
   
 
   const { user } = useAuth();
+  
     const firstName = (() => {
       const n =
         user?.firstName ||
@@ -21,7 +22,7 @@ const HomeProfileHeader = ({ imageUrl, badgeCount = 0, navigation }) => {
         style={styles.profileContainer}
         onPress={() => navigation.navigate('Profile')}
       >
-        <Image source={{ uri: imageUrl }} style={styles.profileImage} />
+        <Image source={{ uri: 'https://cashpoint.deovaze.com/api/storage/passport/user_passport/ONiZEXM2q42rS3AatKLMKd0hvRHUzE8kuZYFZFLL.png' }} style={styles.profileImage} />
         <Text style={styles.welcomeText}>
           {'Welcome, '}<Text style={styles.userName}>{firstName}!</Text>
         </Text>

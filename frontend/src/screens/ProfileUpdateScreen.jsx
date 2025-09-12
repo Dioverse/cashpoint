@@ -13,52 +13,72 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { useAuth } from '../context/AuthContext';
+import { authAPI } from '../services/apiServices';
 
 const ProfileUpdateScreen = () => {
   const { user } = useAuth();
   const navigation = useNavigation();
 
-  // Dynamically build full name from parts
   const fullNameString = [user?.firstName, user?.middleName, user?.lastName]
     .filter(Boolean)
     .join(' ');
 
-  // Form state initialized with user data
-  const [fullName, setFullName] = useState(fullNameString);
-  const [email, setEmail] = useState(user?.email || '');
-  const [phoneNumber, setPhoneNumber] = useState(user?.phone || '');
-  const [username, setUsername] = useState(user?.username || '');
-
-  const [errors, setErrors] = useState({});
+  const [profileImage, setProfileImage] = useState(
+    user?.profileImage || 'https://randomuser.me/api/portraits/men/44.jpg'
+  );
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!fullName) newErrors.fullName = 'Please enter your full name';
-    if (!email) newErrors.email = 'Please enter your email';
-    if (!phoneNumber) newErrors.phoneNumber = 'Please enter your phone number';
-    if (!username) newErrors.username = 'Please enter your username';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleChoosePhoto = () => {
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        quality: 0.7,
+      },
+      (response) => {
+        if (response.didCancel) return;
+
+        if (response.errorCode) {
+          Alert.alert('Error', response.errorMessage || 'Failed to select image');
+        } else if (response.assets && response.assets.length > 0) {
+          const asset = response.assets[0];
+          setSelectedPhoto(asset);
+          setProfileImage(asset.uri);
+        }
+      }
+    );
   };
 
   const handleUpdate = async () => {
-    if (!validateForm()) return;
+    if (!selectedPhoto) {
+      Alert.alert('Nothing to update', 'Please select a new profile picture.');
+      return;
+    }
 
     setIsUpdating(true);
-    try {
-      // Simulated update logic
-      console.log('Updating profile with:', { fullName, email, phoneNumber, username });
 
-      // Show success alert
-      Alert.alert('Success', 'Profile updated successfully', [
+    try {
+      const photo = {
+        uri: selectedPhoto.uri,
+        type: selectedPhoto.type,
+        name: selectedPhoto.fileName || `profile_${Date.now()}.jpg`,
+      };
+
+      const formData = new FormData();
+      formData.append('photo', photo);
+
+      const response = await authAPI.UploadProfilePic(formData);
+
+      Alert.alert('Success', 'Profile picture updated!', [
         {
           text: 'OK',
-          onPress: () => navigation.navigate('Profile'),
+          onPress: () => navigation.goBack(),
         },
       ]);
     } catch (error) {
+      console.error(error);
       Alert.alert('Update Failed', error.message || 'Something went wrong');
     } finally {
       setIsUpdating(false);
@@ -77,10 +97,13 @@ const ProfileUpdateScreen = () => {
           <View className="mt-20 items-center">
             <View className="flex-row items-center mb-2">
               <Image
-                source={{ uri: 'https://randomuser.me/api/portraits/men/44.jpg' }} // Change image source as needed
+                source={{ uri: profileImage }}
                 className="w-20 h-20 rounded-full mr-2"
               />
-              <TouchableOpacity className="bg-black px-3 py-2 rounded-lg">
+              <TouchableOpacity
+                onPress={handleChoosePhoto}
+                className="bg-black px-3 py-2 rounded-lg"
+              >
                 <Text className="text-white text-xs font-semibold">Edit</Text>
               </TouchableOpacity>
             </View>
@@ -101,84 +124,40 @@ const ProfileUpdateScreen = () => {
             <View className="mb-6">
               <Text className="text-xl font-normal text-gray-800 mb-4">Full Name</Text>
               <TextInput
-                className={`h-14 border rounded-xl px-4 text-base ${
-                  errors.fullName ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter your full name"
-                placeholderTextColor="#9CA3AF"
-                value={fullName}
-                onChangeText={(text) => {
-                  setFullName(text);
-                  if (errors.fullName) setErrors({ ...errors, fullName: null });
-                }}
+                className="h-14 border border-gray-300 rounded-xl px-4 text-base bg-gray-100 text-gray-700"
+                value={fullNameString}
+                editable={false}
               />
-              {errors.fullName && (
-                <Text className="text-red-500 mt-1 text-sm">{errors.fullName}</Text>
-              )}
             </View>
 
             {/* Phone Number */}
             <View className="mb-6">
               <Text className="text-xl font-normal text-gray-800 mb-4">Phone Number</Text>
               <TextInput
-                className={`h-14 border rounded-xl px-4 text-base ${
-                  errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter your phone number"
-                placeholderTextColor="#9CA3AF"
-                keyboardType="phone-pad"
-                value={phoneNumber}
-                onChangeText={(text) => {
-                  setPhoneNumber(text);
-                  if (errors.phoneNumber) setErrors({ ...errors, phoneNumber: null });
-                }}
+                className="h-14 border border-gray-300 rounded-xl px-4 text-base bg-gray-100 text-gray-700"
+                value={user?.phone || ''}
+                editable={false}
               />
-              {errors.phoneNumber && (
-                <Text className="text-red-500 mt-1 text-sm">{errors.phoneNumber}</Text>
-              )}
             </View>
 
             {/* Username */}
             <View className="mb-6">
               <Text className="text-xl font-normal text-gray-800 mb-4">Username</Text>
               <TextInput
-                className={`h-14 border rounded-xl px-4 text-base ${
-                  errors.username ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter your username"
-                placeholderTextColor="#9CA3AF"
-                autoCapitalize="none"
-                value={username}
-                onChangeText={(text) => {
-                  setUsername(text);
-                  if (errors.username) setErrors({ ...errors, username: null });
-                }}
+                className="h-14 border border-gray-300 rounded-xl px-4 text-base bg-gray-100 text-gray-700"
+                value={user?.username || ''}
+                editable={false}
               />
-              {errors.username && (
-                <Text className="text-red-500 mt-1 text-sm">{errors.username}</Text>
-              )}
             </View>
 
             {/* Email */}
             <View className="mb-6">
               <Text className="text-xl font-normal text-gray-800 mb-4">Email Address</Text>
               <TextInput
-                className={`h-14 border rounded-xl px-4 text-base ${
-                  errors.email ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter your email"
-                placeholderTextColor="#9CA3AF"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  if (errors.email) setErrors({ ...errors, email: null });
-                }}
+                className="h-14 border border-gray-300 rounded-xl px-4 text-base bg-gray-100 text-gray-700"
+                value={user?.email || ''}
+                editable={false}
               />
-              {errors.email && (
-                <Text className="text-red-500 mt-1 text-sm">{errors.email}</Text>
-              )}
             </View>
           </ScrollView>
 
@@ -192,7 +171,7 @@ const ProfileUpdateScreen = () => {
               disabled={isUpdating}
             >
               <Text className="text-white font-semibold text-base">
-                {isUpdating ? 'Updating...' : 'Update Details'}
+                {isUpdating ? 'Uploading...' : 'Update Details'}
               </Text>
             </TouchableOpacity>
           </View>

@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { authAPI } from '../services/api';  // Ensure this import matches your project structure
+import { authAPI } from '../services/apiServices';
+// import { authAPI } from '../services/api';  // Ensure this import matches your project structure
 
 const CreatePinScreen = () => {
   const navigation = useNavigation();

@@ -65,6 +65,32 @@ resendOTP: async (email) => {
     }
   },
 
+  // UploadProfilePic: async (photo) => {
+  //   try {
+  //     const response = await api.post('/passport', {
+  //       photo
+  //     });
+  //     return response.data;  // Return the response data from the backend
+  //   } catch (error) {
+  //     console.error('Error Uploading:', error);
+  //     throw error;  
+  //   }
+  // },
+
+  UploadProfilePic: async (formData) => {
+  try {
+    const response = await api.post('/passport', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error Uploading:', error);
+    throw error;
+  }
+},
+
   resetPin: async (data) => {
     try {
       const response = await api.post('/reset-pin', data);
