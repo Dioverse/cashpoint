@@ -16,13 +16,13 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import cryptoService from '../services/cryptoService';
 
-const SellCryptoScreen = () => {
+const BuyCryptoScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const {coin} = route.params || {};
 
   const [amount, setAmount] = useState('');
-  const [creditRate, setCreditRate] = useState('');
+  const [walletAddress, setWalletAddress] = useState('');
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [currentRate, setCurrentRate] = useState(0);
@@ -41,28 +41,28 @@ const SellCryptoScreen = () => {
         const rate =
           response.results.data[selectedCoin.symbol] || selectedCoin.usd_rate;
         setCurrentRate(rate);
-        setCreditRate(rate.toString());
       }
     } catch (error) {
       console.error('Error fetching rate:', error);
       setCurrentRate(selectedCoin?.usd_rate || 0);
-      setCreditRate((selectedCoin?.usd_rate || 0).toString());
     }
   };
 
-  const calculateYouReceive = () => {
-    const amt = parseFloat(amount);
-    const rate = parseFloat(creditRate);
-    if (!isNaN(amt) && !isNaN(rate)) {
-      return (amt * rate).toFixed(2);
+  const calculateCryptoAmount = () => {
+    const usdAmount = parseFloat(amount);
+    if (!isNaN(usdAmount) && currentRate > 0) {
+      return (usdAmount / currentRate).toFixed(8);
     }
-    return '0.00';
+    return '0.00000000';
   };
 
   const validateForm = () => {
     const newErrors = {};
-    if (!amount || isNaN(amount) || parseFloat(amount) < 0.001) {
-      newErrors.amount = 'Enter valid amount (minimum 0.001)';
+    if (!amount || isNaN(amount) || parseFloat(amount) < 10) {
+      newErrors.amount = 'Amount must be at least $10';
+    }
+    if (!walletAddress || walletAddress.trim().length < 10) {
+      newErrors.walletAddress = 'Please enter a valid wallet address';
     }
     if (!selectedCoin) {
       newErrors.coin = 'Please select a cryptocurrency';
@@ -77,17 +77,18 @@ const SellCryptoScreen = () => {
     try {
       setIsLoading(true);
 
-      const sellData = {
+      const buyData = {
         crypto_id: selectedCoin.id,
-        amount_crypto: parseFloat(amount),
+        amount_usd: parseFloat(amount),
+        wallet_address: walletAddress.trim(),
       };
 
-      const response = await cryptoService.sellCrypto(sellData);
+      const response = await cryptoService.buyCrypto(buyData);
 
       if (response.status) {
         Alert.alert(
           'Success',
-          "Your crypto sell order has been submitted successfully. You will be notified when it's processed.",
+          'Your crypto buy order has been submitted successfully. The cryptocurrency will be sent to your wallet address.',
           [
             {
               text: 'OK',
@@ -96,14 +97,14 @@ const SellCryptoScreen = () => {
           ],
         );
       } else {
-        Alert.alert('Error', response.message || 'Failed to submit sell order');
+        Alert.alert('Error', response.message || 'Failed to submit buy order');
       }
     } catch (error) {
-      console.error('Sell crypto error:', error);
+      console.error('Buy crypto error:', error);
       Alert.alert(
         'Error',
         error.response?.data?.message ||
-          'Failed to submit sell order. Please try again.',
+          'Failed to submit buy order. Please try again.',
       );
     } finally {
       setIsLoading(false);
@@ -123,7 +124,7 @@ const SellCryptoScreen = () => {
           </TouchableOpacity>
           <View style={{flex: 1, alignItems: 'center'}}>
             <Text style={styles.headerText}>
-              Sell {selectedCoin?.symbol || 'Crypto'}
+              Buy {selectedCoin?.symbol || 'Crypto'}
             </Text>
           </View>
         </View>
@@ -150,16 +151,12 @@ const SellCryptoScreen = () => {
               </View>
             )}
 
-            {/* Amount */}
+            {/* Amount in USD */}
             <View style={{marginBottom: 25}}>
-              <Text style={styles.label}>
-                Amount ({selectedCoin?.symbol || 'Crypto'})
-              </Text>
+              <Text style={styles.label}>Amount (USD)</Text>
               <TextInput
                 style={[styles.input, errors.amount && {borderColor: 'red'}]}
-                placeholder={`Enter amount in ${
-                  selectedCoin?.symbol || 'crypto'
-                }`}
+                placeholder="Enter amount in USD (minimum $10)"
                 placeholderTextColor="#9CA3AF"
                 keyboardType="numeric"
                 value={amount}
@@ -170,6 +167,30 @@ const SellCryptoScreen = () => {
               />
               {errors.amount && (
                 <Text style={styles.errorText}>{errors.amount}</Text>
+              )}
+            </View>
+
+            {/* Wallet Address */}
+            <View style={{marginBottom: 25}}>
+              <Text style={styles.label}>Your Wallet Address</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  errors.walletAddress && {borderColor: 'red'},
+                ]}
+                placeholder="Enter your wallet address"
+                placeholderTextColor="#9CA3AF"
+                value={walletAddress}
+                onChangeText={text => {
+                  setWalletAddress(text);
+                  if (errors.walletAddress)
+                    setErrors({...errors, walletAddress: null});
+                }}
+                multiline
+                numberOfLines={3}
+              />
+              {errors.walletAddress && (
+                <Text style={styles.errorText}>{errors.walletAddress}</Text>
               )}
             </View>
 
@@ -188,7 +209,7 @@ const SellCryptoScreen = () => {
               </Text>
             </View>
 
-            {/* You Receive */}
+            {/* You Will Receive */}
             <View
               style={{
                 marginBottom: 30,
@@ -199,7 +220,7 @@ const SellCryptoScreen = () => {
               <Text style={styles.label}>You Will Receive</Text>
               <View style={styles.input}>
                 <Text style={styles.valueText}>
-                  {cryptoService.formatUSDAmount(calculateYouReceive())}
+                  {calculateCryptoAmount()} {selectedCoin?.symbol || 'crypto'}
                 </Text>
               </View>
             </View>
@@ -216,7 +237,7 @@ const SellCryptoScreen = () => {
                 <ActivityIndicator color="white" />
               ) : (
                 <Text style={styles.submitButtonText}>
-                  Sell {selectedCoin?.symbol || 'Crypto'}
+                  Buy {selectedCoin?.symbol || 'Crypto'}
                 </Text>
               )}
             </TouchableOpacity>
@@ -268,19 +289,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     justifyContent: 'center',
   },
-  inputGray: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#fff',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    marginTop: 10,
-    backgroundColor: '#f3f4f6',
-    justifyContent: 'center',
-  },
   valueText: {
     fontSize: 16,
     color: '#4A4A4A',
+    fontWeight: '600',
   },
   submitButton: {
     backgroundColor: '#000',
@@ -322,4 +334,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SellCryptoScreen;
+export default BuyCryptoScreen;

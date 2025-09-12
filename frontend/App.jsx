@@ -37,9 +37,12 @@ import ForgotPassword from './src/screens/ForgotPassword';
 import SellGiftCard from './src/screens/SellGiftCard';
 import BuyGiftCard from './src/screens/BuyGiftCardScreen';
 import SellCrypto from './src/screens/SellCrypto';
+import BuyCrypto from './src/screens/BuyCrypto';
 import RateCalculator from './src/screens/RateCalculator';
 import TradeCrypto from './src/screens/TradeCrypto';
 import FundWalletCrypto from './src/screens/FundWalletCrypto';
+import CryptoHistory from './src/screens/CryptoHistory';
+import CryptoDetails from './src/screens/CryptoDetails';
 import UpgradeToTierTwoScreen from './src/screens/UpgradeToTierTwoScreen';
 import UpgradeToTierThreeScreen from './src/screens/UpgradeToTierThreeScreen';
 import KycStatus from './src/screens/KycStatus';
@@ -75,7 +78,7 @@ import Leaderboard from './src/screens/Leaderboard';
 import logo from './src/assets/images/1.png';
 import bgImage from './src/assets/images/3.png';
 import './global.css';
-import { AuthProvider } from './src/context/AuthContext';
+import {AuthProvider} from './src/context/AuthContext';
 import CreatePinScreen from './src/screens/CreatePin';
 
 // Navigators
@@ -97,18 +100,27 @@ function ServicesNav() {
       <ServicesStack.Screen name="SaveAndEarn" component={SaveEarn} />
       <ServicesStack.Screen name="SellGiftCard" component={SellGiftCard} />
       <ServicesStack.Screen name="SellCrypto" component={SellCrypto} />
+      <ServicesStack.Screen name="BuyCrypto" component={BuyCrypto} />
       <ServicesStack.Screen name="TradeCrypto" component={TradeCrypto} />
-      <ServicesStack.Screen name="BettingPurchase" component={BettingPurchase} />
+      <ServicesStack.Screen name="CryptoHistory" component={CryptoHistory} />
+      <ServicesStack.Screen name="CryptoDetails" component={CryptoDetails} />
+      <ServicesStack.Screen
+        name="BettingPurchase"
+        component={BettingPurchase}
+      />
       <ServicesStack.Screen name="GiftUser" component={GiftUser} />
       <ServicesStack.Screen name="BuyGiftCard" component={BuyGiftCard} />
       <ServicesStack.Screen name="RateCalculator" component={RateCalculator} />
 
       <ServicesStack.Screen name="ChangePassword" component={ChangePassword} />
-    <ServicesStack.Screen name="ProfileUpdateScreen" component={ProfileUpdateScreen} />
-    <ServicesStack.Screen name="Terms" component={Terms} />
-    <ServicesStack.Screen name="AboutUs" component={AboutUs} />
-    <ServicesStack.Screen name="Support" component={Support} />
-    <ServicesStack.Screen name="MoreServices" component={ServicesNav} />
+      <ServicesStack.Screen
+        name="ProfileUpdateScreen"
+        component={ProfileUpdateScreen}
+      />
+      <ServicesStack.Screen name="Terms" component={Terms} />
+      <ServicesStack.Screen name="AboutUs" component={AboutUs} />
+      <ServicesStack.Screen name="Support" component={Support} />
+      <ServicesStack.Screen name="MoreServices" component={ServicesNav} />
     </ServicesStack.Navigator>
   );
 }
@@ -194,9 +206,14 @@ export default function App() {
 
   // Handle app state changes for auto logout
   useEffect(() => {
-    const handleAppStateChange = async (nextAppState) => {
-      console.log('App state changed from', appState.current, 'to', nextAppState);
-      
+    const handleAppStateChange = async nextAppState => {
+      console.log(
+        'App state changed from',
+        appState.current,
+        'to',
+        nextAppState,
+      );
+
       // App going to background - logout user
       if (
         appState.current.match(/active|foreground/) &&
@@ -218,7 +235,10 @@ export default function App() {
       appState.current = nextAppState;
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
 
     return () => subscription?.remove();
   }, []);
@@ -228,10 +248,10 @@ export default function App() {
       try {
         const hasLaunched = await AsyncStorage.getItem('hasLaunched');
         const userToken = await AsyncStorage.getItem('auth_token');
-        
+
         setIsFirstLaunch(hasLaunched === null);
         setIsAuthenticated(!!userToken);
-        
+
         console.log('Auth check - Has launched:', hasLaunched !== null);
         console.log('Auth check - Token exists:', !!userToken);
       } catch (error) {
@@ -284,10 +304,19 @@ export default function App() {
             <Stack.Screen name="Pin" component={Pin} />
             <Stack.Screen name="Receipt" component={Receipt} />
             <Stack.Screen name="LockFunds" component={LockFunds} />
-            <Stack.Screen name="FundWalletCrypto" component={FundWalletCrypto} />
+            <Stack.Screen
+              name="FundWalletCrypto"
+              component={FundWalletCrypto}
+            />
             <Stack.Screen name="KycStatus" component={KycStatus} />
-            <Stack.Screen name="UpgradeToTierTwo" component={UpgradeToTierTwoScreen} />
-            <Stack.Screen name="UpgradeToTierThree" component={UpgradeToTierThreeScreen} />
+            <Stack.Screen
+              name="UpgradeToTierTwo"
+              component={UpgradeToTierTwoScreen}
+            />
+            <Stack.Screen
+              name="UpgradeToTierThree"
+              component={UpgradeToTierThreeScreen}
+            />
             <Stack.Screen name="Notifications" component={Notifications} />
             <Stack.Screen name="Referral" component={Referral} />
             <Stack.Screen name="Transfer" component={Transfer} />
