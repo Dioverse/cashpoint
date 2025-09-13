@@ -32,6 +32,8 @@ class User extends Authenticatable
         'wallet_naira',
         'wallet_usd',
         'virtual_accounts',
+        'locked_balance',
+        'locked_date',
         'country_code',
         'state_code',
         'city',
@@ -171,6 +173,21 @@ class User extends Authenticatable
     public function cableHistory()
     {
         return $this->hasMany(CableHistory::class);
+    }
+
+    public function dataHistory()
+    {
+        return $this->hasMany(DataHistory::class);
+    }
+
+    public function payoutAccount()
+    {
+        return $this->hasMany(PayoutAccount::class);
+    }
+
+    public function lockedBalance()
+    {
+        return $this->hasMany(LockedBalance::class);
     }
 
 

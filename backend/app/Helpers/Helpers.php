@@ -13,6 +13,20 @@ if (!function_exists('getCryptoRate')) {
     }
 }
 
+if (!function_exists('encodeId')) {
+    function encodeId($id)
+    {
+        return base64_encode($id);  // you can also use hashids
+    }
+}
+
+if (!function_exists('decodeId')) {
+    function decodeId($encodedId)
+    {
+        return base64_decode($encodedId);
+    }
+}
+
 
 if (!function_exists('getCryptoRates')) {
     function getCryptoRates()
