@@ -27,6 +27,7 @@ return new class extends Migration
             $table->string('wallet_usd')->default(0.00);
             $table->string('virtual_accounts')->nullable();
             $table->decimal('locked_balance', 18, 2)->default(0);
+            $table->date('locked_date')->nullable();
             $table->string('country_code')->nullable();
             $table->string('state_code')->nullable();
             $table->string('city')->nullable();
@@ -50,7 +51,7 @@ return new class extends Migration
             if (!Schema::hasColumn('users', 'last_reset_date')) {
                 $table->date('last_reset_date')->default(now());
             }
-        
+
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('pin')->nullable();

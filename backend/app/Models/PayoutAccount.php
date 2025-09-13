@@ -8,7 +8,7 @@ class PayoutAccount extends Model
 {
     //
     protected $fillable = [
-        'user_id', 'bank_name', 'account_name', 'account_number', 'currency', 'is_default', 'status',
+        'user_id', 'bank_name', 'bank_code', 'account_name', 'account_number', 'recipient_code', 'currency', 'is_default', 'status',
     ];
 
     public function user()

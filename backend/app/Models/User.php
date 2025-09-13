@@ -33,6 +33,7 @@ class User extends Authenticatable
         'wallet_usd',
         'virtual_accounts',
         'locked_balance',
+        'locked_date',
         'country_code',
         'state_code',
         'city',

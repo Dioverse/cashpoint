@@ -18,6 +18,7 @@ use App\Http\Controllers\BillController;
 use App\Http\Controllers\CableController;
 use App\Http\Controllers\CoinbaseController;
 use App\Http\Controllers\KYCController;
+use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PayoutAccountController;
@@ -136,26 +137,25 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/update/{id}', [PayoutAccountController::class, 'update']);
         Route::delete('/{account}/delete', [PayoutAccountController::class, 'delete']);
 
-        Route::post('/{user}/lock', [PayoutAccountController::class, 'lock']);
-        Route::post('/{user}/release', [PayoutAccountController::class, 'release']);
-        Route::post('/{user}/withdraw', [PayoutAccountController::class, 'withdraw']);
+        Route::post('/lock', [PayoutAccountController::class, 'lock']);
+        Route::post('/lock/payment', [PayoutAccountController::class, 'paymentLock']);
+        Route::post('/release', [PayoutAccountController::class, 'release']);
+        Route::get('/bank/list', [PayoutAccountController::class, 'bankList']);
+        // Route::get('/recipient/list', [PayoutAccountController::class, 'getRecipients']);
+        Route::post('/account/validate', [PayoutAccountController::class, 'validateAccount']);
+        Route::post('/withdraw', [PayoutAccountController::class, 'withdraw']);
+        Route::post('/request-withdraw', [PayoutAccountController::class, 'requestWithdraw']);
+        Route::post('/finalize-withdraw', [PayoutAccountController::class, 'finalizeWithdraw']);
     });
 
-
-
-        // Wallet
-        // Route::get('/wallet/balance', [WalletController::class, 'getBalance']);
-        // Route::post('/wallet/fund', [WalletController::class, 'fund']);
-        // Route::post('/wallet/withdraw', [WalletController::class, 'withdraw']);
-    
     // Security routes can be added here
     Route::post('/kyc/check-limit', [AdminKycController::class, 'checkTransactionLimit'])->name('admin.kyc.check.limit');
     Route::post('/kyc/record-transaction', [AdminKycController::class, 'recordTransaction'])->name('admin.kyc.record.transaction');
 
     // Virtual Accounts routes can be added here
-    Route::post('/accounts/create', [VirtualAccountController::class, 'create'])->name('api.wallet.index');
-    Route::post('/accounts/payout', [VirtualAccountController::class, 'create'])->name('api.wallet.index');
-    Route::post('/accounts/withdrawal', [VirtualAccountController::class, 'withdraw'])->name('api.wallet.withdraw');
+    Route::get('/leaderboard', [LeaderboardController::class, 'index']);
+    Route::post('/accounts/create', [PayoutAccountController::class, 'createVirtualAccount'])->name('api.create.virtual.account');
+    Route::post('/accounts/withdraw-to-wallet', [VirtualAccountController::class, 'withdraw'])->name('api.create.virtual.account.customer');
 });
 
 
@@ -184,6 +184,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/me', [AdminAuthController::class, 'me']);
         Route::post('/logout', [AdminAuthController::class, 'logout']);
         Route::post('/add-admin', [AdminAuthController::class, 'register']);
+        Route::get('/recipient/list', [PayoutAccountController::class, 'getRecipients']);
 
         Route::get('/kycs', [AdminKycController::class, 'index'])->name('admin.kycs.index');
         Route::get('/kycs/{kyc}', [AdminKycController::class, 'show'])->name('admin.kycs.show');
@@ -265,7 +266,10 @@ Route::prefix('admin')->group(function () {
         Route::get('/histories/giftcard/{id}', [AdminHistoryController::class, 'giftcardHistoryDetail']);
         Route::get('/histories/payment/{id}', [AdminHistoryController::class, 'fundHistoryDetail']);
 
+        // ++++++++++++++++ END PRICING ROUTES ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+        Route::post('/accounting', [AdminController::class, 'accounting']);
+        Route::get('/dashboard', [AdminController::class, 'dashboard']);
     });
 });
 

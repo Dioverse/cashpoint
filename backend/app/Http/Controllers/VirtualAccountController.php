@@ -88,44 +88,7 @@ class VirtualAccountController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function create(Request $request)
-    : Response
-    {
 
-        $user = auth()->user();
-        $ref = 'VA_' . Str::uuid();
-        // Logic to create a virtual account for the user
-
-        try {
-            $paystack = $this->paystackService;
-            $User = $this->userService;
-            $virtualAccount = $paystack->createVirtualAccount(
-                $user->firstName,
-                $user->lastName,
-                $user->email,
-                $user->phone
-            );
-
-
-
-            return response([
-                'message'   => __('app.virtual_account_created'),
-                'status'    => true,
-                'results'   => [
-                    'user'  => new UserResource($user),
-                    'data' => $virtualAccount,
-                ],
-            ], 201);
-
-        } catch (\Exception $e) {
-            return response([
-                'message'   => __('app.virtual_account_error'),
-                'status'    => false,
-                'error'     => $e->getMessage(),
-            ], 201);
-        }
-
-    }
 
     /**
      * Display the specified resource.
@@ -143,6 +106,7 @@ class VirtualAccountController extends Controller
         // account can be either 'usd' or 'ngn'
         $request->validate([
             'account'   => 'required|in:usd,ngn',
+            'amount'    => 'required|numeric|min:1',
         ]);
         $user       = auth()->user();
         $amount     = $request->amount;

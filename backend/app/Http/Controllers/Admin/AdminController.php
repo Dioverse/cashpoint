@@ -4,7 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\AirtimeHistory;
+use App\Models\CryptoHistory;
+use App\Models\DataHistory;
+use App\Models\GiftcardHistory;
+use App\Models\WalletTransaction;
 use App\Services\AuthServices;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -133,4 +139,93 @@ class AdminController extends Controller
             'users'     => $users
         ]);
     }
+
+    /**
+     * Dashboard statistics
+     */
+
+    public function dashboard(Request $request)
+    {
+        $giftcardTotal = GiftcardHistory::sum('amount');
+        $cryptoTotal   = CryptoHistory::sum('amount');
+        $airtimeTotal  = AirtimeHistory::sum('amount');
+        $dataTotal     = DataHistory::sum('amount');
+        $walletTotal   = WalletTransaction::sum('amount');
+
+        $inflow  = WalletTransaction::where('channel', 'virtual_account')->sum('amount');
+        $outflow = WalletTransaction::where('channel', 'debit')->sum('amount');
+        $profit  = $inflow - $outflow;
+
+        $recent = WalletTransaction::latest()->take(5)->get();
+
+        return response()->json([
+            'status'         => true,
+            'message'        => __('app.data_retrieved_successfully'),
+            'airtime_total'  => $airtimeTotal,
+            'data_total'     => $dataTotal,
+            'giftcard_total' => $giftcardTotal,
+            'crypto_total'   => $cryptoTotal,
+            'wallet_total'   => $walletTotal,
+            'profit'         => $profit,
+            'recent'         => $recent,
+        ]);
+
+    }
+
+    /**
+     * Accounting overview
+     */
+    public function accounting(Request $request)
+    {
+        $start = $request->start_date ? Carbon::parse($request->start_date) : Carbon::now()->startOfMonth();
+        $end   = $request->end_date ? Carbon::parse($request->end_date) : Carbon::now();
+
+        // Giftcard
+        $giftcardSales = GiftcardHistory::whereBetween('created_at', [$start, $end])
+                        ->where('status', 'success')
+                        ->sum('amount');
+
+        // Crypto
+        $cryptoSales = CryptoHistory::whereBetween('created_at', [$start, $end])
+                            ->where('status', 'success')
+                            ->sum('amount');
+
+        // Airtime
+        $airtimeSales = AirtimeHistory::whereBetween('created_at', [$start, $end])
+                        ->where('status', 'success')
+                        ->sum('amount');
+
+        // Data
+        $dataSales = DataHistory::whereBetween('created_at', [$start, $end])
+                        ->where('status', 'success')
+                        ->sum('amount');
+
+        // Total Sales
+        $sales = $giftcardSales + $cryptoSales + $airtimeSales + $dataSales;
+
+        // Payments (expenses / debit from wallet if you log them)
+        $payments = WalletTransaction::where('channel', 'virtual_account')
+                        ->whereBetween('created_at', [$start, $end])
+                        ->sum('amount');
+
+        // Profit = Sales - Payments
+        $profit = $sales - $payments;
+
+        return response()->json([
+            'status'        => true,
+            'message'       => __('app.data_retrieved_successfully'),
+            'date_range'    => [$start->toDateString(), $end->toDateString()],
+            'giftcard_sales'=> $giftcardSales,
+            'crypto_sales'  => $cryptoSales,
+            'airtime_sales' => $airtimeSales,
+            'data_sales'    => $dataSales,
+            'total_sales'   => $sales,
+            'payments'      => $payments,
+            'profit'        => $profit,
+        ]);
+
+    }
+
+
+
 }
