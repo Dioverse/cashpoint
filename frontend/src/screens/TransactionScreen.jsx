@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,97 +8,131 @@ import {
   Image,
   StatusBar,
   Platform,
+  ActivityIndicator,
   KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import { cryptoAPI, vtuAPI } from '../services/apiServices';
+// import { vtuAPI } from '../api/vtuAPI'; // adjust path as needed
+// import { cryptoAPI } from '../api/cryptoAPI'; // adjust path as needed
 
-// Tab list
+// Tabs
 const tabs = ['Airtime', 'Wallet', 'Data', 'Giftcard', 'Crypto'];
-
-// Transactions with 'type' field for filtering
-const transactions = [
-  {
-    id: '1',
-    title: 'Data Purchase',
-    subtitle: '1GB SME Data - 30 days  | 25th July, 2025',
-    amount: '₦680.00',
-    image: require('../assets/images/mtn2.png'),
-    type: 'Data',
-  },
-  {
-    id: '2',
-    title: 'Data Purchase',
-    subtitle: '2GB SME Data - 30 days  | 25th July, 2025',
-    amount: '₦1,200.00',
-    image: require('../assets/images/mtn2.png'),
-    type: 'Data',
-  },
-  {
-    id: '3',
-    title: 'Airtime Recharge',
-    subtitle: 'MTN - 23rd July, 2025',
-    amount: '₦500.00',
-    image: require('../assets/images/mtn2.png'),
-    type: 'Airtime',
-  },
-  {
-    id: '4',
-    title: 'Wallet Top-up',
-    subtitle: 'Via Card | 20th July, 2025',
-    amount: '₦5,000.00',
-    image: require('../assets/images/mtn2.png'),
-    type: 'Wallet',
-  },
-  {
-    id: '5',
-    title: 'Crypto Sale',
-    subtitle: 'Sold BTC | 18th July, 2025',
-    amount: '₦200,000.00',
-    image: require('../assets/images/mtn2.png'),
-    type: 'Crypto',
-  },
-  {
-    id: '6',
-    title: 'Giftcard Redeemed',
-    subtitle: 'Amazon | 15th July, 2025',
-    amount: '₦25,000.00',
-    image: require('../assets/images/mtn2.png'),
-    type: 'Giftcard',
-  },
-];
 
 const TransactionHistoriesScreen = () => {
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState('Airtime');
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Filter transactions by active tab
-  const filteredTransactions = transactions.filter(
-    (item) => item.type === activeTab
-  );
+  const fetchDataForTab = async (tab) => {
+    setLoading(true);
+    let response;
+
+    try {
+      switch (tab) {
+        case 'Airtime':
+          response = await vtuAPI.getAirtimeHistory();
+          break;
+        case 'Data':
+          response = await vtuAPI.getDataHistory();
+          break;
+        case 'Cable':
+          response = await vtuAPI.getCableHistory();
+          break;
+        case 'Bill':
+          response = await vtuAPI.getBillHistory();
+          break;
+        case 'Crypto':
+          response = await cryptoAPI.getHistory();
+          break;
+        case 'Wallet':
+          // TO-DO: Replace with actual wallet history endpoint
+          response = { success: true, data: { results: { data: [] } } };
+          break;
+        case 'Giftcard':
+          // TO-DO: Replace with actual giftcard endpoint
+          response = { success: true, data: { results: { data: [] } } };
+          break;
+        default:
+          response = { success: true, data: { results: { data: [] } } };
+      }
+
+      if (response.success) {
+        setTransactions(response.data?.results?.data || []);
+      } else {
+        setTransactions([]);
+      }
+    } catch (error) {
+      console.error(`${tab} history fetch error:`, error);
+      setTransactions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDataForTab(activeTab);
+  }, [activeTab]);
 
   const renderTransaction = ({ item }) => (
     <View style={styles.transactionCard}>
-      <Image source={item.image} style={styles.transactionImage} />
+      <Image
+        source={require('../assets/images/mtn2.png')} // optionally dynamic per tab/type
+        style={styles.transactionImage}
+      />
       <View style={{ flex: 1 }}>
-        <Text style={styles.transactionTitle}>{item.title}</Text>
-        <Text style={styles.transactionSubtitle}>{item.subtitle}</Text>
+        <Text style={styles.transactionTitle}>
+          {activeTab === 'Crypto'
+            ? `${item.type === 'sell' ? 'Sold' : 'Bought'} ${item.amount_crypto} ${getCryptoSymbol(item.crypto_id)}`
+            : `${activeTab} Transaction`}
+        </Text>
+        <Text style={styles.transactionSubtitle}>
+          {formatDate(item.created_at)}
+        </Text>
       </View>
-      <Text style={styles.transactionAmount}>{item.amount}</Text>
+      <Text style={styles.transactionAmount}>
+        ₦{formatAmount(item.naira_equivalent || item.amount)}
+      </Text>
     </View>
   );
 
+  const getCryptoSymbol = (id) => {
+    // You can fetch and store this from /cryptos endpoint for accurate match
+    const symbols = {
+      1: 'BTC',
+      2: 'USDT',
+      5: 'PI',
+    };
+    return symbols[id] || '';
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-NG', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  const formatAmount = (amount) => {
+    return parseFloat(amount).toLocaleString('en-NG', {
+      minimumFractionDigits: 2,
+    });
+  };
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#4B39EF',}}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#4B39EF' }}>
       <StatusBar backgroundColor="#4B39EF" barStyle="light-content" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        {/* Top Blue Section */}
+        {/* Top Section */}
         <View style={styles.headerWrapper}>
-          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <Icon name="arrow-back" size={24} color="white" />
@@ -132,15 +166,19 @@ const TransactionHistoriesScreen = () => {
           </View>
         </View>
 
-        {/* White Curved Content Section */}
+        {/* Content */}
         <View style={styles.contentWrapper}>
-          {filteredTransactions.length === 0 ? (
-            <Text style={styles.noTransactionsText}>No transactions found.</Text>
+          {loading ? (
+            <ActivityIndicator size="large" color="#4B39EF" />
+          ) : transactions.length === 0 ? (
+            <Text style={styles.noTransactionsText}>
+              No transactions found.
+            </Text>
           ) : (
             <FlatList
-              data={filteredTransactions}
+              data={transactions}
               renderItem={renderTransaction}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item) => item.id.toString()}
               contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20 }}
               showsVerticalScrollIndicator={false}
             />
@@ -150,6 +188,10 @@ const TransactionHistoriesScreen = () => {
     </SafeAreaView>
   );
 };
+
+
+
+// export default TransactionHistoriesScreen;
 
 const styles = StyleSheet.create({
  

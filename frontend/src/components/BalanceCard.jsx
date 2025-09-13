@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Text, View, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { useAuth } from '../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -16,17 +17,19 @@ const BalanceCard = ({ balance = 0, navigation }) => {
   const [showBalance, setShowBalance] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef(null);
+  const { user } = useAuth();
+  const toNumber = (val) => Number(val) || 0;
 
   const balances = [
     {
       label: 'Available Balance',
       currency: 'NGN',
-      amount: 7250050.08,
+      amount: toNumber(user.wallet_naira),
     },
     {
       label: 'Available Balance (USD)',
       currency: 'USD',
-      amount: 2450.34,
+      amount: toNumber(user.wallet_usd),
     },
   ];
 
