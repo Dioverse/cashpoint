@@ -41,7 +41,7 @@ class CryptoWalletController extends Controller
                 'message'   => __('app.crypto_trade_submitted'),
                 'status'    => true,
                 'results'   => [
-                    'data'  => $walle
+                    'data'  => $wallet
                 ]
             ]);
 

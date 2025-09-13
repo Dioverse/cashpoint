@@ -29,7 +29,7 @@ class AuthServices
 
     public function findByUuid(string $uuid): ?User
     {
-        return User::where('uuid', $uuid)->first();
+        return User::where('uuid', $uuid)->firstOrFail();
     }
 
     public function register(object $request): User
