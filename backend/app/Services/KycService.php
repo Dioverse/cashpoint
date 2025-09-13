@@ -88,7 +88,8 @@ class KycService
 
     public function canUserTransact(User $user, float $amount): array
     {
-        if (!in_array($user->kyc_status, ['approved'])) {
+        if (!in_array($user->kyc_status, ['approved']))
+        {
             return [
                 'allowed' => false,
                 'reason' => 'KYC verification required or pending',

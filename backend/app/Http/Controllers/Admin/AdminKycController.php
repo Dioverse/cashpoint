@@ -9,6 +9,7 @@ use App\Services\KycService;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Services\AuthServices;
+use Illuminate\Support\Facades\Auth;
 
 class AdminKycController extends Controller
 {
@@ -168,6 +169,7 @@ class AdminKycController extends Controller
     public function recordTransaction(Request $request): JsonResponse
     {
         $request->validate(['amount' => 'required|numeric|min:0']);
+        $user = Auth::user();
         
         // First check if transaction is allowed
         $canTransact = $this->kycService->canUserTransact(
@@ -180,8 +182,9 @@ class AdminKycController extends Controller
                 'success' => false,
                 'message' => $canTransact['reason'],
                 'result'=> [
-                    'data' => $this->kycService->recordTransaction($request->user(), $request->amount),
-                    'user' => UserResource::make($request->user())
+                    'data' => $this->kycService->recordTransaction($user, $request->amount),
+                    '...' => $user->kyc_status . ' - ' . $user->kyc_tier,
+                    'user' => UserResource::make($user)
                 ]
             ], 400);
         }

@@ -20,6 +20,7 @@ use App\Http\Controllers\CoinbaseController;
 use App\Http\Controllers\KYCController;
 use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PayoutAccountController;
 use App\Http\Controllers\Purchase\CryptoController;
 use App\Http\Controllers\Purchase\CryptoServiceController;
 use App\Http\Controllers\Purchase\GiftcardController;
@@ -130,6 +131,18 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
 
+    Route::prefix('payout')->group(function () {
+        Route::post('/create', [PayoutAccountController::class, 'create']);
+        Route::put('/update/{id}', [PayoutAccountController::class, 'update']);
+        Route::delete('/{account}/delete', [PayoutAccountController::class, 'delete']);
+
+        Route::post('/{user}/lock', [PayoutAccountController::class, 'lock']);
+        Route::post('/{user}/release', [PayoutAccountController::class, 'release']);
+        Route::post('/{user}/withdraw', [PayoutAccountController::class, 'withdraw']);
+    });
+
+
+
         // Wallet
         // Route::get('/wallet/balance', [WalletController::class, 'getBalance']);
         // Route::post('/wallet/fund', [WalletController::class, 'fund']);
@@ -141,6 +154,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Virtual Accounts routes can be added here
     Route::post('/accounts/create', [VirtualAccountController::class, 'create'])->name('api.wallet.index');
+    Route::post('/accounts/payout', [VirtualAccountController::class, 'create'])->name('api.wallet.index');
     Route::post('/accounts/withdrawal', [VirtualAccountController::class, 'withdraw'])->name('api.wallet.withdraw');
 });
 

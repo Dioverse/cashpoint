@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('wallet_naira')->default(0.00);
             $table->string('wallet_usd')->default(0.00);
             $table->string('virtual_accounts')->nullable();
+            $table->decimal('locked_balance', 18, 2)->default(0);
             $table->string('country_code')->nullable();
             $table->string('state_code')->nullable();
             $table->string('city')->nullable();
