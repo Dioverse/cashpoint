@@ -1,63 +1,48 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   ScrollView,
+  SafeAreaView,
+  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
-  StyleSheet,
-  Pressable,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
+import { cryptoAPI, giftcardAPI } from '../services/apiServices';
 
 // Custom Select Component
 const CustomSelect = ({ options, onValueChange, selectedValue, placeholder }) => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [hoveredIndex, setHoveredIndex] = useState(null);
-
-  const handleSelect = (value) => {
-    onValueChange(value);
-    setDropdownVisible(false);
-  };
 
   return (
-    <View style={dropdownStyles.wrapper}>
+    <View style={styles.selectWrapper}>
       <TouchableOpacity
-        style={dropdownStyles.selectButton}
-        onPress={() => setDropdownVisible((prev) => !prev)}
-        activeOpacity={0.8}
+        style={styles.selectButton}
+        onPress={() => setDropdownVisible(!dropdownVisible)}
       >
-        <Text style={dropdownStyles.selectText}>{selectedValue || placeholder || 'Select'}</Text>
-        <Icon name="caret-down" size={20} color="#6B7280" />
+        <Text style={styles.selectText}>
+          {selectedValue || placeholder || 'Select'}
+        </Text>
+        <Icon name="chevron-down" size={20} color="#555" />
       </TouchableOpacity>
-
       {dropdownVisible && (
-        <View style={dropdownStyles.dropdown}>
+        <View style={styles.dropdown}>
           {options.map((item, index) => (
-            <Pressable
+            <TouchableOpacity
               key={index}
-              onPressIn={() => setHoveredIndex(index)}
-              onPressOut={() => setHoveredIndex(null)}
-              onPress={() => handleSelect(item)}
-              style={[
-                dropdownStyles.option,
-                hoveredIndex === index && dropdownStyles.optionHovered,
-              ]}
+              style={styles.dropdownItem}
+              onPress={() => {
+                onValueChange(item);
+                setDropdownVisible(false);
+              }}
             >
-              <Text
-                style={[
-                  dropdownStyles.optionText,
-                  hoveredIndex === index && dropdownStyles.optionTextHovered,
-                ]}
-              >
-                {item}
-              </Text>
-            </Pressable>
+              <Text style={styles.dropdownItemText}>{item}</Text>
+            </TouchableOpacity>
           ))}
         </View>
       )}
@@ -67,65 +52,72 @@ const CustomSelect = ({ options, onValueChange, selectedValue, placeholder }) =>
 
 const RateCalculatorScreen = () => {
   const navigation = useNavigation();
-  const [activeTab, setActiveTab] = useState('Giftcard Rate');
-  const [country, setCountry] = useState('');
-  const [giftCard, setGiftCard] = useState('');
-  const [cardType, setCardType] = useState('');
-  const [cardCategory, setCardCategory] = useState('');
-  const [rate, setRate] = useState('');
+
+  const [activeTab, setActiveTab] = useState('Giftcard');
+  const [giftcardRates, setGiftcardRates] = useState({});
+  const [cryptoRates, setCryptoRates] = useState({});
+
+  const [selectedGiftcard, setSelectedGiftcard] = useState('');
+  const [selectedCrypto, setSelectedCrypto] = useState('');
+
   const [amount, setAmount] = useState('');
-  const [coin, setCoin] = useState('');
-  const [cryptoRate, setCryptoRate] = useState('');
+  const [rate, setRate] = useState('');
+  const [total, setTotal] = useState('');
   const [cryptoAmount, setCryptoAmount] = useState('');
 
-  const countries = ['USA', 'UK', 'Canada'];
-  const giftcards = ['Amazon', 'Steam', 'iTunes'];
-  const cardTypes = ['E-code', 'Physical'];
-  const cardCategories = ['Category A', 'Category B', 'Category C'];
-  const coins = ['Bitcoin', 'Ethereum', 'USDT'];
+  // Fetch rates on mount
+  useEffect(() => {
+    const fetchRates = async () => {
+      try {
+        const [giftRes, cryptoRes] = await Promise.all([
+          giftcardAPI.getRates(),
+          cryptoAPI.getRates(),
+        ]);
 
-  // Validation function for enabling submit button
-  const isGiftcardFormComplete = () => {
-    return (
-      country.trim() !== '' &&
-      giftCard.trim() !== '' &&
-      cardType.trim() !== '' &&
-      cardCategory.trim() !== '' &&
-      rate.trim() !== '' &&
-      amount.trim() !== ''
-    );
-  };
+        if (giftRes.success) setGiftcardRates(giftRes.data.results.data || {});
+        if (cryptoRes.success) setCryptoRates(cryptoRes.data.results.data || {});
+      } catch (err) {
+        console.error('Failed to fetch rates:', err);
+      }
+    };
 
-  const isCryptoFormComplete = () => {
-    return coin.trim() !== '' && cryptoAmount.trim() !== '' && cryptoRate.trim() !== '';
-  };
+    fetchRates();
+  }, []);
 
-  // Handler for submit button press
-  const handleSubmit = () => {
-    if (activeTab === 'Giftcard Rate') {
-      console.log({
-        country,
-        giftCard,
-        cardType,
-        cardCategory,
-        rate,
-        amount,
-      });
-    } else {
-      console.log({
-        coin,
-        cryptoAmount,
-        cryptoRate,
-        calculatedNairaValue:
-          cryptoAmount && cryptoRate
-            ? (parseFloat(cryptoAmount) * parseFloat(cryptoRate)).toFixed(2)
-            : '',
-      });
+  // Update rate & total/cryptoAmount when selection or amount changes
+  useEffect(() => {
+    let selectedRate = '';
+    if (activeTab === 'Giftcard' && selectedGiftcard) {
+      selectedRate = giftcardRates[selectedGiftcard];
+    } else if (activeTab === 'Crypto' && selectedCrypto) {
+      selectedRate = cryptoRates[selectedCrypto];
     }
-  };
 
-  // Determine if submit button should be disabled
-  const isSubmitDisabled = activeTab === 'Giftcard Rate' ? !isGiftcardFormComplete() : !isCryptoFormComplete();
+    setRate(selectedRate || '');
+
+    if (selectedRate && amount) {
+      const rateValue = parseFloat(selectedRate);
+      const amountValue = parseFloat(amount);
+
+      if (!isNaN(rateValue) && !isNaN(amountValue)) {
+        if (activeTab === 'Giftcard') {
+          const totalNaira = amountValue * rateValue;
+          setTotal(totalNaira.toFixed(2));
+          setCryptoAmount('');
+        } else if (activeTab === 'Crypto') {
+          const cryptoAmt = amountValue / rateValue;
+          setCryptoAmount(cryptoAmt.toFixed(6));
+          setTotal('');
+        }
+      } else {
+        setTotal('');
+        setCryptoAmount('');
+      }
+    } else {
+      setTotal('');
+      setCryptoAmount('');
+    }
+  }, [selectedGiftcard, selectedCrypto, amount, activeTab]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#4B39EF' }}>
@@ -143,16 +135,22 @@ const RateCalculatorScreen = () => {
             <Text style={styles.headerText}>Rate Calculator</Text>
           </View>
 
-          {/* Pills */}
+          {/* Tabs */}
           <View style={styles.tabRow}>
-            {['Giftcard Rate', 'Crypto Rate'].map((tab) => (
+            {['Giftcard', 'Crypto'].map((tab) => (
               <TouchableOpacity
                 key={tab}
                 style={[
                   styles.tab,
                   activeTab === tab ? styles.activeTab : styles.inactiveTab,
                 ]}
-                onPress={() => setActiveTab(tab)}
+                onPress={() => {
+                  setActiveTab(tab);
+                  setAmount('');
+                  setTotal('');
+                  setRate('');
+                  setCryptoAmount('');
+                }}
               >
                 <Text
                   style={[
@@ -172,133 +170,89 @@ const RateCalculatorScreen = () => {
           style={styles.body}
           contentContainerStyle={{ padding: 20 }}
           keyboardShouldPersistTaps="handled"
-          nestedScrollEnabled
         >
-          {activeTab === 'Giftcard Rate' ? (
+          {activeTab === 'Giftcard' ? (
             <>
-              <View style={{ zIndex: 5 }}>
-                <Text style={styles.label}>Country</Text>
-                <CustomSelect
-                  options={countries}
-                  selectedValue={country}
-                  onValueChange={setCountry}
-                  placeholder="Select Country"
-                />
-              </View>
+              <Text style={styles.label}>Giftcard</Text>
+              <CustomSelect
+                options={Object.keys(giftcardRates)}
+                selectedValue={selectedGiftcard}
+                onValueChange={setSelectedGiftcard}
+                placeholder="Select Giftcard"
+              />
 
-              <View style={{ zIndex: 4 }}>
-                <Text style={styles.label}>Gift Card</Text>
-                <CustomSelect
-                  options={giftcards}
-                  selectedValue={giftCard}
-                  onValueChange={setGiftCard}
-                  placeholder="Select Gift Card"
-                />
-              </View>
+              <Text style={styles.label}>Rate ($)</Text>
+              <TextInput
+                style={[styles.input, styles.disabledInput]}
+                value={rate}
+                editable={false}
+                placeholder="Rate"
+              />
 
-              <View style={{ zIndex: 3 }}>
-                <Text style={styles.label}> Card Type</Text>
-                <CustomSelect
-                  options={cardTypes}
-                  selectedValue={cardType}
-                  onValueChange={setCardType}
-                  placeholder="Select Card Type"
-                />
-              </View>
-
-              <View style={{ zIndex: 2 }}>
-                <Text style={styles.label}>Card Category</Text>
-                <CustomSelect
-                  options={cardCategories}
-                  selectedValue={cardCategory}
-                  onValueChange={setCardCategory}
-                  placeholder="Select Card Category"
-                />
-              </View>
-                <View style={{ backgroundColor: '#3432a830', padding: 12, borderRadius: 8,marginBottom: 25 }}>
-
-                    <Text style={styles.label}>Current Rate</Text>
-                    <TextInput
-                        style={styles.input}
-                        keyboardType="numeric"
-                        value={rate}
-                        onChangeText={setRate}
-                        placeholder="Rate"
-                    />
-                </View>
-
-              <Text style={styles.label}>Amount</Text>
+              <Text style={styles.label}>Amount (Giftcard)</Text>
               <TextInput
                 style={styles.input}
                 keyboardType="numeric"
                 value={amount}
                 onChangeText={setAmount}
-                placeholder="Amount"
+                placeholder="Enter amount"
+              />
+
+              <Text style={styles.label}>Total ($)</Text>
+              <TextInput
+                style={[styles.input, styles.disabledInput]}
+                value={total}
+                editable={false}
+                placeholder="Total in $"
               />
             </>
           ) : (
             <>
-              <View style={{ zIndex: 5 }}>
-                <Text style={styles.label}>Coin</Text>
-                <CustomSelect
-                  options={coins}
-                  selectedValue={coin}
-                  onValueChange={setCoin}
-                  placeholder="Select Coin"
-                />
-              </View>
+              <Text style={styles.label}>Crypto</Text>
+              <CustomSelect
+                options={Object.keys(cryptoRates)}
+                selectedValue={selectedCrypto}
+                onValueChange={setSelectedCrypto}
+                placeholder="Select Coin"
+              />
 
-              <Text style={styles.label}>Amount (USD)</Text>
+              <Text style={styles.label}>Rate ($)</Text>
+              <TextInput
+                style={[styles.input, styles.disabledInput]}
+                value={rate}
+                editable={false}
+                placeholder="Rate"
+              />
+
+              <Text style={styles.label}>Amount ($)</Text>
               <TextInput
                 style={styles.input}
                 keyboardType="numeric"
-                value={cryptoAmount}
-                onChangeText={setCryptoAmount}
-                placeholder="USD"
+                value={amount}
+                onChangeText={setAmount}
+                placeholder="Enter amount in USD"
               />
-              <View style={{ backgroundColor: '#3432a830', padding: 12, borderRadius: 8,marginBottom: 25 }}>
-                <Text style={styles.label}>Current Rate</Text>
-                <TextInput
-                    style={styles.input}
-                    keyboardType="numeric"
-                    value={cryptoRate}
-                    onChangeText={setCryptoRate}
-                    placeholder="₦ rate"
-                />
-              </View>
 
-              <Text style={styles.label}>Amount (₦)</Text>
+              <Text style={styles.label}>Crypto Amount</Text>
               <TextInput
-                style={[styles.input, { backgroundColor: '#f3f4f6' }]}
+                style={[styles.input, styles.disabledInput]}
+                value={cryptoAmount}
                 editable={false}
-                value={
-                  cryptoAmount && cryptoRate
-                    ? (parseFloat(cryptoAmount) * parseFloat(cryptoRate)).toFixed(2)
-                    : ''
-                }
-                placeholder="₦ value"
+                placeholder="Calculated crypto amount"
               />
             </>
           )}
         </ScrollView>
-
-        {/* Submit Button */}
-        <TouchableOpacity
-          style={[styles.submitButton, isSubmitDisabled && styles.submitButtonDisabled]}
-          disabled={isSubmitDisabled}
-          onPress={handleSubmit}
-        >
-          <Text style={styles.submitButtonText}>Submit</Text>
-        </TouchableOpacity>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
   headerWrapper: {
     backgroundColor: '#4B39EF',
-    paddingBottom: 30,
+    paddingBottom: 20,
     paddingTop: 50,
     paddingHorizontal: 20,
   },
@@ -317,28 +271,27 @@ const styles = StyleSheet.create({
   },
   tabRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 8,
+    justifyContent: 'center',
+    marginVertical: 10,
   },
   tab: {
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginHorizontal: 8,
   },
   activeTab: {
-    borderWidth: 1,
-    borderColor: '#fff',
-    backgroundColor: 'transparent',
+    backgroundColor: 'white',
   },
   inactiveTab: {
-    backgroundColor: '#000',
+    backgroundColor: '#6D5FFD',
   },
   tabText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   activeText: {
-    color: 'white',
+    color: '#4B39EF',
   },
   inactiveText: {
     color: 'white',
@@ -365,32 +318,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     backgroundColor: '#fff',
   },
-  submitButton: {
-    backgroundColor: 'black',
-    paddingVertical: 14,
-    marginHorizontal: 20,
-    borderRadius: 8,
-    marginTop: 'auto',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 30,
+  disabledInput: {
+    backgroundColor: '#f3f4f6',
+    color: '#999',
   },
-  submitButtonDisabled: {
-    backgroundColor: '#555',
-  },
-  submitButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-});
-
-const dropdownStyles = StyleSheet.create({
-  wrapper: {
-    width: '100%',
-    marginBottom: 30,
+  selectWrapper: {
+    marginBottom: 20,
     position: 'relative',
-    zIndex: 10,
   },
   selectButton: {
     padding: 12,
@@ -414,20 +348,14 @@ const dropdownStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    zIndex: 1001,
-    elevation: 8,
+    zIndex: 1000,
+    elevation: 5,
   },
-  option: {
+  dropdownItem: {
     padding: 12,
   },
-  optionHovered: {
-    backgroundColor: '#f0f8ff',
-  },
-  optionText: {
+  dropdownItemText: {
     color: '#000',
-  },
-  optionTextHovered: {
-    color: '#1e90ff',
   },
 });
 

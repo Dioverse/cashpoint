@@ -1,83 +1,62 @@
-import { useState } from 'react';
+import {useState} from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { ArrowLeftIcon, EyeIcon } from 'react-native-heroicons/outline';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {useNavigation} from '@react-navigation/native';
+import {ArrowLeftIcon, EyeIcon} from 'react-native-heroicons/outline';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
-import { acctAPI } from '../services/apiServices';
-import dayjs from 'dayjs';
 
 const LockFunds = () => {
   const navigation = useNavigation();
   const [isAmountVisible, setIsAmountVisible] = useState(true);
   const [lockAmount, setLockAmount] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState(null);
-  const [loading, setLoading] = useState(false);
 
+  // Mock total balance
+  
   const { user } = useAuth();
+  const totalBalance = 105000.0;
   const totalBalanced = user.wallet_naira;
+  
 
+
+  // Lock period options
   const periods = [
-    { value: '1 Month', id: 'period1', months: 1 },
-    { value: '2 Months', id: 'period2', months: 2 },
-    { value: '3 Months', id: 'period3', months: 3 },
-    { value: '6 Months', id: 'period4', months: 6 },
-    { value: '1 Year', id: 'period5', months: 12 },
-    { value: '2 Years', id: 'period6', months: 24 },
-    { value: '3 Years', id: 'period7', months: 36 },
-    { value: '4 Years', id: 'period8', months: 48 },
+    {value: '1 Month', id: 'period1'},
+    {value: '2 Months', id: 'period2'},
+    {value: '3 Months', id: 'period3'},
+    {value: '6 Months', id: 'period4'},
+    {value: '1 Year', id: 'period5'},
+    {value: '2 Years', id: 'period6'},
+    {value: '3 Years', id: 'period7'},
+    {value: '4 Years', id: 'period8'},
   ];
 
   const formatAmount = amount => {
-    return parseFloat(amount).toLocaleString(undefined, {
+    return amount.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
   };
 
   const handleAmountChange = text => {
+    // Remove non-numeric characters
     const cleanedText = text.replace(/[^0-9]/g, '');
     setLockAmount(cleanedText);
   };
 
-  const getLockEndDate = () => {
-    const selected = periods.find(p => p.value === selectedPeriod);
-    if (!selected) return null;
-
-    return dayjs().add(selected.months, 'month').format('YYYY-MM-DD');
-  };
-
-  const handleLockFunds = async () => {
-    if (!lockAmount || !selectedPeriod) return;
-
-    const amount = parseInt(lockAmount, 10);
-    const date = getLockEndDate();
-    const payload = { amount, date };
-
-    try {
-      setLoading(true);
-      const result = await acctAPI.buy(payload);
-
-      if (result.success) {
-        Alert.alert('Success', 'Funds locked successfully!');
-        navigation.navigate('SaveEarn', {
-          lockedAmount: amount,
-          lockPeriod: selectedPeriod,
-        });
-      } else {
-        Alert.alert('Error', result.error || 'Something went wrong.');
-      }
-    } catch (e) {
-      Alert.alert('Error', 'An unexpected error occurred.');
-    } finally {
-      setLoading(false);
+  const handleLockFunds = () => {
+    if (lockAmount && selectedPeriod) {
+      // Logic to lock funds
+      navigation.navigate('SaveEarn', {
+        lockedAmount: lockAmount,
+        lockPeriod: selectedPeriod,
+      });
     }
   };
 
@@ -126,6 +105,7 @@ const LockFunds = () => {
           Deposits are subject to a lock period
         </Text>
         <View className="bg-[#3C3ADD21] p-4 rounded-xl mb-8">
+          {/* First Row - 4 periods */}
           <View className="flex-row justify-between mb-3">
             {periods.slice(0, 4).map(period => (
               <TouchableOpacity
@@ -145,6 +125,8 @@ const LockFunds = () => {
               </TouchableOpacity>
             ))}
           </View>
+
+          {/* Second Row - 4 periods */}
           <View className="flex-row justify-between">
             {periods.slice(4, 8).map(period => (
               <TouchableOpacity
@@ -172,10 +154,8 @@ const LockFunds = () => {
             lockAmount && selectedPeriod ? 'bg-gray-900' : 'bg-gray-400'
           }`}
           onPress={handleLockFunds}
-          disabled={!lockAmount || !selectedPeriod || loading}>
-          <Text className="text-white font-semibold text-base">
-            {loading ? 'Locking...' : 'Lock'}
-          </Text>
+          disabled={!lockAmount || !selectedPeriod}>
+          <Text className="text-white font-semibold text-base">Lock</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

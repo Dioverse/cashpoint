@@ -64,7 +64,7 @@ const CreatePinScreen = () => {
 
       if (response.status) {
         Alert.alert('Success', 'Your PIN has been created successfully', [
-          { text: 'OK', onPress: () => navigation.navigate('Dashboard') },
+          { text: 'OK', onPress: () => navigation.navigate('Login') },
         ]);
       } else {
         Alert.alert('Error', response.error || 'Failed to create PIN');

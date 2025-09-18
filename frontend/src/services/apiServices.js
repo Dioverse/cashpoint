@@ -165,6 +165,24 @@ resendOTP: async (email) => {
   },
 };
 
+
+
+
+
+// Lock APIs
+export const acctAPI = {
+
+  buy: async (lockData) => {
+    try {
+      const response = await api.post('/payout/lock', lockData);
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.message };
+    }
+  },
+
+};
+
 // Giftcard APIs
 export const giftcardAPI = {
   sell: async (giftcardData) => {

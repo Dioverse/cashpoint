@@ -14,12 +14,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-import { cryptoAPI, vtuAPI } from '../services/apiServices';
+import { cryptoAPI, giftcardAPI, vtuAPI } from '../services/apiServices';
 // import { vtuAPI } from '../api/vtuAPI'; // adjust path as needed
 // import { cryptoAPI } from '../api/cryptoAPI'; // adjust path as needed
 
 // Tabs
-const tabs = ['Airtime', 'Wallet', 'Data', 'Giftcard', 'Crypto'];
+const tabs = ['Airtime', 'Data', 'Giftcard', 'Crypto'];
+// const tabs = ['Airtime', 'Wallet', 'Data', 'Giftcard', 'Crypto'];
 
 const TransactionHistoriesScreen = () => {
   const navigation = useNavigation();
@@ -53,8 +54,7 @@ const TransactionHistoriesScreen = () => {
           response = { success: true, data: { results: { data: [] } } };
           break;
         case 'Giftcard':
-          // TO-DO: Replace with actual giftcard endpoint
-          response = { success: true, data: { results: { data: [] } } };
+          response = await giftcardAPI.getHistory();
           break;
         default:
           response = { success: true, data: { results: { data: [] } } };
@@ -80,9 +80,18 @@ const TransactionHistoriesScreen = () => {
   const renderTransaction = ({ item }) => (
     <View style={styles.transactionCard}>
       <Image
-        source={require('../assets/images/mtn2.png')} // optionally dynamic per tab/type
-        style={styles.transactionImage}
-      />
+  source={
+    activeTab === 'Crypto'
+      ? item.crypto_id === 1
+        ? require('../assets/images/btc_logo.png')
+        : item.crypto_id === 2
+        ? require('../assets/images/usdt_logo.png')
+        : require('../assets/images/1.png') // fallback/default
+      : require('../assets/images/1.png')
+  }
+  style={styles.transactionImage}
+/>
+
       <View style={{ flex: 1 }}>
         <Text style={styles.transactionTitle}>
           {activeTab === 'Crypto'

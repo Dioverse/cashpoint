@@ -80,15 +80,15 @@ const CustomSelect = ({ options, onValueChange, selectedValue, placeholder, disa
 
 const SellGiftCardScreen = () => {
   const navigation = useNavigation();
-  const [giftCard, setGiftCard] = useState(''); // Stores the selected gift card NAME (e.g., "Amazon")
+  const [giftCard, setGiftCard] = useState(''); 
   const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
   const [images, setImages] = useState([]);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingTypes, setIsFetchingTypes] = useState(true);
-  const [fetchedGiftCardTypes, setFetchedGiftCardTypes] = useState([]); // Stores names for CustomSelect
-  const [giftCardRatesMap, setGiftCardRatesMap] = useState({}); // Stores name -> rate mapping
+  const [fetchedGiftCardTypes, setFetchedGiftCardTypes] = useState([]); 
+  const [giftCardRatesMap, setGiftCardRatesMap] = useState({}); 
 
   const zoomAnim = useRef(new Animated.Value(0)).current;
 
@@ -124,13 +124,12 @@ const SellGiftCardScreen = () => {
         if (result.success && result.data && result.data.results && result.data.results.data) {
           const types = result.data.results.data.map(item => item.name);
           setFetchedGiftCardTypes(types);
-
+          
           const newRatesMap = {};
           result.data.results.data.forEach(item => {
             newRatesMap[item.name] = item.rate;
           });
           setGiftCardRatesMap(newRatesMap);
-
         } else {
           Alert.alert('Error', result.error || 'Failed to fetch gift card types.');
         }
@@ -195,16 +194,11 @@ const SellGiftCardScreen = () => {
         }
       });
 
-      // --- START: Debugging Logs ---
       console.log('--- Submitting Sell Gift Card Form ---');
       console.log('Gift Card (card_type):', giftCard);
       console.log('Category:', category);
       console.log('Amount:', amount);
       console.log('Number of Images:', images.length);
-      // You can also iterate formData entries if needed for deeper inspection
-      // for (let pair of formData.entries()) {
-      //   console.log(pair[0]+ ': ' + pair[1]);
-      // }
       console.log('--- End Debugging Logs ---');
 
       const result = await giftcardAPI.sell(formData);
@@ -262,8 +256,6 @@ const SellGiftCardScreen = () => {
             <Text style={styles.headerText}>Sell Gift Card</Text>
           </View>
         </View>
-        <View style={styles.formSectionWrapper}>
-        </View>
         <View style={styles.formSection}>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 100 }}>
             {/* Gift Card */}
@@ -285,6 +277,7 @@ const SellGiftCardScreen = () => {
               )}
               {errors.giftCard && <Text style={styles.errorText}>{errors.giftCard}</Text>}
             </View>
+
             {/* Category */}
             <View style={{ marginBottom: 25, zIndex: 2 }}>
               <Text style={styles.label}>Category</Text>
@@ -297,6 +290,7 @@ const SellGiftCardScreen = () => {
               />
               {errors.category && <Text style={styles.errorText}>{errors.category}</Text>}
             </View>
+
             {/* Amount */}
             <View style={{ marginBottom: 25, zIndex: 1 }}>
               <Text style={styles.label}>Amount</Text>
@@ -314,8 +308,9 @@ const SellGiftCardScreen = () => {
               />
               {errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
             </View>
+
             {/* You’re Getting */}
-            <View style={{ backgroundColor: '#3432a830', padding: 12, borderRadius: 8,marginBottom: 25 }}>
+            <View style={{ backgroundColor: '#3432a830', padding: 12, borderRadius: 8, marginBottom: 25 }}>
               <Text style={styles.label}>You’re Getting</Text>
               <View style={styles.input}>
                 <Text style={styles.valueText}>
@@ -323,17 +318,17 @@ const SellGiftCardScreen = () => {
                 </Text>
               </View>
             </View>
+
             {/* Upload Gift Card Image(s) */}
             <View style={{ marginBottom: 25 }}>
               <Text style={styles.label}>Upload Gift Card Image(s)</Text>
               <TouchableOpacity
-                className='flex-row justify-between'
                 onPress={handleImageUpload}
-                style={[styles.input, { justifyContent: 'space-between', alignItems: 'center',backgroundColor: '#3432a830' }]}
+                style={[styles.input, { justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#3432a830' }]}
                 disabled={isLoading}
               >
                 <Text style={{ color: '#6B7280' }}>Click here to upload image(s)</Text>
-                <CameraIcon size={20}/>
+                <CameraIcon size={20} />
               </TouchableOpacity>
               <ScrollView horizontal style={{ marginTop: 10 }}>
                 {images.map((img, idx) => (
@@ -346,6 +341,7 @@ const SellGiftCardScreen = () => {
               </ScrollView>
               {errors.images && <Text style={styles.errorText}>{errors.images}</Text>}
             </View>
+
             {/* Submit */}
             <TouchableOpacity
               onPress={handleSubmit}

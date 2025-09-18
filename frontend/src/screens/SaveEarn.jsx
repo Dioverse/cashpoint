@@ -8,6 +8,7 @@ import {
   ChevronRightIcon,
 } from 'react-native-heroicons/outline';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import { useAuth } from '../context/AuthContext';
 
 const SaveEarn = () => {
   const navigation = useNavigation();
@@ -36,6 +37,11 @@ const SaveEarn = () => {
     timesSaved: 2.0,
     interestRate: 2.5,
   };
+
+
+  const { user } = useAuth();
+    const totalBalance = 105000.0;
+    const totalBalanced = user.wallet_naira;
 
   const formatAmount = amount => {
     return amount.toLocaleString(undefined, {
