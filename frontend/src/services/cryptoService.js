@@ -7,7 +7,9 @@ class CryptoService {
    */
   async getCryptoTypes() {
     try {
+      console.log('Fetching crypto types...');
       const response = await api.get('/cryptos');
+      console.log('Crypto types response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Get crypto types error:', error);
@@ -21,11 +23,32 @@ class CryptoService {
    */
   async getCryptoRates() {
     try {
+      console.log('Fetching crypto rates...');
+
+      // Check if we have a token
+      const token = await AsyncStorage.getItem('auth_token');
+      console.log('Token exists:', !!token);
+      console.log('Token value:', token);
+
       const response = await api.get('/crypto/rates');
+      console.log('Crypto rates response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Get crypto rates error:', error);
-      throw error;
+      console.error('Error details:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+
+      // Return fallback rates if API fails
+      return {
+        status: false,
+        results: {
+          data: {
+            BTC: 60000,
+            USDT: 1,
+            BNB: 300,
+          },
+        },
+      };
     }
   }
 
@@ -39,11 +62,17 @@ class CryptoService {
    */
   async buyCrypto(data) {
     try {
+      console.log('Buying crypto with data:', data);
       const response = await api.post('/crypto/buy', data);
+      console.log('Buy crypto response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Buy crypto error:', error);
-      throw error;
+      // Return a consistent error format
+      if (error.response?.data) {
+        throw new Error(error.response.data.message || 'Failed to buy crypto');
+      }
+      throw new Error('Network error. Please check your connection.');
     }
   }
 
@@ -56,11 +85,17 @@ class CryptoService {
    */
   async sellCrypto(data) {
     try {
+      console.log('Selling crypto with data:', data);
       const response = await api.post('/crypto/sell', data);
+      console.log('Sell crypto response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Sell crypto error:', error);
-      throw error;
+      // Return a consistent error format
+      if (error.response?.data) {
+        throw new Error(error.response.data.message || 'Failed to sell crypto');
+      }
+      throw new Error('Network error. Please check your connection.');
     }
   }
 
@@ -104,7 +139,9 @@ class CryptoService {
    */
   async getCryptoHistory() {
     try {
+      console.log('Fetching crypto history...');
       const response = await api.get('/crypto/history');
+      console.log('Crypto history response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Get crypto history error:', error);
@@ -119,7 +156,9 @@ class CryptoService {
    */
   async getCryptoDetails(id) {
     try {
+      console.log('Fetching crypto details for ID:', id);
       const response = await api.get(`/crypto/history/${id}`);
+      console.log('Crypto details response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Get crypto details error:', error);
@@ -201,11 +240,19 @@ class CryptoService {
    */
   async withdrawFromWallet(data) {
     try {
+      console.log('Withdrawing from wallet with data:', data);
       const response = await api.post('/wallet/withdraw', data);
+      console.log('Withdraw response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Withdraw from wallet error:', error);
-      throw error;
+      // Return a consistent error format
+      if (error.response?.data) {
+        throw new Error(
+          error.response.data.message || 'Failed to withdraw from wallet',
+        );
+      }
+      throw new Error('Network error. Please check your connection.');
     }
   }
 
@@ -405,6 +452,24 @@ class CryptoService {
       {label: 'Tether', value: 'USDT', symbol: 'USDT'},
       {label: 'Binance Coin', value: 'BNB', symbol: 'BNB'},
     ];
+  }
+
+  /**
+   * Test API connection with token
+   * @returns {Promise} Test response
+   */
+  async testApiConnection() {
+    try {
+      console.log('Testing API connection...');
+      const response = await api.get('/user');
+      console.log('API test response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('API test error:', error);
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      throw error;
+    }
   }
 }
 

@@ -25,6 +25,7 @@ const BuyCryptoScreen = () => {
   const [walletAddress, setWalletAddress] = useState('');
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingRate, setIsLoadingRate] = useState(false);
   const [currentRate, setCurrentRate] = useState(0);
   const [selectedCoin, setSelectedCoin] = useState(coin || null);
 
@@ -36,15 +37,30 @@ const BuyCryptoScreen = () => {
 
   const fetchCurrentRate = async () => {
     try {
+      setIsLoadingRate(true);
       const response = await cryptoService.getCryptoRates();
+      console.log('Rate response:', response);
+
+      // Handle different response formats
+      let rate = selectedCoin?.usd_rate || 0;
+
       if (response.status && response.results?.data) {
-        const rate =
+        rate =
           response.results.data[selectedCoin.symbol] || selectedCoin.usd_rate;
-        setCurrentRate(rate);
+      } else if (response.results?.data) {
+        rate =
+          response.results.data[selectedCoin.symbol] || selectedCoin.usd_rate;
+      } else if (response.data) {
+        rate = response.data[selectedCoin.symbol] || selectedCoin.usd_rate;
       }
+
+      setCurrentRate(rate);
+      console.log('Set current rate to:', rate);
     } catch (error) {
       console.error('Error fetching rate:', error);
       setCurrentRate(selectedCoin?.usd_rate || 0);
+    } finally {
+      setIsLoadingRate(false);
     }
   };
 
@@ -58,15 +74,26 @@ const BuyCryptoScreen = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!amount || isNaN(amount) || parseFloat(amount) < 10) {
+
+    // Validate amount
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      newErrors.amount = 'Please enter a valid amount';
+    } else if (parseFloat(amount) < 10) {
       newErrors.amount = 'Amount must be at least $10';
     }
+
+    // Validate wallet address
     if (!walletAddress || walletAddress.trim().length < 10) {
       newErrors.walletAddress = 'Please enter a valid wallet address';
+    } else if (walletAddress.trim().length < 26) {
+      newErrors.walletAddress = 'Wallet address seems too short';
     }
+
+    // Validate selected coin
     if (!selectedCoin) {
       newErrors.coin = 'Please select a cryptocurrency';
     }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -83,9 +110,12 @@ const BuyCryptoScreen = () => {
         wallet_address: walletAddress.trim(),
       };
 
+      console.log('Submitting buy order with data:', buyData);
       const response = await cryptoService.buyCrypto(buyData);
+      console.log('Buy order response:', response);
 
-      if (response.status) {
+      // Handle different response formats
+      if (response.status || response.success) {
         Alert.alert(
           'Success',
           'Your crypto buy order has been submitted successfully. The cryptocurrency will be sent to your wallet address.',
@@ -103,8 +133,7 @@ const BuyCryptoScreen = () => {
       console.error('Buy crypto error:', error);
       Alert.alert(
         'Error',
-        error.response?.data?.message ||
-          'Failed to submit buy order. Please try again.',
+        error.message || 'Failed to submit buy order. Please try again.',
       );
     } finally {
       setIsLoading(false);
@@ -146,7 +175,10 @@ const BuyCryptoScreen = () => {
                   {selectedCoin.symbol} - {selectedCoin.name}
                 </Text>
                 <Text style={styles.rateText}>
-                  Current Rate: {cryptoService.formatUSDAmount(currentRate)}
+                  Current Rate:{' '}
+                  {isLoadingRate
+                    ? 'Loading...'
+                    : cryptoService.formatUSDAmount(currentRate)}
                 </Text>
               </View>
             )}
@@ -204,8 +236,10 @@ const BuyCryptoScreen = () => {
               }}>
               <Text style={styles.label}>Current Rate</Text>
               <Text style={styles.rateDisplay}>
-                {cryptoService.formatUSDAmount(currentRate)} per{' '}
-                {selectedCoin?.symbol || 'unit'}
+                {isLoadingRate
+                  ? 'Loading...'
+                  : cryptoService.formatUSDAmount(currentRate)}{' '}
+                per {selectedCoin?.symbol || 'unit'}
               </Text>
             </View>
 

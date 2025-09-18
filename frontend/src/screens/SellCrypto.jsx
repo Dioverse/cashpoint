@@ -25,6 +25,7 @@ const SellCryptoScreen = () => {
   const [creditRate, setCreditRate] = useState('');
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingRate, setIsLoadingRate] = useState(false);
   const [currentRate, setCurrentRate] = useState(0);
   const [selectedCoin, setSelectedCoin] = useState(coin || null);
 
@@ -36,17 +37,33 @@ const SellCryptoScreen = () => {
 
   const fetchCurrentRate = async () => {
     try {
+      setIsLoadingRate(true);
       const response = await cryptoService.getCryptoRates();
+      console.log('Rate response:', response);
+
+      // Handle different response formats
+      let rate = selectedCoin?.usd_rate || 0;
+
       if (response.status && response.results?.data) {
-        const rate =
+        rate =
           response.results.data[selectedCoin.symbol] || selectedCoin.usd_rate;
-        setCurrentRate(rate);
-        setCreditRate(rate.toString());
+      } else if (response.results?.data) {
+        rate =
+          response.results.data[selectedCoin.symbol] || selectedCoin.usd_rate;
+      } else if (response.data) {
+        rate = response.data[selectedCoin.symbol] || selectedCoin.usd_rate;
       }
+
+      setCurrentRate(rate);
+      setCreditRate(rate.toString());
+      console.log('Set current rate to:', rate);
     } catch (error) {
       console.error('Error fetching rate:', error);
-      setCurrentRate(selectedCoin?.usd_rate || 0);
-      setCreditRate((selectedCoin?.usd_rate || 0).toString());
+      const fallbackRate = selectedCoin?.usd_rate || 0;
+      setCurrentRate(fallbackRate);
+      setCreditRate(fallbackRate.toString());
+    } finally {
+      setIsLoadingRate(false);
     }
   };
 
@@ -61,12 +78,19 @@ const SellCryptoScreen = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!amount || isNaN(amount) || parseFloat(amount) < 0.001) {
-      newErrors.amount = 'Enter valid amount (minimum 0.001)';
+
+    // Validate amount
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      newErrors.amount = 'Please enter a valid amount';
+    } else if (parseFloat(amount) < 0.001) {
+      newErrors.amount = 'Amount must be at least 0.001';
     }
+
+    // Validate selected coin
     if (!selectedCoin) {
       newErrors.coin = 'Please select a cryptocurrency';
     }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -82,9 +106,12 @@ const SellCryptoScreen = () => {
         amount_crypto: parseFloat(amount),
       };
 
+      console.log('Submitting sell order with data:', sellData);
       const response = await cryptoService.sellCrypto(sellData);
+      console.log('Sell order response:', response);
 
-      if (response.status) {
+      // Handle different response formats
+      if (response.status || response.success) {
         Alert.alert(
           'Success',
           "Your crypto sell order has been submitted successfully. You will be notified when it's processed.",
@@ -102,8 +129,7 @@ const SellCryptoScreen = () => {
       console.error('Sell crypto error:', error);
       Alert.alert(
         'Error',
-        error.response?.data?.message ||
-          'Failed to submit sell order. Please try again.',
+        error.message || 'Failed to submit sell order. Please try again.',
       );
     } finally {
       setIsLoading(false);
@@ -145,7 +171,10 @@ const SellCryptoScreen = () => {
                   {selectedCoin.symbol} - {selectedCoin.name}
                 </Text>
                 <Text style={styles.rateText}>
-                  Current Rate: {cryptoService.formatUSDAmount(currentRate)}
+                  Current Rate:{' '}
+                  {isLoadingRate
+                    ? 'Loading...'
+                    : cryptoService.formatUSDAmount(currentRate)}
                 </Text>
               </View>
             )}
@@ -183,8 +212,10 @@ const SellCryptoScreen = () => {
               }}>
               <Text style={styles.label}>Current Rate</Text>
               <Text style={styles.rateDisplay}>
-                {cryptoService.formatUSDAmount(currentRate)} per{' '}
-                {selectedCoin?.symbol || 'unit'}
+                {isLoadingRate
+                  ? 'Loading...'
+                  : cryptoService.formatUSDAmount(currentRate)}{' '}
+                per {selectedCoin?.symbol || 'unit'}
               </Text>
             </View>
 
