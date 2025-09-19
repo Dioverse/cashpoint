@@ -53,17 +53,17 @@ class CryptoService {
   }
 
   /**
-   * Buy crypto
+   * Buy crypto using wallet withdraw
    * @param {Object} data - Buy data
-   * @param {number} data.crypto_id - Crypto ID
-   * @param {number} data.amount_usd - Amount in USD
-   * @param {string} data.wallet_address - Wallet address
+   * @param {string} data.coin - Coin type (BTC, USDT, BNB)
+   * @param {string} data.to_address - Destination wallet address
+   * @param {number} data.amount - Amount to buy
    * @returns {Promise} API response
    */
   async buyCrypto(data) {
     try {
       console.log('Buying crypto with data:', data);
-      const response = await api.post('/crypto/buy', data);
+      const response = await api.post('/wallet/withdraw', data);
       console.log('Buy crypto response:', response.data);
       return response.data;
     } catch (error) {
@@ -77,25 +77,123 @@ class CryptoService {
   }
 
   /**
-   * Sell crypto
+   * Complete buy crypto flow - Withdraw from wallet
+   * @param {Object} data - Buy data
+   * @param {string} data.coin - Coin type (BTC, USDT, BNB)
+   * @param {string} data.to_address - Destination wallet address
+   * @param {number} data.amount - Amount to buy
+   * @returns {Promise} API response
+   */
+  async completeBuyCryptoFlow(data) {
+    try {
+      console.log('Starting complete buy crypto flow with data:', data);
+
+      // Validate the data first
+      const validation = this.validateBuyData(data);
+      if (!validation.isValid) {
+        throw new Error(
+          `Validation failed: ${Object.values(validation.errors).join(', ')}`,
+        );
+      }
+
+      // Check wallet balance before proceeding
+      const balanceCheck = await this.checkWalletBalance(data.coin);
+      if (!balanceCheck.success || balanceCheck.balance < data.amount) {
+        throw new Error(
+          `Insufficient balance. Available: ${balanceCheck.balance} ${data.coin}, Required: ${data.amount} ${data.coin}`,
+        );
+      }
+
+      // Execute the buy
+      const response = await this.buyCrypto(data);
+      console.log('Buy crypto completed:', response);
+
+      return {
+        success: true,
+        transaction: response,
+        message: `Successfully initiated ${data.amount} ${data.coin} withdrawal to ${data.to_address}`,
+      };
+    } catch (error) {
+      console.error('Complete buy crypto flow error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Sell crypto - Step 1: Create wallet address
    * @param {Object} data - Sell data
-   * @param {number} data.crypto_id - Crypto ID
-   * @param {number} data.amount_crypto - Amount of crypto to sell
+   * @param {string} data.coin - Coin type (BTC, USDT, BNB)
    * @returns {Promise} API response
    */
   async sellCrypto(data) {
     try {
-      console.log('Selling crypto with data:', data);
-      const response = await api.post('/crypto/sell', data);
-      console.log('Sell crypto response:', response.data);
+      console.log('Creating wallet for crypto sell with data:', data);
+      const response = await api.post('/wallet/create', data);
+      console.log('Create wallet for sell response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Sell crypto error:', error);
+      console.error('Create wallet for sell error:', error);
       // Return a consistent error format
       if (error.response?.data) {
-        throw new Error(error.response.data.message || 'Failed to sell crypto');
+        throw new Error(
+          error.response.data.message || 'Failed to create wallet for sell',
+        );
       }
       throw new Error('Network error. Please check your connection.');
+    }
+  }
+
+  /**
+   * Get deposit address for selling crypto - Step 2
+   * @param {Object} data - Deposit data
+   * @param {string} data.coin - Coin type
+   * @returns {Promise} API response
+   */
+  async getSellDepositAddress(data) {
+    try {
+      console.log('Getting deposit address for sell with data:', data);
+      const response = await api.post('/wallet/deposit', data);
+      console.log('Get deposit address response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Get deposit address error:', error);
+      // Return a consistent error format
+      if (error.response?.data) {
+        throw new Error(
+          error.response.data.message || 'Failed to get deposit address',
+        );
+      }
+      throw new Error('Network error. Please check your connection.');
+    }
+  }
+
+  /**
+   * Complete sell crypto flow - Create wallet and get deposit address
+   * @param {Object} data - Sell data
+   * @param {string} data.coin - Coin type (BTC, USDT, BNB)
+   * @returns {Promise} API response with wallet and deposit address
+   */
+  async completeSellCryptoFlow(data) {
+    try {
+      console.log('Starting complete sell crypto flow with data:', data);
+
+      // Step 1: Create wallet
+      const walletResponse = await this.sellCrypto(data);
+      console.log('Wallet created:', walletResponse);
+
+      // Step 2: Get deposit address
+      const depositResponse = await this.getSellDepositAddress(data);
+      console.log('Deposit address received:', depositResponse);
+
+      return {
+        success: true,
+        wallet: walletResponse,
+        depositAddress: depositResponse,
+        message: `Send ${data.coin} to the provided address to complete your sell order`,
+      };
+    } catch (error) {
+      console.error('Complete sell crypto flow error:', error);
+      throw error;
     }
   }
 
@@ -271,6 +369,40 @@ class CryptoService {
   }
 
   /**
+   * Check wallet balance for a specific coin
+   * @param {string} coin - Coin type to check balance for
+   * @returns {Promise} API response with wallet balance
+   */
+  async checkWalletBalance(coin) {
+    try {
+      console.log('Checking wallet balance for coin:', coin);
+      const response = await api.get('/wallet/transactions');
+      const wallets = response.data;
+
+      // Find the wallet for the specific coin
+      const wallet = wallets.find(w => w.coin === coin.toUpperCase());
+
+      if (!wallet) {
+        return {
+          success: false,
+          balance: 0,
+          message: `No wallet found for ${coin}`,
+        };
+      }
+
+      return {
+        success: true,
+        balance: wallet.balance || 0,
+        wallet: wallet,
+        message: `Balance for ${coin}: ${wallet.balance || 0}`,
+      };
+    } catch (error) {
+      console.error('Check wallet balance error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Validate crypto buy data
    * @param {Object} data - Buy data to validate
    * @returns {Object} Validation result
@@ -278,14 +410,14 @@ class CryptoService {
   validateBuyData(data) {
     const errors = {};
 
-    if (!data.crypto_id) {
-      errors.crypto_id = 'Please select a cryptocurrency';
+    if (!data.coin) {
+      errors.coin = 'Please select a cryptocurrency';
     }
-    if (!data.amount_usd || data.amount_usd < 10) {
-      errors.amount_usd = 'Amount must be at least $10';
+    if (!data.to_address) {
+      errors.to_address = 'Destination wallet address is required';
     }
-    if (!data.wallet_address) {
-      errors.wallet_address = 'Wallet address is required';
+    if (!data.amount || data.amount < 0.0001) {
+      errors.amount = 'Amount must be at least 0.0001';
     }
 
     return {
@@ -302,11 +434,8 @@ class CryptoService {
   validateSellData(data) {
     const errors = {};
 
-    if (!data.crypto_id) {
-      errors.crypto_id = 'Please select a cryptocurrency';
-    }
-    if (!data.amount_crypto || data.amount_crypto < 0.001) {
-      errors.amount_crypto = 'Amount must be at least 0.001';
+    if (!data.coin) {
+      errors.coin = 'Please select a cryptocurrency';
     }
 
     return {
@@ -452,6 +581,56 @@ class CryptoService {
       {label: 'Tether', value: 'USDT', symbol: 'USDT'},
       {label: 'Binance Coin', value: 'BNB', symbol: 'BNB'},
     ];
+  }
+
+  /**
+   * Get all wallet information
+   * @returns {Promise} API response with all wallets
+   */
+  async getAllWallets() {
+    try {
+      console.log('Getting all wallets...');
+      const response = await api.get('/wallet/transactions');
+      console.log('All wallets response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Get all wallets error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get wallet summary with balances for all coins
+   * @returns {Promise} API response with wallet summary
+   */
+  async getWalletSummary() {
+    try {
+      console.log('Getting wallet summary...');
+      const wallets = await this.getAllWallets();
+
+      const summary = {
+        totalWallets: wallets.length,
+        wallets: wallets.map(wallet => ({
+          coin: wallet.coin,
+          balance: wallet.balance || 0,
+          address: wallet.address,
+          createdAt: wallet.created_at,
+        })),
+        totalBalance: wallets.reduce(
+          (sum, wallet) => sum + (wallet.balance || 0),
+          0,
+        ),
+      };
+
+      return {
+        success: true,
+        summary: summary,
+        message: `Found ${summary.totalWallets} wallets with total balance of ${summary.totalBalance}`,
+      };
+    } catch (error) {
+      console.error('Get wallet summary error:', error);
+      throw error;
+    }
   }
 
   /**
