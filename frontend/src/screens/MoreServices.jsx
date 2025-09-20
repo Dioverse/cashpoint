@@ -58,11 +58,11 @@ const MoreServices = () => {
       icon: <GiftIcon size={20} color="black" />,
       onPress: () => navigation.navigate('BuyGiftCard'),
     },
-    {
-      title: 'Betting',
-      icon: <TrophyIcon size={20} color="black" />,
-      onPress: () => navigation.navigate('BettingPurchase'),
-    },
+    // {
+    //   title: 'Betting',
+    //   icon: <TrophyIcon size={20} color="black" />,
+    //   onPress: () => navigation.navigate('BettingPurchase'),
+    // },
     {
       title: 'Gift User',
       icon: <UserIcon size={20} color="black" />,
@@ -93,11 +93,11 @@ const MoreServices = () => {
       icon: <AcademicCapIcon size={20} color="black" />,
       onPress: () => navigation.navigate('EducationPIN'),
     },
-    {
-      title: 'Airtime Swap',
-      icon: <ArrowPathIcon size={20} color="black" />,
-      onPress: () => navigation.navigate('AirtimeSwap'),
-    },
+    // {
+    //   title: 'Airtime Swap',
+    //   icon: <ArrowPathIcon size={20} color="black" />,
+    //   onPress: () => navigation.navigate('AirtimeSwap'),
+    // },
     {
       title: 'Save & Earn',
       icon: <CreditCardIcon size={20} color="black" />,

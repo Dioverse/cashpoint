@@ -162,7 +162,7 @@ function ProfileScreen() {
             isPersonIcon={false}
             // onPress={() => navigation.navigate('BankAccounts')}
             onPress={() =>
-              navigation.navigate('MoreServices', {screen: 'BankAccounts'})
+              navigation.navigate('MoreServices', {screen: 'Withdrawal'})
             }
           />
         </View>

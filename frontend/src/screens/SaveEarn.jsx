@@ -14,6 +14,10 @@ const SaveEarn = () => {
   const navigation = useNavigation();
   const [isAmountVisible, setIsAmountVisible] = useState(true);
 
+  const { user } = useAuth();
+    const totalBalance = 105000.0;
+    const totalBalanced = user.wallet_naira;
+
   // Mock transaction data
   const transactions = [
     {
@@ -32,16 +36,15 @@ const SaveEarn = () => {
 
   // Mock statistics data
   const statistics = {
-    totalSaved: 105000.0,
+    totalAcct: totalBalanced,
+    // totalSaved: 105000.0,
     totalInterest: 5000.0,
     timesSaved: 2.0,
     interestRate: 2.5,
   };
 
 
-  const { user } = useAuth();
-    const totalBalance = 105000.0;
-    const totalBalanced = user.wallet_naira;
+  
 
   const formatAmount = amount => {
     return amount.toLocaleString(undefined, {
@@ -76,7 +79,7 @@ const SaveEarn = () => {
         <View className="flex-row justify-center items-center gap-x-2">
           <Text className="text-white text-5xl font-bold">
             {isAmountVisible
-              ? `₦${formatAmount(statistics.totalSaved)}`
+              ? `₦${formatAmount(statistics.totalAcct)}`
               : '₦••••••••'}
           </Text>
           <TouchableOpacity

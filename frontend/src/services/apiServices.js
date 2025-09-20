@@ -1,4 +1,6 @@
+import axios from 'axios';
 import api from './api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Authentication APIs
 export const authAPI = {
@@ -185,15 +187,83 @@ export const acctAPI = {
 
 // Giftcard APIs
 export const giftcardAPI = {
-  sell: async (giftcardData) => {
+//  sell: async (giftcardData) => {
+//     try {
+//       // Use axios directly to override the default headers from `api.js`
+//       const token = await AsyncStorage.getItem('auth_token');
+
+//       // Fallback if token not found
+//       const finalToken = token || 'rHJnHSkn8wPU46Exxrr5MZXhnq80KFjlYTvNscx96b8f6ff0';
+
+//       const response = await axios.post(
+//         'https://cashpoint.deovaze.com/api/giftcard/sell',
+//         giftcardData,
+//         {
+//           headers: {
+//             Accept: 'application/json',
+//             Authorization: `Bearer ${finalToken}`,
+//             // DO NOT set 'Content-Type' manually!
+//             // Let Axios handle it when FormData is passed
+//           },
+//         }
+//       );
+
+//       return { success: true, data: response.data };
+//     } catch (error) {
+//       return {
+//         success: false,
+//         error: error.response?.data?.message || 'Something went wrong',
+//         data: error.response?.data || {},
+//       };
+//     }
+//   },
+
+
+sell: async (giftcardData) => {
     try {
-      const response = await api.post('/giftcard/sell', giftcardData);
+      const token = await AsyncStorage.getItem('auth_token');
+      const finalToken = token || 'rHJnHSkn8wPU46Exxrr5MZXhnq80KFjlYTvNscx96b8f6ff0';
+
+      const response = await axios.post(
+        'https://cashpoint.deovaze.com/api/giftcard/sell',
+        giftcardData,
+        {
+          // headers: {
+          //   Accept: 'application/json',
+          //   Content-Type: 'application/json',
+          //   Authorization: `Bearer ${finalToken}`,
+          // },
+          headers: {
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${finalToken}`,
+        },
+        }
+      );
+
       return { success: true, data: response.data };
     } catch (error) {
-      return { success: false, error: error.response?.data?.message };
+      // 🔥 FULL ERROR LOGGING
+      console.error('🔥 Full Axios Error:', error);
+      if (error.response) {
+        console.error('❌ Response Data:', error.response.data);
+        console.error('❌ Status Code:', error.response.status);
+        console.error('❌ Headers:', error.response.headers);
+      } else if (error.request) {
+        console.error('📡 No Response Received. Request:', error.request);
+      } else {
+        console.error('💥 Error in Setup:', error.message);
+      }
+
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || 'Something went wrong',
+        data: error.response?.data || {},
+      };
     }
   },
 
+  
   buy: async (giftcardData) => {
     try {
       const response = await api.post('/giftcard/buy', giftcardData);

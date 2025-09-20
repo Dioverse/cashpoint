@@ -193,13 +193,13 @@ const SellGiftCardScreen = () => {
           console.warn(`Skipping invalid image asset at index ${index}:`, image);
         }
       });
-
-      console.log('--- Submitting Sell Gift Card Form ---');
-      console.log('Gift Card (card_type):', giftCard);
-      console.log('Category:', category);
-      console.log('Amount:', amount);
-      console.log('Number of Images:', images.length);
-      console.log('--- End Debugging Logs ---');
+console.log(formData)
+      // console.log('--- Submitting Sell Gift Card Form ---');
+      // console.log('Gift Card (card_type):', giftCard);
+      // console.log('Category:', category);
+      // console.log('Amount:', amount);
+      // console.log('Number of Images:', images.length);
+      // console.log('--- End Debugging Logs ---');
 
       const result = await giftcardAPI.sell(formData);
 

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Text, View, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { Text, View, TouchableOpacity, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useAuth } from '../context/AuthContext';
@@ -18,6 +18,16 @@ const BalanceCard = ({ balance = 0, navigation }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef(null);
   const { user } = useAuth();
+
+  // 🛡️ Prevent rendering if user is null
+  if (!user) {
+    return (
+      <View className="w-full items-center justify-center py-10">
+        <ActivityIndicator size="large" color="#3C3ADD" />
+      </View>
+    );
+  }
+
   const toNumber = (val) => Number(val) || 0;
 
   const balances = [
@@ -67,8 +77,8 @@ const BalanceCard = ({ balance = 0, navigation }) => {
         scrollEventThrottle={16}
       >
         {balances.map((item, index) => (
-          <View key={index} style={{ width}} className='px-2'>
-            <View className="bg-[#3C3ADD] px-5 py-3 rounded-3xl mx-0 ml-2" style={{ width:'84%', }}>
+          <View key={index} style={{ width }} className="px-2">
+            <View className="bg-[#3C3ADD] px-5 py-3 rounded-3xl mx-0 ml-2" style={{ width: '84%' }}>
               {/* First Row */}
               <View className="flex-row items-center justify-between mb-2">
                 <View className="flex-column">
