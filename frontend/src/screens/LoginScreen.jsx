@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAuth } from '../context/AuthContext';
+// import { AntDesign } from "react-native-vector-icons";
 import {
   View,
   Text,
@@ -162,6 +163,8 @@ const LoginScreen = () => {
     const result = await authAPI.login(email, password);
 
     if (result.success) {
+      console.log(result.data);
+      // return;
       const { token } = result.data.results;
 
       console.log("Login Token:", token);
@@ -192,6 +195,7 @@ const LoginScreen = () => {
       // Store user data if needed
       if (user) {
         await AsyncStorage.setItem('user_data', JSON.stringify(user));
+        console.log(user)
       }
 
       // Handle email verification
@@ -261,6 +265,8 @@ const LoginScreen = () => {
     outputRange: [1, 1.1], // Zooms from 100% to 110%
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <SafeAreaView className="flex-1 bg-white pt-10">
       <KeyboardAvoidingView
@@ -309,7 +315,7 @@ const LoginScreen = () => {
             </View>
 
             {/* Password Input */}
-            <View className="mb-6 mt-6">
+            {/* <View className="mb-6 mt-6 flex-col relative">
               <Text className="text-base font-medium text-gray-800 mb-4">
                 Password
               </Text>
@@ -332,7 +338,61 @@ const LoginScreen = () => {
                   {errors.password}
                 </Text>
               )}
-            </View>
+            </View> */}
+              {/* <AntDesign name={'eye'} size={5}></AntDesign> */}
+
+
+
+...
+
+{/* Password Input */}
+<View className="mb-6 mt-6 flex-col relative">
+  <Text className="text-base font-medium text-gray-800 mb-4">
+    Password
+  </Text>
+  <TextInput
+    className={`h-14 border rounded-xl px-4 text-base text-black ${
+      errors.password ? 'border-red-500' : 'border-gray-300'
+    }`}
+    placeholder="Enter your password"
+    placeholderTextColor="#9CA3AF"
+    secureTextEntry={!showPassword} // toggle this!
+    value={password}
+    onChangeText={(text) => {
+      setPassword(text);
+      if (errors.password) setErrors({ ...errors, password: null });
+    }}
+    editable={!isLoading}
+  />
+  
+  {/* Eye icon button */}
+  <TouchableOpacity
+    style={{
+      position: 'absolute',
+      right: 15,
+      top: 42,
+      height: 24,
+      width: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
+    onPress={() => setShowPassword(!showPassword)}
+    disabled={isLoading}
+  >
+    <Icon
+      name={showPassword ? 'visibility' : 'visibility-off'}
+      size={24}
+      color="gray"
+    />
+  </TouchableOpacity>
+
+  {errors.password && (
+    <Text className="text-red-500 mt-1 text-sm">
+      {errors.password}
+    </Text>
+  )}
+</View>
+
 
             {/* Remember Me + Forgot Password */}
             <View className="flex-row justify-between items-center mt-2 px-2">

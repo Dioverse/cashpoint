@@ -41,15 +41,12 @@ const BuyCryptoScreen = () => {
       const response = await cryptoService.getCryptoRates();
       console.log('Rate response:', response);
 
-      // Handle different response formats
       let rate = selectedCoin?.usd_rate || 0;
 
       if (response.status && response.results?.data) {
-        rate =
-          response.results.data[selectedCoin.symbol] || selectedCoin.usd_rate;
+        rate = response.results.data[selectedCoin.symbol] || selectedCoin.usd_rate;
       } else if (response.results?.data) {
-        rate =
-          response.results.data[selectedCoin.symbol] || selectedCoin.usd_rate;
+        rate = response.results.data[selectedCoin.symbol] || selectedCoin.usd_rate;
       } else if (response.data) {
         rate = response.data[selectedCoin.symbol] || selectedCoin.usd_rate;
       }
@@ -75,21 +72,18 @@ const BuyCryptoScreen = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Validate amount
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
       newErrors.amount = 'Please enter a valid amount';
     } else if (parseFloat(amount) < 10) {
       newErrors.amount = 'Amount must be at least $10';
     }
 
-    // Validate wallet address
     if (!walletAddress || walletAddress.trim().length < 10) {
       newErrors.walletAddress = 'Please enter a valid wallet address';
     } else if (walletAddress.trim().length < 26) {
       newErrors.walletAddress = 'Wallet address seems too short';
     }
 
-    // Validate selected coin
     if (!selectedCoin) {
       newErrors.coin = 'Please select a cryptocurrency';
     }
@@ -105,17 +99,18 @@ const BuyCryptoScreen = () => {
       setIsLoading(true);
 
       const buyData = {
-        crypto_id: selectedCoin.id,
-        amount_usd: parseFloat(amount),
-        wallet_address: walletAddress.trim(),
+        coin: selectedCoin?.symbol || 'BTC',
+        to_address: walletAddress.trim(),
+        amount: parseFloat(calculateCryptoAmount()),
       };
 
       console.log('Submitting buy order with data:', buyData);
+      // return;
       const response = await cryptoService.buyCrypto(buyData);
       console.log('Buy order response:', response);
 
-      // Handle different response formats
-      if (response.status || response.success) {
+      if (response) {
+      // if (response.status || response.success) {
         Alert.alert(
           'Success',
           'Your crypto buy order has been submitted successfully. The cryptocurrency will be sent to your wallet address.',
@@ -146,7 +141,6 @@ const BuyCryptoScreen = () => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{flex: 1}}>
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Icon name="arrow-back" size={24} color="white" />
@@ -158,18 +152,10 @@ const BuyCryptoScreen = () => {
           </View>
         </View>
 
-        {/* Form */}
         <View style={styles.formWrapper}>
           <View style={styles.formSection}>
-            {/* Selected Coin Display */}
             {selectedCoin && (
-              <View
-                style={{
-                  marginBottom: 25,
-                  backgroundColor: '#f0f0f0',
-                  padding: 15,
-                  borderRadius: 8,
-                }}>
+              <View style={styles.card}>
                 <Text style={styles.label}>Selected Cryptocurrency</Text>
                 <Text style={styles.coinText}>
                   {selectedCoin.symbol} - {selectedCoin.name}
@@ -183,7 +169,6 @@ const BuyCryptoScreen = () => {
               </View>
             )}
 
-            {/* Amount in USD */}
             <View style={{marginBottom: 25}}>
               <Text style={styles.label}>Amount (USD)</Text>
               <TextInput
@@ -202,7 +187,6 @@ const BuyCryptoScreen = () => {
               )}
             </View>
 
-            {/* Wallet Address */}
             <View style={{marginBottom: 25}}>
               <Text style={styles.label}>Your Wallet Address</Text>
               <TextInput
@@ -226,14 +210,7 @@ const BuyCryptoScreen = () => {
               )}
             </View>
 
-            {/* Current Rate Display */}
-            <View
-              style={{
-                marginBottom: 25,
-                backgroundColor: '#3432a830',
-                padding: 12,
-                borderRadius: 8,
-              }}>
+            <View style={styles.card}>
               <Text style={styles.label}>Current Rate</Text>
               <Text style={styles.rateDisplay}>
                 {isLoadingRate
@@ -243,14 +220,7 @@ const BuyCryptoScreen = () => {
               </Text>
             </View>
 
-            {/* You Will Receive */}
-            <View
-              style={{
-                marginBottom: 30,
-                backgroundColor: '#3432a830',
-                padding: 12,
-                borderRadius: 8,
-              }}>
+            <View style={styles.card}>
               <Text style={styles.label}>You Will Receive</Text>
               <View style={styles.input}>
                 <Text style={styles.valueText}>
@@ -259,7 +229,6 @@ const BuyCryptoScreen = () => {
               </View>
             </View>
 
-            {/* Submit */}
             <TouchableOpacity
               onPress={handleSubmit}
               style={[
@@ -362,6 +331,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#4A4A4A',
     fontWeight: '500',
+  },
+  card: {
+    marginBottom: 25,
+    backgroundColor: '#f5f5f5',
+    padding: 12,
+    borderRadius: 8,
   },
   submitButtonDisabled: {
     backgroundColor: '#999',

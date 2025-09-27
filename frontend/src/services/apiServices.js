@@ -1,26 +1,70 @@
 import axios from 'axios';
 import api from './api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+const BASE_URL = 'https://cashpoint.deovaze.com/api';
 // Authentication APIs
 export const authAPI = {
-  login: async (email, password) => {
-    try {
-      const response = await api.post('/login', { email, password });
-      return { success: true, data: response.data };
-    } catch (error) {
-      return { success: false, error: error.response?.data?.message || 'Login failed' };
-    }
-  },
+  // login: async (email, password) => {
+  //   try {
+  //     const response = await api.post('/login', { email, password });
+  //     return { success: true, data: response.data };
+  //   } catch (error) {
+  //     return { success: false, error: error.response?.data?.message || 'Login failed' };
+  //   }
+  // },
+
+  // register: async (userData) => {
+  //   try {
+  //     const response = await api.post('/register', userData);
+  //     return { success: true, data: response.data };
+  //   } catch (error) {
+  //     return { success: false, error: error.response?.data?.message || 'Registration failed' };
+  //   }
+  // },
+
+
+ login: async (email, password) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/login`, { email, password }, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+  // Log all relevant parts
+  console.error('Login error:', {
+    message: error.message,
+    status: error.response?.status,
+    data: error.response?.data,
+    headers: error.response?.headers,
+    config: error.config,
+  });
+
+  return {
+    success: false,
+    error: error.response?.data?.message || 'Login failed',
+  };
+}
+},
+
 
   register: async (userData) => {
     try {
-      const response = await api.post('/register', userData);
+      const response = await axios.post(`${BASE_URL}/register`, userData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       return { success: true, data: response.data };
     } catch (error) {
-      return { success: false, error: error.response?.data?.message || 'Registration failed' };
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Registration failed',
+      };
     }
   },
+
 
   sendOTP: async (data) => {
     try {

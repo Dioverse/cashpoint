@@ -45,10 +45,10 @@ const Electricity = () => {
 
   const recentMeters = [
     // You can consider populating this dynamically or keep static for now
-    { number: '11111111111', providerServiceID: 'ikeja-electric' },
-    { number: '11111111111', providerServiceID: 'eko-electric' },
-    { number: '11111111111', providerServiceID: 'abuja-electric' },
-    { number: '11111111111', providerServiceID: 'kaduna-electric' },
+    // { number: '11111111111', providerServiceID: 'ikeja-electric' },
+    // { number: '11111111111', providerServiceID: 'eko-electric' },
+    // { number: '11111111111', providerServiceID: 'abuja-electric' },
+    // { number: '11111111111', providerServiceID: 'kaduna-electric' },
   ];
 
   // Fetch providers on mount
@@ -72,38 +72,73 @@ const Electricity = () => {
     fetchProviders();
   }, []);
 
-  const handleValidate = async () => {
-    if (!meterNumber || !selectedProvider) return;
+  // const handleValidate = async () => {
+  //   if (!meterNumber || !selectedProvider) return;
 
-    setIsValidating(true);
-    setValidationError(null);
-    setValidatedUser('');
-    // console.log(meterNumber)
-    // console.log(selectedProvider)
-    // console.log(variationCode)
+  //   setIsValidating(true);
+  //   setValidationError(null);
+  //   setValidatedUser('');
+  //   // console.log(meterNumber)
+  //   // console.log(selectedProvider)
+  //   // console.log(variationCode)
 
-    try {
-      const res = await vtuAPI.verifyBillNo({
-        billersCode: meterNumber,
-        serviceID: selectedProvider,
-        type: variationCode,
-      });
+  //   try {
+  //     const res = await vtuAPI.verifyBillNo({
+  //       billersCode: meterNumber,
+  //       serviceID: selectedProvider,
+  //       type: variationCode,
+  //     });
 
-      if (res.success) {
-        console.log(res)
-        const customerName = res.data?.results?.data?.content?.Customer_Name || 'Verified User';
+  //     if (res.success) {
+  //       console.log(res)
+  //       const customerName = res.data?.results?.data?.content?.Customer_Name || 'Verified User';
 
 
-        setValidatedUser(customerName);
+  //       setValidatedUser(customerName);
+  //     } else {
+  //       setValidationError(res.error || 'Validation failed. Please check meter number and provider.');
+  //     }
+  //   } catch {
+  //     setValidationError('An error occurred during validation.');
+  //   } finally {
+  //     setIsValidating(false);
+  //   }
+  // };
+const handleValidate = async () => {
+  if (!meterNumber || !selectedProvider) return;
+
+  setIsValidating(true);
+  setValidationError(null);
+  setValidatedUser('');
+
+  try {
+    const res = await vtuAPI.verifyBillNo({
+      billersCode: meterNumber,
+      serviceID: selectedProvider,
+      type: variationCode,
+    });
+
+    if (res.success) {
+      // Extract the content object safely
+      const content = res.data?.results?.data?.content;
+
+      // Check if content contains an error message or WrongBillersCode flag
+      if (content?.error || content?.WrongBillersCode) {
+        setValidationError(content.error || 'Validation failed. Please check meter number and provider.');
       } else {
-        setValidationError(res.error || 'Validation failed. Please check meter number and provider.');
+        // If no error, get the customer name or fallback
+        const customerName = content?.Customer_Name || 'Verified User';
+        setValidatedUser(customerName);
       }
-    } catch {
-      setValidationError('An error occurred during validation.');
-    } finally {
-      setIsValidating(false);
+    } else {
+      setValidationError(res.error || 'Validation failed. Please check meter number and provider.');
     }
-  };
+  } catch {
+    setValidationError('An error occurred during validation.');
+  } finally {
+    setIsValidating(false);
+  }
+};
 
   const handleProceed = async () => {
     if (!phoneNumber || !selectedProvider || !selectedAmount || !meterNumber) return;
@@ -166,7 +201,7 @@ const Electricity = () => {
   return (
     <SafeAreaView className="flex-1 bg-[#4B39EF]">
       {/* Header */}
-      <View className="flex-row items-center justify-center px-4 py-4 relative">
+      <View className="flex-row items-center justify-center px-4 py-16 relative">
         <TouchableOpacity
           className="absolute left-4 z-10"
           onPress={() => navigation.goBack()}
@@ -221,26 +256,27 @@ const Electricity = () => {
 
             {/* Provider Selection */}
             <Text className="text-gray-800 font-medium mb-3">Select Provider</Text>
-            <View className="flex-row flex-wrap justify-between mb-6">
-              {providers.map((provider) => (
-                <TouchableOpacity
-                  key={provider.id}
-                  className={`w-[18%] h-20 items-center justify-center rounded-lg bg-[#3C3ADD21] mb-2 ${
-                    selectedProvider === provider.serviceID ? 'border-2 border-[#4B39EF]' : ''
-                  }`}
-                  onPress={() => {
-                    setSelectedProvider(provider.serviceID);
-                    setValidatedUser('');
-                    setValidationError(null);
-                  }}
-                >
-                  <View className="w-12 h-12 rounded-full bg-white justify-center items-center mb-1">
-                    <Image source={getProviderIcon(provider.identifier)} className="w-8 h-8" />
-                  </View>
-                  <Text className="text-xs font-medium">{provider.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <View className="flex-row flex-wrap justify-start mb-6">
+            {providers.map((provider) => (
+              <TouchableOpacity
+                key={provider.id}
+                className={`w-[30%] h-24 px-3 py-2 items-center justify-center rounded-lg bg-[#3C3ADD21] mb-3 mr-3 ${
+                  selectedProvider === provider.serviceID ? 'border-2 border-[#4B39EF]' : ''
+                }`}
+                onPress={() => {
+                  setSelectedProvider(provider.serviceID);
+                  setValidatedUser('');
+                  setValidationError(null);
+                }}
+              >
+                <View className="w-12 h-12 rounded-full bg-white justify-center items-center mb-2">
+                  <Image source={getProviderIcon(provider.identifier)} className="w-8 h-8" />
+                </View>
+                <Text className="text-xs font-medium text-center">{provider.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
 
             {/* Variation code toggle */}
             <View className="mb-6 flex-row justify-center gap-x-4">
@@ -328,13 +364,13 @@ const Electricity = () => {
             {/* Proceed Button */}
             <TouchableOpacity
               className={`h-14 rounded-xl items-center justify-center mb-6 ${
-                phoneNumber && selectedProvider && selectedAmount && meterNumber
+                phoneNumber && selectedProvider && selectedAmount && meterNumber && validatedUser
                   ? 'bg-gray-900'
                   : 'bg-gray-400'
               }`}
               onPress={handleProceed}
               disabled={
-                !phoneNumber || !selectedProvider || !selectedAmount || !meterNumber || isProcessingPayment
+                !phoneNumber || !selectedProvider || !selectedAmount || !meterNumber || isProcessingPayment || !validatedUser
               }
             >
               {isProcessingPayment ? (

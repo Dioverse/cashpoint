@@ -4,12 +4,13 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  StatusBar,
+  ScrollView,
   StyleSheet,
+  StatusBar,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -22,12 +23,11 @@ const SellCryptoScreen = () => {
   const {coin} = route.params || {};
 
   const [amount, setAmount] = useState('');
-  const [creditRate, setCreditRate] = useState('');
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingRate, setIsLoadingRate] = useState(false);
   const [currentRate, setCurrentRate] = useState(0);
   const [selectedCoin, setSelectedCoin] = useState(coin || null);
+  const [isLoadingRate, setIsLoadingRate] = useState(false);
 
   useEffect(() => {
     if (selectedCoin) {
@@ -39,29 +39,15 @@ const SellCryptoScreen = () => {
     try {
       setIsLoadingRate(true);
       const response = await cryptoService.getCryptoRates();
-      console.log('Rate response:', response);
 
-      // Handle different response formats
       let rate = selectedCoin?.usd_rate || 0;
-
       if (response.status && response.results?.data) {
         rate =
           response.results.data[selectedCoin.symbol] || selectedCoin.usd_rate;
-      } else if (response.results?.data) {
-        rate =
-          response.results.data[selectedCoin.symbol] || selectedCoin.usd_rate;
-      } else if (response.data) {
-        rate = response.data[selectedCoin.symbol] || selectedCoin.usd_rate;
       }
-
       setCurrentRate(rate);
-      setCreditRate(rate.toString());
-      console.log('Set current rate to:', rate);
-    } catch (error) {
-      console.error('Error fetching rate:', error);
-      const fallbackRate = selectedCoin?.usd_rate || 0;
-      setCurrentRate(fallbackRate);
-      setCreditRate(fallbackRate.toString());
+    } catch {
+      setCurrentRate(selectedCoin?.usd_rate || 0);
     } finally {
       setIsLoadingRate(false);
     }
@@ -69,68 +55,53 @@ const SellCryptoScreen = () => {
 
   const calculateYouReceive = () => {
     const amt = parseFloat(amount);
-    const rate = parseFloat(creditRate);
-    if (!isNaN(amt) && !isNaN(rate)) {
-      return (amt * rate).toFixed(2);
-    }
-    return '0.00';
+    const rate = parseFloat(currentRate);
+    return !isNaN(amt) && !isNaN(rate) ? (amt * rate).toFixed(2) : '0.00';
   };
 
   const validateForm = () => {
     const newErrors = {};
-
-    // Validate amount
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
       newErrors.amount = 'Please enter a valid amount';
     } else if (parseFloat(amount) < 0.001) {
       newErrors.amount = 'Amount must be at least 0.001';
     }
-
-    // Validate selected coin
-    if (!selectedCoin) {
-      newErrors.coin = 'Please select a cryptocurrency';
-    }
+    if (!selectedCoin) newErrors.coin = 'Please select a cryptocurrency';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
+  const handleSell = async () => {
     if (!validateForm()) return;
-
     try {
       setIsLoading(true);
 
-      const sellData = {
-        crypto_id: selectedCoin.id,
-        amount_crypto: parseFloat(amount),
-      };
-
-      console.log('Submitting sell order with data:', sellData);
-      const response = await cryptoService.sellCrypto(sellData);
-      console.log('Sell order response:', response);
-
-      // Handle different response formats
-      if (response.status || response.success) {
-        Alert.alert(
-          'Success',
-          "Your crypto sell order has been submitted successfully. You will be notified when it's processed.",
-          [
-            {
-              text: 'OK',
-              onPress: () => navigation.goBack(),
-            },
-          ],
-        );
-      } else {
-        Alert.alert('Error', response.message || 'Failed to submit sell order');
+      // First create the wallet
+      const walletRes = await cryptoService.createWallet({coin: selectedCoin.symbol});
+      if (!walletRes.status || !walletRes.results?.data) {
+        throw new Error(walletRes.message || 'Wallet creation failed');
       }
-    } catch (error) {
-      console.error('Sell crypto error:', error);
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to submit sell order. Please try again.',
-      );
+
+      // Then fetch the deposit address
+      const depositRes = await cryptoService.getDepositAddress({
+        blockchain: selectedCoin.symbol.toLowerCase(),
+      });
+
+      if (!depositRes.status || !depositRes.results?.address) {
+        throw new Error(depositRes.message || 'Deposit address not available');
+      }
+
+      navigation.navigate('QRDepositScreen', {
+        coin: selectedCoin,
+        amount,
+        rate: currentRate,
+        youReceive: calculateYouReceive(),
+        wallet: walletRes.results.data,
+        depositAddress: depositRes.results.address,
+      });
+    } catch (err) {
+      Alert.alert('Error', err.message);
     } finally {
       setIsLoading(false);
     }
@@ -142,30 +113,22 @@ const SellCryptoScreen = () => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{flex: 1}}>
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Icon name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <View style={{flex: 1, alignItems: 'center'}}>
-            <Text style={styles.headerText}>
-              Sell {selectedCoin?.symbol || 'Crypto'}
-            </Text>
-          </View>
+          <Text style={styles.headerText}>
+            Sell {selectedCoin?.symbol || 'Crypto'}
+          </Text>
         </View>
 
-        {/* Form */}
-        <View style={styles.formWrapper}>
+        <ScrollView
+          style={styles.formWrapper}
+          contentContainerStyle={{paddingBottom: 40}}
+          keyboardShouldPersistTaps="handled">
           <View style={styles.formSection}>
-            {/* Selected Coin Display */}
             {selectedCoin && (
-              <View
-                style={{
-                  marginBottom: 25,
-                  backgroundColor: '#f0f0f0',
-                  padding: 15,
-                  borderRadius: 8,
-                }}>
+              <View style={styles.infoBox}>
                 <Text style={styles.label}>Selected Cryptocurrency</Text>
                 <Text style={styles.coinText}>
                   {selectedCoin.symbol} - {selectedCoin.name}
@@ -179,16 +142,13 @@ const SellCryptoScreen = () => {
               </View>
             )}
 
-            {/* Amount */}
             <View style={{marginBottom: 25}}>
               <Text style={styles.label}>
                 Amount ({selectedCoin?.symbol || 'Crypto'})
               </Text>
               <TextInput
                 style={[styles.input, errors.amount && {borderColor: 'red'}]}
-                placeholder={`Enter amount in ${
-                  selectedCoin?.symbol || 'crypto'
-                }`}
+                placeholder={`Enter amount in ${selectedCoin?.symbol}`}
                 placeholderTextColor="#9CA3AF"
                 keyboardType="numeric"
                 value={amount}
@@ -202,42 +162,15 @@ const SellCryptoScreen = () => {
               )}
             </View>
 
-            {/* Current Rate Display */}
-            <View
-              style={{
-                marginBottom: 25,
-                backgroundColor: '#3432a830',
-                padding: 12,
-                borderRadius: 8,
-              }}>
-              <Text style={styles.label}>Current Rate</Text>
-              <Text style={styles.rateDisplay}>
-                {isLoadingRate
-                  ? 'Loading...'
-                  : cryptoService.formatUSDAmount(currentRate)}{' '}
-                per {selectedCoin?.symbol || 'unit'}
+            <View style={styles.displayBox}>
+              <Text style={styles.label}>You Will Receive</Text>
+              <Text style={styles.valueText}>
+                {cryptoService.formatUSDAmount(calculateYouReceive())}
               </Text>
             </View>
 
-            {/* You Receive */}
-            <View
-              style={{
-                marginBottom: 30,
-                backgroundColor: '#3432a830',
-                padding: 12,
-                borderRadius: 8,
-              }}>
-              <Text style={styles.label}>You Will Receive</Text>
-              <View style={styles.input}>
-                <Text style={styles.valueText}>
-                  {cryptoService.formatUSDAmount(calculateYouReceive())}
-                </Text>
-              </View>
-            </View>
-
-            {/* Submit */}
             <TouchableOpacity
-              onPress={handleSubmit}
+              onPress={handleSell}
               style={[
                 styles.submitButton,
                 isLoading && styles.submitButtonDisabled,
@@ -247,12 +180,12 @@ const SellCryptoScreen = () => {
                 <ActivityIndicator color="white" />
               ) : (
                 <Text style={styles.submitButtonText}>
-                  Sell {selectedCoin?.symbol || 'Crypto'}
+                  Continue to Sell {selectedCoin?.symbol}
                 </Text>
               )}
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -270,6 +203,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+    marginLeft: 12,
   },
   formWrapper: {
     flex: 1,
@@ -279,10 +213,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 12,
-    backgroundColor: 'white',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    marginTop: -30,
   },
   label: {
     fontSize: 16,
@@ -298,34 +228,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     backgroundColor: '#fff',
     justifyContent: 'center',
-  },
-  inputGray: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#fff',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    marginTop: 10,
-    backgroundColor: '#f3f4f6',
-    justifyContent: 'center',
-  },
-  valueText: {
-    fontSize: 16,
-    color: '#4A4A4A',
-  },
-  submitButton: {
-    backgroundColor: '#000',
-    height: 50,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 'auto',
-    marginBottom: 40,
-  },
-  submitButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
   },
   errorText: {
     color: 'red',
@@ -343,13 +245,37 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 2,
   },
-  rateDisplay: {
+  displayBox: {
+    marginBottom: 25,
+    backgroundColor: '#eee',
+    padding: 12,
+    borderRadius: 8,
+  },
+  valueText: {
     fontSize: 16,
     color: '#4A4A4A',
-    fontWeight: '500',
+  },
+  submitButton: {
+    backgroundColor: '#000',
+    height: 50,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   submitButtonDisabled: {
     backgroundColor: '#999',
+  },
+  infoBox: {
+    marginBottom: 25,
+    backgroundColor: '#f0f0f0',
+    padding: 15,
+    borderRadius: 8,
   },
 });
 

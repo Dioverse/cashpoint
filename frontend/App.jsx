@@ -84,6 +84,7 @@ import bgImage from './src/assets/images/3.png';
 import './global.css';
 import {AuthProvider} from './src/context/AuthContext';
 import CreatePinScreen from './src/screens/CreatePin';
+import QRDepositScreen from './src/screens/QRDepositScreen';
 
 // Navigators
 const Stack = createNativeStackNavigator();
@@ -104,6 +105,7 @@ function ServicesNav() {
       <ServicesStack.Screen name="SaveAndEarn" component={SaveEarn} />
       <ServicesStack.Screen name="SellGiftCard" component={SellGiftCard} />
       <ServicesStack.Screen name="SellCrypto" component={SellCrypto} />
+      <ServicesStack.Screen name="QRDepositScreen" component={QRDepositScreen} />
       <ServicesStack.Screen name="BuyCrypto" component={BuyCrypto} />
       <ServicesStack.Screen name="TradeCrypto" component={TradeCrypto} />
       <ServicesStack.Screen name="CryptoHistory" component={CryptoHistory} />
